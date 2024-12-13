@@ -1,4 +1,4 @@
-from generator.architecture.export.context import DEFAULT
+from generator.architecture.export.context import DEFAULT, FunctionRules
 from generator.architecture.export.style import NamespaceStyle
 from generator.architecture.functions import Function
 
@@ -15,7 +15,9 @@ class Class(object):
         self.functions = functions
 
     def export(self, ctx = DEFAULT):
-        ctx = ctx.mutate("functions_virtual", True)
+        fr: FunctionRules = ctx.function_rules.mutate("include_convention", False)
+        fr: FunctionRules = fr.mutate("include_this", False)
+        ctx = ctx.mutate("function_rules", fr)
 
         includes = [
             f'#include "{self.location}/{self.name}Struct.h"',

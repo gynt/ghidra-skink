@@ -1,5 +1,6 @@
 from typing import List
 from generator.architecture.classes.cls import Class
+from generator.architecture.export.context import DEFAULT
 from generator.architecture.functions.function import Function
 from generator.architecture.namespaces.namespace import Namespace
 from generator.sarif import FunctionResult, SarifExport
@@ -42,3 +43,8 @@ print(n.export())
 c = Class(namespace, [Function(f) for f in vprs_functions])
 
 print(c.export())
+
+ctx = DEFAULT
+ctx = ctx.mutate("function_rules", ctx.function_rules.mutate("virtual", True))
+ctx = ctx.mutate("class_rules", ctx.class_rules.mutate("prefix", "_"))
+print(c.export(ctx))

@@ -51,22 +51,40 @@ class Function(object):
         return self._collect_includes(include_this)
     
     def declaration(self, ctx: Context):
-        ret = self.f.properties.additionalProperties.ret.type.name
-        cc = self.f.properties.additionalProperties.callingConvention
         name = self.f.properties.additionalProperties.name
-        this_candidates = [param for param in self.f.properties.additionalProperties.params if param.name == "this"]
-        if this_candidates:
-            this = this_candidates[0]
-            coretype = this.type.name.split(" *")[0]
-            if ctx.promote_to_class:
-                this = f"{coretype}Class * {this.name}"
+        ret = self.f.properties.additionalProperties.ret.type.name
+
+        if ctx.function_rules.include_convention:
+            cc = self.f.properties.additionalProperties.callingConvention
+        else:
+            cc = ""
+        
+        if ctx.function_rules.include_this:
+            this_candidates = [param for param in self.f.properties.additionalProperties.params if param.name == "this"]
+            if this_candidates:
+                this = this_candidates[0]
+                coretype = this.type.name.split(" *")[0]
+                if ctx.promote_to_class:
+                    this = f"{coretype}Class * {this.name}"
+                else:
+                    this = f"{coretype} * {this.name}"
             else:
-                this = f"{coretype} * {this.name}"
+                this = ""
         else:
             this = ""
+
         params = [param for param in self.f.properties.additionalProperties.params if param.name != "this"]
-        all_params = ", ".join([this] + [f"{param.type.name} {param.name}" for param in params])
-        return f"{ret} {cc} {name}({all_params});" # TODO: improve
+        
+        if this:
+            all_params = ", ".join([this] + [f"{param.type.name} {param.name}" for param in params])
+        else:
+            all_params = ", ".join([f"{param.type.name} {param.name}" for param in params])
+        
+        virtual_wrapper = lambda x: f"{x};"
+        if ctx.function_rules.virtual:
+            virtual_wrapper = lambda x: f"virtual {x} = 0;" 
+ 
+        return virtual_wrapper(f"{ret} {cc} {name}({all_params})") # TODO: improve
     
     def namespace(self):
         return self.f.properties.additionalProperties.namespace
