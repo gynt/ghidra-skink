@@ -1,9 +1,9 @@
 from typing import List
-from generator.architecture.classes.cls import Class
-from generator.architecture.export.context import DEFAULT
-from generator.architecture.functions.function import Function
-from generator.architecture.namespaces.namespace import Namespace
-from generator.sarif import FunctionResult, SarifExport
+from skink.architecture.classes.cls import Class
+from skink.architecture.export.context import DEFAULT
+from skink.architecture.functions.function import Function
+from skink.architecture.namespaces.namespace import Namespace
+from skink.sarif import FunctionResult, SarifExport
 import json
 
 # with open("data/Stronghold Crusader.exe.functions.sarif", 'rb') as f:

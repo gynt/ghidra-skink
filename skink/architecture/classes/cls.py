@@ -1,6 +1,6 @@
-from generator.architecture.export.context import DEFAULT, FunctionRules
-from generator.architecture.export.style import NamespaceStyle
-from generator.architecture.functions import Function
+from skink.architecture.export.context import DEFAULT, FunctionRules
+from skink.architecture.export.style import NamespaceStyle
+from skink.architecture.functions import Function
 
 
 from typing import List

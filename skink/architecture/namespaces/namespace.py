@@ -1,7 +1,7 @@
 from typing import Any, List
-from generator.architecture.export.context import DEFAULT, Context
-from generator.architecture.export.style import NamespaceStyle
-from generator.architecture.functions.function import Function
+from skink.architecture.export.context import DEFAULT, Context
+from skink.architecture.export.style import NamespaceStyle
+from skink.architecture.functions.function import Function
 
 
 class Namespace(object):

@@ -1,6 +1,6 @@
-from generator.architecture.export.context import DEFAULT, Context
-from generator.architecture.export.style import NamespaceStyle
-from generator.sarif import FunctionResult, Param, TypeInfo
+from skink.architecture.export.context import DEFAULT, Context
+from skink.architecture.export.style import NamespaceStyle
+from skink.sarif import FunctionResult, Param, TypeInfo
 
 # TODO: needs a context object to understand root path
 

@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 
 from dataclasses_json import dataclass_json
 
-from generator.architecture.export.style import AbstractStyle, NamespaceStyle
+from skink.architecture.export.style import AbstractStyle, NamespaceStyle
 
 @dataclass_json
 @dataclass
