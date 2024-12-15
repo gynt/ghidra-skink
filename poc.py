@@ -6,29 +6,13 @@ from skink.architecture.namespaces.namespace import Namespace
 from skink.sarif import FunctionResult, SarifExport
 import json
 
-# with open("data/Stronghold Crusader.exe.functions.sarif", 'rb') as f:
-#     validation = SarifExport.schema().validate(json.load(f))
 
-# with open("data/Stronghold Crusader.exe.functions.sarif", 'rb') as f:
-#     s: SarifExport = SarifExport.schema().loads(f.read())
-
-# class_functions: List[FunctionResult] = [r for r in s.runs[0].results if r.ruleId == "FUNCTIONS" and r.properties.additionalProperties.namespaceIsClass]
-# classes = set(f.properties.additionalProperties.namespace for f in class_functions)
-
-# with open("data/ViewportRenderState-functions.json", 'w') as f:
-#     f.write(f"[{', '.join(v.to_json() for v in vprs_functions)}]")
-
-
-with open("data/ViewportRenderState-functions.json", 'r') as f:
+with open("data/class-example.sarif.json", 'r') as f:
     j = json.load(f)
-    vprs_functions = [FunctionResult.from_dict(d) for d in j]
+    sarifExport: SarifExport = SarifExport.from_dict(j)
+    vprs_functions = [f for f in sarifExport.runs[0].results if f.ruleId == "FUNCTIONS"]
 
-
-# functions = [r for r in s.runs[0].results if r.ruleId == "FUNCTIONS"]
-# class_functions = [f for f in functions if f.properties.additionalProperties.namespaceIsClass]
-# func = functions[100]
-
-namespace = "_HoldStrong::ViewportRenderState"
+namespace = "A::B"
 classs = namespace + "Class"
 struct = namespace + "Struct"
 func = vprs_functions[0]
