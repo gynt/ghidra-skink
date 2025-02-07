@@ -15,9 +15,9 @@ class Class(object):
         self.functions = functions
 
     def export(self, ctx = DEFAULT):
-        fr: FunctionRules = ctx.function_rules.mutate("include_convention", False)
-        fr: FunctionRules = fr.mutate("include_this", False)
-        ctx = ctx.mutate("function_rules", fr)
+        fr: FunctionRules = ctx.function_rules.mutate(include_convention = False)
+        fr: FunctionRules = fr.mutate(include_this = False)
+        ctx = ctx.mutate(function_rules = fr)
 
         includes = [
             f'#include "{self.location}/{self.name}Struct.h"',

@@ -1,6 +1,6 @@
 from typing import List
 from skink.architecture.classes.cls import Class
-from skink.architecture.export.context import DEFAULT
+from skink.architecture.export.context import DEFAULT, Context
 from skink.architecture.functions.function import Function
 from skink.architecture.namespaces.namespace import Namespace
 from skink.sarif import FunctionResult, SarifExport
@@ -29,6 +29,6 @@ c = Class(namespace, [Function(f) for f in vprs_functions])
 print(c.export())
 
 ctx = DEFAULT
-ctx = ctx.mutate("function_rules", ctx.function_rules.mutate("virtual", True))
-ctx = ctx.mutate("class_rules", ctx.class_rules.mutate("prefix", "_"))
+ctx = ctx.mutate(function_rules = ctx.function_rules.mutate(virtual = True))
+ctx = ctx.mutate(class_rules = ctx.class_rules.mutate(prefix = "_"))
 print(c.export(ctx))

@@ -1,22 +1,21 @@
 from dataclasses import dataclass, field
+from typing import TypeVar
 
 from dataclasses_json import dataclass_json
 
 from skink.architecture.export.style import AbstractStyle, NamespaceStyle
 
+C = TypeVar('C', bound="AbstractContext")
+
 @dataclass_json
 @dataclass
 class AbstractContext(object):
 
-    def copy[Context](self) -> Context:
+    def copy(self) -> "AbstractContext":
         return self.from_json(self.to_json())
 
-    def mutate[Context](self, k, v) -> Context:
-        ctx = self.copy()
-        if not hasattr(ctx, k):
-            raise Exception(f"Style {ctx} does not have attribue {k}")
-        setattr(ctx, k, v)
-        return ctx
+    def mutate(self, **kwargs) -> "AbstractContext":
+        return type(self)(**kwargs)
 
 
 @dataclass_json
@@ -28,7 +27,7 @@ class IncludeRules(AbstractContext):
 @dataclass_json
 @dataclass
 class ClassRules(AbstractContext):
-    prefix: str
+    prefix: str = ""
 
 
 @dataclass_json
@@ -45,9 +44,9 @@ class Context(AbstractContext):
     root: str = ""
     style: AbstractStyle = field(default_factory=lambda: NamespaceStyle)
     promote_to_class: bool = True
-    include: IncludeRules = field(default_factory=lambda: IncludeRules(False))
+    include: IncludeRules = field(default_factory=lambda: IncludeRules())
     function_rules: FunctionRules = field(default_factory=lambda: FunctionRules())
-    class_rules: ClassRules = field(default_factory=lambda: ClassRules(""))
+    class_rules: ClassRules = field(default_factory=lambda: ClassRules())
 
 
 DEFAULT = Context()
