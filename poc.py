@@ -31,4 +31,5 @@ print(c.export())
 ctx = DEFAULT
 ctx = ctx.mutate(function_rules = ctx.function_rules.mutate(virtual = True))
 ctx = ctx.mutate(class_rules = ctx.class_rules.mutate(prefix = "_"))
+print(ctx.to_json())
 print(c.export(ctx))

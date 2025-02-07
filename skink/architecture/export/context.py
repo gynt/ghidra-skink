@@ -5,8 +5,6 @@ from dataclasses_json import dataclass_json
 
 from skink.architecture.export.style import AbstractStyle, NamespaceStyle
 
-C = TypeVar('C', bound="AbstractContext")
-
 @dataclass_json
 @dataclass
 class AbstractContext(object):
@@ -15,13 +13,18 @@ class AbstractContext(object):
         return self.from_json(self.to_json())
 
     def mutate(self, **kwargs) -> "AbstractContext":
-        return type(self)(**kwargs)
+        ctx = self.copy()
+        for k,v  in kwargs.items():
+          if not hasattr(ctx, k):
+              raise Exception(f"Context {ctx} does not have attribue {k}")
+          setattr(ctx, k, v)
+        return ctx
 
 
 @dataclass_json
 @dataclass
 class IncludeRules(AbstractContext):
-    functions_this_parameter_type: bool
+    functions_this_parameter_type: bool = True
 
 
 @dataclass_json
