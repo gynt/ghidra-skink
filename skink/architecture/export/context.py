@@ -31,6 +31,7 @@ class IncludeRules(AbstractContext):
 @dataclass
 class ClassRules(AbstractContext):
     prefix: str = ""
+    suffix: str = "Class"
 
 
 @dataclass_json
@@ -40,6 +41,12 @@ class FunctionRules(AbstractContext):
     include_convention: bool = True
     include_this: bool = True
 
+@dataclass_json
+@dataclass
+class StructRules(AbstractContext):
+    prefix: str = ""
+    typedef: bool = False
+    suffix: str = "Struct"
 
 @dataclass_json
 @dataclass
@@ -50,6 +57,7 @@ class Context(AbstractContext):
     include: IncludeRules = field(default_factory=lambda: IncludeRules())
     function_rules: FunctionRules = field(default_factory=lambda: FunctionRules())
     class_rules: ClassRules = field(default_factory=lambda: ClassRules())
+    struct_rules: StructRules = field(default_factory=lambda: StructRules())
 
 
 DEFAULT = Context()

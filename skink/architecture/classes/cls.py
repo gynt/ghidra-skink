@@ -1,4 +1,4 @@
-from skink.architecture.export.context import DEFAULT, FunctionRules
+from skink.architecture.export.context import DEFAULT, Context, FunctionRules
 from skink.architecture.export.style import NamespaceStyle
 from skink.architecture.functions import Function
 
@@ -17,10 +17,10 @@ class Class(object):
     def export(self, ctx = DEFAULT):
         fr: FunctionRules = ctx.function_rules.mutate(include_convention = False)
         fr: FunctionRules = fr.mutate(include_this = False)
-        ctx = ctx.mutate(function_rules = fr)
+        ctx: Context = ctx.mutate(function_rules = fr)
 
         includes = [
-            f'#include "{self.location}/{self.name}Struct.h"',
+            f'#include "{self.location}/{self.name}{ctx.struct_rules.suffix}.h"',
         ]
 
         for f in self.functions:
@@ -31,7 +31,9 @@ class Class(object):
         else:
             namespaceWrap = lambda x: x
 
-        classWrap = lambda x: f"class {ctx.class_rules.prefix}{self.name}Class : struct {self.name}Struct {{\n\n    {x}\n\n  }}"
+        className = f"{ctx.class_rules.prefix}{self.name}{ctx.class_rules.suffix}"
+        structName = f"{ctx.struct_rules.prefix}{self.name}{ctx.struct_rules.suffix}"
+        classWrap = lambda x: f"class {className} : struct {structName} {{\n\n    {x}\n\n  }}"
 
         declarations = []
         for f in self.functions:

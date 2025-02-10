@@ -13,6 +13,14 @@ def example_class_example_functions_fixture():
       vprs_functions = [f for f in sarifExport.runs[0].results if f.ruleId == "FUNCTIONS"]
       return vprs_functions
 
+@pytest.fixture
+def example_struct_example_fixture():
+    with open("tests/data/struct-example.sarif.json", 'r') as f:
+      j = json.load(f)
+      sarifExport: SarifExport = SarifExport.from_dict(j)
+      dts = [f for f in sarifExport.runs[0].results if f.ruleId == "DATATYPE"]
+      return dts
+
 def pytest_assertrepr_compare(config, op, left, right):
     # https://docs.pytest.org/en/latest/reference/reference.html#pytest.hookspec.pytest_assertrepr_compare
     if isinstance(left, str) and isinstance(right, str) and op == "==":

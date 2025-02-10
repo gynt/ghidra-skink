@@ -1,0 +1,152 @@
+{
+  "$schema": "https://schemastore.azurewebsites.net/schemas/json/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "properties": {},
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "Ghidra",
+          "version": "11.1.1",
+          "informationUri": "https://github.com/NationalSecurityAgency/ghidra"
+        }
+      },
+      "artifacts": [
+        {
+          "location": {
+            "uri": "class-example.exe"
+          },
+          "properties": {
+            "additionalProperties": {
+              "imageBase": "00400000"
+            }
+          },
+          "sourceLanguage": "x86:LE:32:default",
+          "description": {
+            "text": "windows"
+          }
+        }
+      ],
+      "results": [
+        {
+          "message": {
+            "text": "DT.Struct"
+          },
+          "kind": "informational",
+          "level": "none",
+          "ruleId": "DATATYPE",
+          "properties": {
+            "additionalProperties": {
+              "packed": "false",
+              "alignment": "1",
+              "kind": "struct",
+              "size": 28,
+              "fields": {
+                "a": {
+                  "offset": 0,
+                  "type": {
+                    "kind": "base",
+                    "size": 4,
+                    "name": "dword",
+                    "location": "/"
+                  },
+                  "ordinal": 0,
+                  "length": 4,
+                  "field_name": "a",
+                  "name": "dword",
+                  "location": "/"
+                },
+                "b": {
+                  "offset": 4,
+                  "type": {
+                    "kind": "base",
+                    "size": 4,
+                    "name": "dword",
+                    "location": "/"
+                  },
+                  "ordinal": 1,
+                  "length": 4,
+                  "field_name": "b",
+                  "name": "dword",
+                  "location": "/"
+                },
+                "c": {
+                  "offset": 8,
+                  "type": {
+                    "kind": "base",
+                    "size": 4,
+                    "name": "dword",
+                    "location": "/"
+                  },
+                  "ordinal": 2,
+                  "length": 4,
+                  "field_name": "c",
+                  "name": "dword",
+                  "location": "/"
+                },
+                "d": {
+                  "offset": 12,
+                  "type": {
+                    "kind": "base",
+                    "size": 4,
+                    "name": "dword",
+                    "location": "/"
+                  },
+                  "ordinal": 3,
+                  "length": 4,
+                  "field_name": "d",
+                  "name": "dword",
+                  "location": "/"
+                },
+                "e": {
+                  "offset": 16,
+                  "type": {
+                    "kind": "base",
+                    "size": 4,
+                    "name": "dword",
+                    "location": "/"
+                  },
+                  "ordinal": 4,
+                  "length": 4,
+                  "field_name": "e",
+                  "name": "dword",
+                  "location": "/"
+                },
+                "f": {
+                  "offset": 20,
+                  "type": {
+                    "kind": "base",
+                    "size": 4,
+                    "name": "dword",
+                    "location": "/"
+                  },
+                  "ordinal": 5,
+                  "length": 4,
+                  "field_name": "f",
+                  "name": "dword",
+                  "location": "/"
+                },
+                "g": {
+                  "offset": 672,
+                  "type": {
+                    "kind": "enum",
+                    "size": 4,
+                    "name": "Enum1",
+                    "location": "/Structs/Struct1"
+                  },
+                  "ordinal": 168,
+                  "length": 4,
+                  "field_name": "g",
+                  "name": "Enum1",
+                  "location": "/Structs/Struct1"
+                }
+              },
+              "name": "Struct1",
+              "location": "/Structs"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

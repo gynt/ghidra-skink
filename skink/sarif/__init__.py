@@ -62,7 +62,7 @@ class Stack:
 
 @dataclass_json(undefined=Undefined.INCLUDE, letter_case=LetterCase.CAMEL)
 @dataclass
-class AdditionalProperties:
+class AdditionalFunctionProperties:
     name: str
     location: str
     callingConvention: str
@@ -78,15 +78,15 @@ class AdditionalProperties:
 
 @dataclass_json(undefined=Undefined.INCLUDE, letter_case=LetterCase.CAMEL)
 @dataclass
-class Properties:
-    additionalProperties: AdditionalProperties
+class FunctionProperties:
+    additionalProperties: AdditionalFunctionProperties
     extra: CatchAll
 
 @dataclass_json(undefined=Undefined.INCLUDE, letter_case=LetterCase.CAMEL)
 @dataclass
 class FunctionResult:
     ruleId: str
-    properties: Properties
+    properties: FunctionProperties
     extra: CatchAll
 
 @dataclass_json(undefined=Undefined.INCLUDE, letter_case=LetterCase.CAMEL)
@@ -95,9 +95,49 @@ class UnusedResult:
     ruleId: str
     extra: CatchAll
 
+
+@dataclass_json(undefined=Undefined.INCLUDE, letter_case=LetterCase.CAMEL)
+@dataclass
+class StructField:
+    offset: int
+    type: TypeInfo
+    ordinal: int
+    length: int
+    field_name: str
+    name: str
+    location: str
+    extra: CatchAll
+
+@dataclass_json(undefined=Undefined.INCLUDE, letter_case=LetterCase.CAMEL)
+@dataclass
+class AdditionalDataTypeProperties:
+    packed: str
+    alignment: str
+    kind: str
+    size: int
+    fields: Dict[str, StructField]
+    name: str
+    location: str
+    extra: CatchAll
+
+@dataclass_json(undefined=Undefined.INCLUDE, letter_case=LetterCase.CAMEL)
+@dataclass
+class DataTypeProperties:
+    additionalProperties: AdditionalDataTypeProperties
+    extra: CatchAll
+
+@dataclass_json(undefined=Undefined.INCLUDE, letter_case=LetterCase.CAMEL)
+@dataclass
+class DataTypeResult:
+    ruleId: str
+    properties: DataTypeProperties
+    extra: CatchAll
+
 def decode_result(result):
     if result['ruleId'] == "FUNCTIONS":
         return FunctionResult.from_dict(result)
+    elif result['ruleId'] == "DATATYPE":
+        return DataTypeResult.from_dict(result)
     else:
         return UnusedResult.from_dict(result)
 
