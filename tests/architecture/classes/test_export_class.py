@@ -10,7 +10,7 @@ def test_export1(example_class_example_functions_fixture):
 
     assert e == """\
 #include "A/B/BStruct.h"
-#include "EXE/WinDef.h"
+#include "WinDef.h"
 
 namespace A::B {
 

@@ -1,14 +1,16 @@
+from skink.architecture.export.context import DEFAULT
 from skink.architecture.functions.function import Function
 
-
+# TODO: A/B.h is aspecific, should be with optional suffix Class
 def test_export1(example_class_example_functions_fixture):
     func = example_class_example_functions_fixture[0]
     ff = Function(func)
-    e = ff.export()
+    ctx = DEFAULT.mutate(include = DEFAULT.include.mutate(functions_this_parameter_type = True))
+    e = ff.export(ctx)
     assert e == \
 """\
-#include "EXE/A/B.h"
-#include "EXE/WinDef.h"
+#include "A/B.h"
+#include "WinDef.h"
 
 namespace A::B {
 

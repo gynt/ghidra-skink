@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import TypeVar
+from typing import List, TypeVar
 
 from dataclasses_json import dataclass_json
 
@@ -24,7 +24,7 @@ class AbstractContext(object):
 @dataclass_json
 @dataclass
 class IncludeRules(AbstractContext):
-    functions_this_parameter_type: bool = True
+    functions_this_parameter_type: bool = False
 
 
 @dataclass_json
@@ -50,6 +50,19 @@ class StructRules(AbstractContext):
 
 @dataclass_json
 @dataclass
+class TransformationRules(AbstractContext):
+    use_include_list: bool = False
+    include_list: List[str] = field(default_factory=list)
+    use_exclude_list: bool = False
+    exclude_list: List[str] = field(default_factory=list)
+
+@dataclass_json
+@dataclass
+class LocationRules(AbstractContext):
+    transformation_rules: TransformationRules = field(default_factory=lambda: TransformationRules())
+
+@dataclass_json
+@dataclass
 class Context(AbstractContext):
     root: str = ""
     style: AbstractStyle = field(default_factory=lambda: NamespaceStyle)
@@ -58,6 +71,7 @@ class Context(AbstractContext):
     function_rules: FunctionRules = field(default_factory=lambda: FunctionRules())
     class_rules: ClassRules = field(default_factory=lambda: ClassRules())
     struct_rules: StructRules = field(default_factory=lambda: StructRules())
+    location_rules: LocationRules = field(default_factory=lambda: LocationRules())
 
 
 DEFAULT = Context()

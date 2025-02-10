@@ -1,4 +1,5 @@
 from skink.architecture.export.context import DEFAULT, Context
+from skink.architecture.export.location import normalize_location
 from skink.architecture.export.style import NamespaceStyle
 from skink.sarif import FunctionResult, Param, TypeInfo
 
@@ -8,17 +9,10 @@ class Function(object):
     def __init__(self, f: FunctionResult):
         self.f = f
 
-    def _normalize_location(self, l: str):
-        if l[0] == '/':
-            if not l.startswith('/_HoldStrong'):
-                l = 'EXE' + l
-            else:
-                l = l[1:]
-        if l.endswith(".h"):
-            l = l[:-2]
-        return l
+    def _normalize_location(self, l: str, ctx = DEFAULT):
+        return normalize_location(l, ctx)
     
-    def _include_for_type(self, param: Param):
+    def _include_for_type(self, param: Param, ctx = DEFAULT):
         t = param.type
         loc = t.location
         if not loc:
@@ -26,10 +20,10 @@ class Function(object):
         
         if loc != "/": # TODO: is this too general?
             if loc.endswith(".h"):
-                loc = self._normalize_location(loc)
+                loc = self._normalize_location(loc, ctx)
                 yield f'#include "{loc}.h"'
             else:
-                loc = self._normalize_location(loc)
+                loc = self._normalize_location(loc, ctx)
                 name = t.name
                 if name.endswith(" *"):
                     name = name[:-2]
@@ -38,17 +32,18 @@ class Function(object):
 
 
     # Note: includes return type sometimes
-    def _collect_includes(self, include_this = True):
+    def _collect_includes(self, ctx = DEFAULT):
+        include_this = ctx.include.functions_this_parameter_type
         for param in self.f.properties.additionalProperties.params:
             if not include_this and param.isAutoParameter and param.name == "this":
                 continue
-            yield from self._include_for_type(param)
+            yield from self._include_for_type(param, ctx)
         
         param = self.f.properties.additionalProperties.ret
-        yield from self._include_for_type(param)
+        yield from self._include_for_type(param, ctx)
 
-    def includes(self, include_this = True):
-        return self._collect_includes(include_this)
+    def includes(self, ctx = DEFAULT):
+        return self._collect_includes(ctx)
     
     def declaration(self, ctx: Context):
         name = self.f.properties.additionalProperties.name
@@ -102,4 +97,4 @@ class Function(object):
         else:
             wrap = lambda x: x
 
-        return f"{"\n".join(self.includes(ctx.include.functions_this_parameter_type))}\n\n{wrap(self.declaration(ctx))}"
+        return f"{"\n".join(self.includes(ctx))}\n\n{wrap(self.declaration(ctx))}"

@@ -19,7 +19,7 @@ class Namespace(object):
         ]
 
         for f in self.functions:
-            includes += f.includes(False)
+            includes += f.includes(ctx)
 
         if ctx.style == NamespaceStyle:
             wrap = lambda x: f"namespace {self.namespace} {{\n\n  {x}\n\n}}"
