@@ -27,14 +27,14 @@ class Class(object):
             includes += f.includes(False)
 
         if ctx.style == NamespaceStyle:
-            namespaceWrap = lambda x: f"namespace {self.namespace} {{\n\n\t{x}\n\n}}"
+            namespaceWrap = lambda x: f"namespace {self.namespace} {{\n\n  {x}\n\n}}"
         else:
             namespaceWrap = lambda x: x
 
-        classWrap = lambda x: f"class {ctx.class_rules.prefix}{self.name}Class : struct {self.name}Struct {{\n\n\t\t{x}\n\n\t}}"
+        classWrap = lambda x: f"class {ctx.class_rules.prefix}{self.name}Class : struct {self.name}Struct {{\n\n    {x}\n\n  }}"
 
         declarations = []
         for f in self.functions:
             declarations.append(f.declaration(ctx))
 
-        return f"{"\n".join(includes)}\n\n{namespaceWrap(classWrap("\n\n\t\t".join(declarations)))}"
+        return f"{"\n".join(includes)}\n\n{namespaceWrap(classWrap("\n\n    ".join(declarations)))}"

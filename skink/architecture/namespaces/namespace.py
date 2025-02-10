@@ -22,7 +22,7 @@ class Namespace(object):
             includes += f.includes(False)
 
         if ctx.style == NamespaceStyle:
-            wrap = lambda x: f"namespace {self.namespace} {{\n\n\t{x}\n\n}}"
+            wrap = lambda x: f"namespace {self.namespace} {{\n\n  {x}\n\n}}"
         else:
             wrap = lambda x: x
 
@@ -30,4 +30,4 @@ class Namespace(object):
         for f in self.functions:
             declarations.append(f.declaration(ctx))
 
-        return f"{"\n".join(includes)}\n\n{wrap("\n\n\t".join(declarations))}"
+        return f"{"\n".join(includes)}\n\n{wrap("\n\n  ".join(declarations))}"
