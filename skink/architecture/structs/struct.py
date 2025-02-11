@@ -1,10 +1,11 @@
 from typing import List
 
-from skink.architecture.export.context import DEFAULT
-from skink.architecture.export.location import ROOT, transform_location
-from skink.architecture.export.style import NamespaceStyle
-from skink.architecture.export.types import generate_include_for_type
-from skink.sarif import DataTypeResult, StructField
+from ...export.context import DEFAULT
+from ...export.location import ROOT, transform_location
+from ...export.style import NamespaceStyle
+from ...export.types import generate_include_for_type
+from ...sarif.datatypes.DataTypeResult import DataTypeResult
+from ...sarif.datatypes.StructField import StructField
 
 class Field(object):
 

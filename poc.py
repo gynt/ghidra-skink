@@ -3,8 +3,10 @@ from skink.architecture.classes.cls import Class
 from skink.architecture.export.context import DEFAULT, Context
 from skink.architecture.functions.function import Function
 from skink.architecture.namespaces.namespace import Namespace
-from skink.sarif import FunctionResult, SarifExport
+from skink.sarif import SarifExport
 import json
+
+from skink.sarif.FunctionResult import FunctionResult
 
 
 with open("data/class-example.sarif.json", 'r') as f:

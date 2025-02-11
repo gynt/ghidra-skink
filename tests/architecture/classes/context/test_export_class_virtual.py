@@ -1,5 +1,5 @@
 from skink.architecture.classes.cls import Class
-from skink.architecture.export.context import DEFAULT
+from skink.export.context import DEFAULT
 from skink.architecture.functions.function import Function
 
 namespace = "A::B"

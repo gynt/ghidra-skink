@@ -1,7 +1,7 @@
 from typing import Any, List
-from skink.architecture.export.context import DEFAULT, Context
-from skink.architecture.export.style import NamespaceStyle
-from skink.architecture.functions.function import Function
+from ...export.context import DEFAULT, Context
+from ...export.style import NamespaceStyle
+from ...architecture.functions.function import Function
 
 
 class Namespace(object):

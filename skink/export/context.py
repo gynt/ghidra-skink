@@ -3,7 +3,7 @@ from typing import Dict, List, TypeVar
 
 from dataclasses_json import dataclass_json
 
-from skink.architecture.export.style import AbstractStyle, NamespaceStyle
+from .style import AbstractStyle, NamespaceStyle
 
 @dataclass_json
 @dataclass

@@ -1,5 +1,5 @@
 from typing import Dict
-from skink.architecture.export.context import DEFAULT
+from .context import DEFAULT
 
 ROOT = '/'
 

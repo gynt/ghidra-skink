@@ -2,7 +2,6 @@ import shutil
 import pytest
 import json
 
-from skink.architecture.functions.function import Function
 from skink.sarif import SarifExport
 
 @pytest.fixture

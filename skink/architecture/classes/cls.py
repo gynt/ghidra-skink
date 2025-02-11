@@ -1,6 +1,6 @@
-from skink.architecture.export.context import DEFAULT, Context, FunctionRules
-from skink.architecture.export.style import NamespaceStyle
-from skink.architecture.functions import Function
+from ...export.context import DEFAULT, Context, FunctionRules
+from ...export.style import NamespaceStyle
+from ..functions import Function
 
 
 from typing import List

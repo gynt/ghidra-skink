@@ -1,4 +1,4 @@
-from skink.architecture.export.context import DEFAULT
+from skink.export.context import DEFAULT
 from skink.architecture.functions.function import Function
 
 # TODO: A/B.h is aspecific, should be with optional suffix Class

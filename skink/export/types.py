@@ -1,6 +1,6 @@
-from skink.architecture.export.context import DEFAULT
-from skink.architecture.export.location import ROOT, transform_location
-from skink.sarif import TypeInfo
+from .context import DEFAULT
+from .location import ROOT, transform_location
+from ..sarif.TypeInfo import TypeInfo
 
 
 def generate_include_for_type(type_name: str, type_info: TypeInfo, ctx = DEFAULT):
