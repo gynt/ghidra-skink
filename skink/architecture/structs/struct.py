@@ -1,6 +1,7 @@
 from typing import List
 
 from skink.architecture.export.context import DEFAULT
+from skink.architecture.export.location import ROOT, transform_location
 from skink.architecture.export.style import NamespaceStyle
 from skink.sarif import DataTypeResult, StructField
 
@@ -20,17 +21,6 @@ class Struct(object):
         self.location = s.properties.additionalProperties.location
         self.name = s.properties.additionalProperties.name
         self.s = s
-
-# TODO: copy pasted from function.py
-    def _normalize_location(self, l: str):
-        if l[0] == '/':
-            if not l.startswith('/_HoldStrong'):
-                l = 'EXE' + l
-            else:
-                l = l[1:]
-        if l.endswith(".h"):
-            l = l[:-2]
-        return l
     
     def _include_for_type(self, field: StructField):
         t = field.type
@@ -38,12 +28,12 @@ class Struct(object):
         if not loc:
             raise Exception(f"no location for type: {field.name} {field.field_name}")
         
-        if loc != "/": # TODO: is this too general?
+        if loc != ROOT: # TODO: is this too general?
             if loc.endswith(".h"):
-                loc = self._normalize_location(loc)
+                loc = transform_location(loc)
                 yield f'#include "{loc}.h"'
             else:
-                loc = self._normalize_location(loc)
+                loc = transform_location(loc)
                 name = t.name
                 if name.endswith(" *"):
                     name = name[:-2]

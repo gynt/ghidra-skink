@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List, TypeVar
+from typing import Dict, List, TypeVar
 
 from dataclasses_json import dataclass_json
 
@@ -51,6 +51,8 @@ class StructRules(AbstractContext):
 @dataclass_json
 @dataclass
 class TransformationRules(AbstractContext):
+    use_mapping: bool = False
+    mapping: Dict[str, str] = field(default_factory=dict)
     use_include_list: bool = False
     include_list: List[str] = field(default_factory=list)
     use_exclude_list: bool = False

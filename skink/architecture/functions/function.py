@@ -1,5 +1,5 @@
 from skink.architecture.export.context import DEFAULT, Context
-from skink.architecture.export.location import normalize_location
+from skink.architecture.export.location import ROOT, normalize_location, transform_location
 from skink.architecture.export.style import NamespaceStyle
 from skink.sarif import FunctionResult, Param, TypeInfo
 
@@ -8,9 +8,6 @@ from skink.sarif import FunctionResult, Param, TypeInfo
 class Function(object):
     def __init__(self, f: FunctionResult):
         self.f = f
-
-    def _normalize_location(self, l: str, ctx = DEFAULT):
-        return normalize_location(l, ctx)
     
     def _include_for_type(self, param: Param, ctx = DEFAULT):
         t = param.type
@@ -18,12 +15,12 @@ class Function(object):
         if not loc:
             raise Exception(f"no location for type: {param.typeName} {param.name}")
         
-        if loc != "/": # TODO: is this too general?
+        if loc != ROOT: # TODO: is this too general?
             if loc.endswith(".h"):
-                loc = self._normalize_location(loc, ctx)
+                loc = transform_location(loc, ctx)
                 yield f'#include "{loc}.h"'
             else:
-                loc = self._normalize_location(loc, ctx)
+                loc = transform_location(loc, ctx)
                 name = t.name
                 if name.endswith(" *"):
                     name = name[:-2]

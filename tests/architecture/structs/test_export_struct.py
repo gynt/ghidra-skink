@@ -11,7 +11,7 @@ def test_export1(example_struct_example_fixture):
     e = c.export()
 
     assert e == """\
-#include "EXE/Structs/Struct1/Enum1.h"
+#include "Structs/Struct1/Enum1.h"
 
 namespace Structs {
 
@@ -42,7 +42,7 @@ def test_export2(example_struct_example_fixture):
     e = c.export(DEFAULT.mutate(struct_rules = DEFAULT.struct_rules.mutate(typedef = True, suffix = "", prefix = "_")))
 
     assert e == """\
-#include "EXE/Structs/Struct1/Enum1.h"
+#include "Structs/Struct1/Enum1.h"
 
 namespace Structs {
 
