@@ -1,6 +1,7 @@
 from skink.architecture.export.context import DEFAULT, Context
 from skink.architecture.export.location import ROOT, normalize_location, transform_location
 from skink.architecture.export.style import NamespaceStyle
+from skink.architecture.export.types import generate_include_for_type
 from skink.sarif import FunctionResult, Param, TypeInfo
 
 # TODO: needs a context object to understand root path
@@ -8,25 +9,6 @@ from skink.sarif import FunctionResult, Param, TypeInfo
 class Function(object):
     def __init__(self, f: FunctionResult):
         self.f = f
-    
-    def _include_for_type(self, param: Param, ctx = DEFAULT):
-        t = param.type
-        loc = t.location
-        if not loc:
-            raise Exception(f"no location for type: {param.typeName} {param.name}")
-        
-        if loc != ROOT: # TODO: is this too general?
-            if loc.endswith(".h"):
-                loc = transform_location(loc, ctx)
-                yield f'#include "{loc}.h"'
-            else:
-                loc = transform_location(loc, ctx)
-                name = t.name
-                if name.endswith(" *"):
-                    name = name[:-2]
-
-                yield f'#include "{loc}/{name}.h"'
-
 
     # Note: includes return type sometimes
     def _collect_includes(self, ctx = DEFAULT):
@@ -34,10 +16,10 @@ class Function(object):
         for param in self.f.properties.additionalProperties.params:
             if not include_this and param.isAutoParameter and param.name == "this":
                 continue
-            yield from self._include_for_type(param, ctx)
+            yield from generate_include_for_type(param.formalTypeName, param, ctx)
         
         param = self.f.properties.additionalProperties.ret
-        yield from self._include_for_type(param, ctx)
+        yield from generate_include_for_type(param.formalTypeName, param, ctx)
 
     def includes(self, ctx = DEFAULT):
         return self._collect_includes(ctx)

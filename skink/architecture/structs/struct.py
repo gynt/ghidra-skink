@@ -3,6 +3,7 @@ from typing import List
 from skink.architecture.export.context import DEFAULT
 from skink.architecture.export.location import ROOT, transform_location
 from skink.architecture.export.style import NamespaceStyle
+from skink.architecture.export.types import generate_include_for_type
 from skink.sarif import DataTypeResult, StructField
 
 class Field(object):
@@ -22,39 +23,19 @@ class Struct(object):
         self.name = s.properties.additionalProperties.name
         self.s = s
     
-    def _include_for_type(self, field: StructField):
-        t = field.type
-        loc = t.location
-        if not loc:
-            raise Exception(f"no location for type: {field.name} {field.field_name}")
-        
-        if loc != ROOT: # TODO: is this too general?
-            if loc.endswith(".h"):
-                loc = transform_location(loc)
-                yield f'#include "{loc}.h"'
-            else:
-                loc = transform_location(loc)
-                name = t.name
-                if name.endswith(" *"):
-                    name = name[:-2]
-
-                yield f'#include "{loc}/{name}.h"'
-
-
-    # Note: includes return type sometimes
-    def _collect_includes(self):
+    def _collect_includes(self, ctx = DEFAULT):
         for name, field in self.s.properties.additionalProperties.fields.items():
-            yield from self._include_for_type(field)
+            yield from generate_include_for_type(field.name, field.type, ctx=ctx)
 
-    def includes(self):
-        return self._collect_includes()
+    def includes(self, ctx = DEFAULT):
+        return self._collect_includes(ctx=ctx)
 
     def export(self, ctx = DEFAULT):
         includes = [
             # f'#include "{self.location}/{self.name}Struct.h"',
         ]
 
-        includes += self.includes()
+        includes += self.includes(ctx=ctx)
 
         if ctx.style == NamespaceStyle:
             namespaceWrap = lambda x: f"namespace {self.namespace} {{\n\n  {x}\n\n}}"
