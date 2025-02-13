@@ -21,9 +21,11 @@ class Class(object):
         fr: FunctionRules = fr.mutate(include_this = False)
         ctx: Context = ctx.mutate(function_rules = fr)
 
-        includes = [
-            f'#include "{self.location}/{self.name}{ctx.struct_rules.suffix}.h"',
-        ]
+        includes = []
+        if self.structure:
+            includes.append(self.structure.include())
+        else:
+            includes.append(f'#include "{self.location}/{self.name}{ctx.struct_rules.suffix}.h"')
 
         for f in self.functions:
             includes += f.includes(ctx)

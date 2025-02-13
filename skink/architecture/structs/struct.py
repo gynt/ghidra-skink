@@ -1,7 +1,7 @@
 from typing import List
 
 from ...export.context import DEFAULT
-from ...export.location import ROOT, transform_location
+from ...export.location import ROOT, normalize_location, transform_location
 from ...export.style import NamespaceStyle
 from ...export.types import generate_include_for_type
 from ...sarif.datatypes.DataTypeResult import DataTypeResult
@@ -19,10 +19,14 @@ class Field(object):
 class Struct(object):
 
     def __init__(self, s: DataTypeResult):
-        self.namespace = "::".join(v for v in s.properties.additionalProperties.location.split("/") if v)
-        self.location = s.properties.additionalProperties.location
+        loc = normalize_location(s.properties.additionalProperties.location)
+        self.namespace = "::".join(v for v in loc.split("/") if v)
+        self.location = loc
         self.name = s.properties.additionalProperties.name
         self.s = s
+
+    def include(self, ctx = DEFAULT):
+        return f'#include "{self.location}/{ctx.struct_rules.prefix}{self.name}{ctx.struct_rules.suffix}.h"'
     
     def _collect_includes(self, ctx = DEFAULT):
         for name, field in self.s.properties.additionalProperties.fields.items():
