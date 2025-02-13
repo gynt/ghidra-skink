@@ -1,6 +1,7 @@
 from skink.architecture.classes.cls import Class
 from skink.architecture.classes.collect import collect_classes
 from skink.architecture.functions.function import Function
+from skink.sarif.datatypes.DataTypeResult import DataTypeResult
 
 namespace = "A::B"
 
@@ -28,3 +29,12 @@ namespace A::B {
 }\
 """
 
+def test_collect2(example_collect_joint_data):
+    results = example_collect_joint_data
+
+    # What if there is a struct but not associated class...
+    results = [result for result in results if isinstance(result, DataTypeResult)]
+
+    classes = list(collect_classes(results))
+
+    assert len(classes) == 0

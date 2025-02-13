@@ -43,6 +43,8 @@ def collect_classes(results: List[BasicResult]):
             ap.location = loc
             classes[ns].structure = result
     for ns, preclass in classes.items():
+        if not preclass.functions:
+            continue
         functions = [Function(fr) for fr in preclass.functions]
         struct = None
         if preclass.structure:
