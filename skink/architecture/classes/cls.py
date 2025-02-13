@@ -22,6 +22,7 @@ class Class(object):
         ctx: Context = ctx.mutate(function_rules = fr)
 
         includes = []
+        # TODO: make this inheritance from struct optional so this include becomes optional
         if self.structure:
             includes.append(self.structure.include())
         else:
@@ -37,6 +38,7 @@ class Class(object):
 
         className = f"{ctx.class_rules.prefix}{self.name}{ctx.class_rules.suffix}"
         structName = f"{ctx.struct_rules.prefix}{self.name}{ctx.struct_rules.suffix}"
+        # TODO: make this inheritance from struct optional
         classWrap = lambda x: f"class {className} : struct {structName} {{\n\n    {x}\n\n  }}"
 
         declarations = []

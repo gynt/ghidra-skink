@@ -1,8 +1,17 @@
 import shutil
+from typing import List
 import pytest
 import json
 
 from skink.sarif import SarifExport
+from skink.sarif.BasicResult import BasicResult
+
+@pytest.fixture
+def example_collect_joint_data() -> List[BasicResult]:
+    with open("tests/data/example1.sarif.json", 'r') as f:
+      j = json.load(f)
+      sarifExport1: SarifExport = SarifExport.from_dict(j)   
+    return sarifExport1.runs[0].results
 
 @pytest.fixture
 def example_class_example_functions_fixture():

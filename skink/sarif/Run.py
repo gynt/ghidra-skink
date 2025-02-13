@@ -1,3 +1,4 @@
+from skink.sarif.BasicResult import BasicResult
 from .decode_results import decode_results
 from .functions.FunctionResult import FunctionResult
 
@@ -12,5 +13,5 @@ from typing import List
 @dataclass_json(undefined=Undefined.INCLUDE, letter_case=LetterCase.CAMEL)
 @dataclass
 class Run:
-    results: List[FunctionResult] = field(metadata=config(decoder=decode_results))
+    results: List[BasicResult] = field(metadata=config(decoder=decode_results))
     extra: CatchAll
