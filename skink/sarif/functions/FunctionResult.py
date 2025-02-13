@@ -1,4 +1,4 @@
-from skink.sarif.functions.FunctionProperties import FunctionProperties
+from .FunctionProperties import FunctionProperties
 
 
 from dataclasses_json import CatchAll, LetterCase, Undefined, dataclass_json

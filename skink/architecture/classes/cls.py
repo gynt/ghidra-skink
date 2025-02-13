@@ -1,3 +1,4 @@
+from skink.architecture.structs.struct import Struct
 from ...export.context import DEFAULT, Context, FunctionRules
 from ...export.style import NamespaceStyle
 from ..functions import Function
@@ -8,11 +9,12 @@ from typing import List
 
 class Class(object):
 
-    def __init__(self, namespace: str, functions: List[Function]):
+    def __init__(self, namespace: str, functions: List[Function], structure: Struct = None):
         self.namespace = namespace
         self.location = namespace.replace("::", "/")
         self.name = self.location.split("/")[-1]
         self.functions = functions
+        self.structure = structure
 
     def export(self, ctx = DEFAULT):
         fr: FunctionRules = ctx.function_rules.mutate(include_convention = False)
