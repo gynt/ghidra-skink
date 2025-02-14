@@ -6,6 +6,12 @@ from ...export.style import NamespaceStyle
 from ...export.types import generate_include_for_type
 from ...sarif.datatypes.DataTypeResult import DataTypeResult
 from ...sarif.datatypes.StructField import StructField
+from dataclasses import dataclass, field
+
+@dataclass
+class StructExportPart:
+    fields: List[str] = field(default_factory = list)
+    includes: List[str] = field(default_factory = list)
 
 class Field(object):
 
@@ -34,6 +40,16 @@ class Struct(object):
 
     def includes(self, ctx = DEFAULT):
         return self._collect_includes(ctx=ctx)
+    
+    def export_field_declarations(self, ctx = DEFAULT):
+        for n, sf in self.s.properties.additionalProperties.fields.items():
+            f = Field(sf)
+            yield f.declaration(ctx)
+    
+    def export_fields(self, ctx = DEFAULT) -> StructExportPart:
+        includes = self.includes(ctx = ctx)
+        declarations = list(self.export_field_declarations())
+        return StructExportPart(fields = declarations, includes = includes)
 
     def export(self, ctx = DEFAULT):
         includes = [
