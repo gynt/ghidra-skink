@@ -12,6 +12,9 @@ class Namespace(object):
         self.name = self.location.split("/")[-1]
         self.functions = functions
 
+    def path(self, ctx = DEFAULT):
+        return f"{self.location}/{self.name}.h"
+
     def export(self, ctx = DEFAULT):
         includes = [
             f'#include "{self.location}/{self.name}Class.h"',

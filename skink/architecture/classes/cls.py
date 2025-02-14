@@ -16,15 +16,19 @@ class Class(object):
         self.functions = functions
         self.structure = structure
 
+    def path(self, ctx = DEFAULT):
+        return f"{self.location}/{ctx.class_rules.prefix}{self.name}{ctx.class_rules.suffix}.h"
+
     def export(self, ctx = DEFAULT):
         fr: FunctionRules = ctx.function_rules.mutate(include_convention = False)
         fr: FunctionRules = fr.mutate(include_this = False)
         ctx: Context = ctx.mutate(function_rules = fr)
 
         includes = []
-        # TODO: make this inheritance from struct optional so this include becomes optional
+
         if self.structure:
-            includes.append(self.structure.include())
+            if not ctx.class_rules.inline_struct:
+                includes.append(self.structure.include())
         else:
             includes.append(f'#include "{self.location}/{self.name}{ctx.struct_rules.suffix}.h"')
 
@@ -39,9 +43,23 @@ class Class(object):
         className = f"{ctx.class_rules.prefix}{self.name}{ctx.class_rules.suffix}"
         structName = f"{ctx.struct_rules.prefix}{self.name}{ctx.struct_rules.suffix}"
         # TODO: make this inheritance from struct optional
-        classWrap = lambda x: f"class {className} : struct {structName} {{\n\n    {x}\n\n  }}"
+        if ctx.class_rules.inline_struct:
+            classWrap = lambda x: f"class {className} {{\n\n    {x}\n\n  }}"
+        else:
+            classWrap = lambda x: f"class {className} : struct {structName} {{\n\n    {x}\n\n  }}"
+
+        fields = []
+        if ctx.class_rules.inline_struct:
+            sep = self.structure.export_fields(ctx)
+            for f in sep.fields:
+                fields.append(f)
+            for i in sep.includes:
+                includes.append(i)
 
         declarations = []
+        if ctx.class_rules.inline_struct:
+            declarations += fields
+        
         for f in self.functions:
             declarations.append(f.declaration(ctx))
 

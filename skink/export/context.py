@@ -32,6 +32,7 @@ class IncludeRules(AbstractContext):
 class ClassRules(AbstractContext):
     prefix: str = ""
     suffix: str = "Class"
+    inline_struct: bool = False
 
 
 @dataclass_json

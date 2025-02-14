@@ -31,8 +31,11 @@ class Struct(object):
         self.name = s.properties.additionalProperties.name
         self.s = s
 
+    def path(self, ctx = DEFAULT):
+        return f"{self.location}/{ctx.struct_rules.prefix}{self.name}{ctx.struct_rules.suffix}.h"
+
     def include(self, ctx = DEFAULT):
-        return f'#include "{self.location}/{ctx.struct_rules.prefix}{self.name}{ctx.struct_rules.suffix}.h"'
+        return f'#include "{self.path(ctx)}"'
     
     def _collect_includes(self, ctx = DEFAULT):
         for name, field in self.s.properties.additionalProperties.fields.items():
