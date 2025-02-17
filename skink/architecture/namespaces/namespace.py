@@ -1,4 +1,6 @@
 from typing import Any, List
+
+from skink.utils.OrderedSet import OrderedSet
 from ...export.context import DEFAULT, Context
 from ...export.style import NamespaceStyle
 from ...architecture.functions.function import Function
@@ -16,10 +18,7 @@ class Namespace(object):
         return f"{self.location}/{self.name}.h"
 
     def export(self, ctx = DEFAULT):
-        includes = [
-            f'#include "{self.location}/{self.name}Class.h"',
-            f'#include "{self.location}/{self.name}Struct.h"',
-        ]
+        includes = OrderedSet()
 
         for f in self.functions:
             includes += f.includes(ctx)

@@ -9,7 +9,7 @@ def uniques(iterable):
 
 class OrderedSet[T](list):
 
-    def __init__(self, iterable: Iterable[T]):
+    def __init__(self, iterable: Iterable[T] = ()):
         super().__init__(uniques(iterable))
 
     def add(self, value: T):

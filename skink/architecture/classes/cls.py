@@ -1,4 +1,5 @@
 from skink.architecture.structs.struct import Struct
+from skink.utils.OrderedSet import OrderedSet
 from ...export.context import DEFAULT, Context, FunctionRules
 from ...export.style import NamespaceStyle
 from ..functions import Function
@@ -24,7 +25,7 @@ class Class(object):
         fr: FunctionRules = fr.mutate(include_this = False)
         ctx: Context = ctx.mutate(function_rules = fr)
 
-        includes = []
+        includes = OrderedSet()
 
         if self.structure:
             if not ctx.class_rules.inline_struct:

@@ -1,7 +1,7 @@
 from ...export.context import DEFAULT, Context
 from ...export.location import ROOT, normalize_location, transform_location
 from ...export.style import NamespaceStyle
-from ...export.types import generate_include_for_type
+from ...export.types import generate_include_for_class, generate_include_for_type
 from ...sarif.functions.FunctionResult import FunctionResult
 from ...sarif.functions.Param import Param
 from ...sarif.TypeInfo import TypeInfo
@@ -16,12 +16,17 @@ class Function(object):
     def _collect_includes(self, ctx = DEFAULT):
         include_this = ctx.include.functions_this_parameter_type
         for param in self.f.properties.additionalProperties.params:
-            if not include_this and param.isAutoParameter and param.name == "this":
-                continue
-            yield from generate_include_for_type(param.formalTypeName, param, ctx)
+            is_class_parameter = param.isAutoParameter and param.name == "this"
+            if is_class_parameter:
+                if not include_this:
+                    continue
+                
+                yield from generate_include_for_class(param.formalTypeName, param.formalType, ctx=ctx)
+            else:
+                yield from generate_include_for_type(param.formalTypeName, param.formalType, ctx=ctx)
         
         param = self.f.properties.additionalProperties.ret
-        yield from generate_include_for_type(param.formalTypeName, param, ctx)
+        yield from generate_include_for_type(param.formalTypeName, param, ctx=ctx)
 
     def includes(self, ctx = DEFAULT):
         return self._collect_includes(ctx)
@@ -41,7 +46,7 @@ class Function(object):
                 this = this_candidates[0]
                 coretype = this.type.name.split(" *")[0]
                 if ctx.promote_to_class:
-                    this = f"{coretype}Class * {this.name}"
+                    this = f"{ctx.class_rules.prefix}{coretype}{ctx.class_rules.suffix} * {this.name}"
                 else:
                     this = f"{coretype} * {this.name}"
             else:

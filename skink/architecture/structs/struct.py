@@ -1,5 +1,7 @@
 from typing import List
 
+from skink.utils.OrderedSet import OrderedSet
+
 from ...export.context import DEFAULT
 from ...export.location import ROOT, normalize_location, transform_location
 from ...export.style import NamespaceStyle
@@ -55,9 +57,7 @@ class Struct(object):
         return StructExportPart(fields = declarations, includes = includes)
 
     def export(self, ctx = DEFAULT):
-        includes = [
-            # f'#include "{self.location}/{self.name}Struct.h"',
-        ]
+        includes = OrderedSet()
 
         includes += self.includes(ctx=ctx)
 

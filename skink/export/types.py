@@ -20,3 +20,13 @@ def generate_include_for_type(type_name: str, type_info: TypeInfo, ctx = DEFAULT
                 type_name = type_name[:-2]
 
             yield f'#include "{loc}/{type_name}.h"'
+
+
+def generate_include_for_class(type_name: str, type_info: TypeInfo, ctx = DEFAULT):
+    name = type_name.replace(" *", "")
+    ti: TypeInfo = TypeInfo.from_json(type_info.to_json())
+    # TODO: is this the right place to do this?
+    if ctx.promote_to_class:
+        ti.location += f"/{name}"
+        return generate_include_for_type(f"{ctx.class_rules.prefix}{name}{ctx.class_rules.suffix}", type_info=ti, ctx=ctx)
+    return generate_include_for_type(f"{name}", type_info=ti, ctx=ctx)
