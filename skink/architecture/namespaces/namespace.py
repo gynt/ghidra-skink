@@ -1,8 +1,7 @@
-from typing import Any, List
+from typing import List
 
 from skink.utils.OrderedSet import OrderedSet
-from ...export.context import DEFAULT, Context
-from ...export.style import NamespaceStyle
+from ...export.context import DEFAULT
 from ...architecture.functions.function import Function
 
 

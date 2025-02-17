@@ -1,10 +1,6 @@
 from ...export.context import DEFAULT, Context
-from ...export.location import ROOT, normalize_location, transform_location
-from ...export.style import NamespaceStyle
 from ...export.types import generate_include_for_class, generate_include_for_type
 from ...sarif.functions.FunctionResult import FunctionResult
-from ...sarif.functions.Param import Param
-from ...sarif.TypeInfo import TypeInfo
 
 # TODO: needs a context object to understand root path
 

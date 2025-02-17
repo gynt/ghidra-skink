@@ -1,6 +1,4 @@
-from skink.architecture.classes.cls import Class
 from skink.architecture.classes.collect import collect_classes
-from skink.architecture.functions.function import Function
 from skink.sarif.datatypes.DataTypeResult import DataTypeResult
 
 namespace = "A::B"

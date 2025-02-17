@@ -1,6 +1,5 @@
 from skink.sarif.BasicResult import BasicResult
 from .decode_results import decode_results
-from .functions.FunctionResult import FunctionResult
 
 
 from dataclasses_json import CatchAll, LetterCase, Undefined, config, dataclass_json

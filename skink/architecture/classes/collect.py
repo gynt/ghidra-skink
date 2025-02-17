@@ -1,5 +1,4 @@
 from dataclasses import dataclass, field
-import dataclasses
 from typing import Dict, List
 
 from dataclasses_json import dataclass_json

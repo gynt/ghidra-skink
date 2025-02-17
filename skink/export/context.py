@@ -1,9 +1,7 @@
 from dataclasses import dataclass, field
-from typing import Dict, List, TypeVar
+from typing import Dict, List
 
 from dataclasses_json import dataclass_json
-
-from .style import AbstractStyle, NamespaceStyle
 
 @dataclass_json
 @dataclass

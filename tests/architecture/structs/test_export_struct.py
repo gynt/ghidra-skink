@@ -1,6 +1,4 @@
-from skink.architecture.classes.cls import Class
 from skink.export.context import DEFAULT
-from skink.architecture.functions.function import Function
 from skink.architecture.structs.struct import Struct
 
 namespace = "A::B"

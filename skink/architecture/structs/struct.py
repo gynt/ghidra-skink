@@ -3,8 +3,7 @@ from typing import List
 from skink.utils.OrderedSet import OrderedSet
 
 from ...export.context import DEFAULT
-from ...export.location import ROOT, normalize_location, transform_location
-from ...export.style import NamespaceStyle
+from ...export.location import normalize_location
 from ...export.types import generate_include_for_type
 from ...sarif.datatypes.DataTypeResult import DataTypeResult
 from ...sarif.datatypes.StructField import StructField

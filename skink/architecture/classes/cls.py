@@ -1,7 +1,6 @@
 from skink.architecture.structs.struct import Struct
 from skink.utils.OrderedSet import OrderedSet
 from ...export.context import DEFAULT, Context, FunctionRules
-from ...export.style import NamespaceStyle
 from ..functions import Function
 
 
