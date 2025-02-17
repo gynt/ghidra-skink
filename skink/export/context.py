@@ -66,9 +66,14 @@ class LocationRules(AbstractContext):
 
 @dataclass_json
 @dataclass
+class StyleRules(AbstractContext):
+    namespace: bool = True
+
+@dataclass_json
+@dataclass
 class Context(AbstractContext):
     root: str = ""
-    style: AbstractStyle = field(default_factory=lambda: NamespaceStyle)
+    style: StyleRules = field(default_factory=lambda: StyleRules())
     promote_to_class: bool = True
     include: IncludeRules = field(default_factory=lambda: IncludeRules())
     function_rules: FunctionRules = field(default_factory=lambda: FunctionRules())

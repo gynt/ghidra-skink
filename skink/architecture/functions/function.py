@@ -78,7 +78,7 @@ class Function(object):
     
     def export(self, ctx = DEFAULT):
         
-        if ctx.style == NamespaceStyle:
+        if ctx.style.namespace:
             wrap = lambda x: f"namespace {self.namespace()} {{\n\n  {x}\n\n}}"
         else:
             wrap = lambda x: x

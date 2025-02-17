@@ -61,7 +61,7 @@ class Struct(object):
 
         includes += self.includes(ctx=ctx)
 
-        if ctx.style == NamespaceStyle:
+        if ctx.style.namespace:
             namespaceWrap = lambda x: f"namespace {self.namespace} {{\n\n  {x}\n\n}}"
         else:
             namespaceWrap = lambda x: x
