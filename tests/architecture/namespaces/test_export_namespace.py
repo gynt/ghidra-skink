@@ -24,3 +24,21 @@ namespace A::B {
 
 }\
 """
+
+def test_export2(example_namespace_example_functions_fixture):
+    n = Namespace("A", [Function(f) for f in example_namespace_example_functions_fixture])
+
+    ctx = DEFAULT
+    ctx = ctx.mutate(include = ctx.include.mutate(functions_this_parameter_type = True))
+
+    e = n.export(ctx=ctx)
+
+    assert e == """\
+
+
+namespace A {
+
+  int __stdcall c(undefined4 x, undefined4 y);
+
+}\
+"""

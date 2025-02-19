@@ -1,0 +1,211 @@
+{
+  "$schema": "https://schemastore.azurewebsites.net/schemas/json/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "properties": {},
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "Ghidra",
+          "version": "11.1.1",
+          "informationUri": "https://github.com/NationalSecurityAgency/ghidra"
+        }
+      },
+      "artifacts": [
+        {
+          "location": {
+            "uri": "class-example.exe"
+          },
+          "properties": {
+            "additionalProperties": {
+              "imageBase": "00400000"
+            }
+          },
+          "sourceLanguage": "x86:LE:32:default",
+          "description": {
+            "text": "windows"
+          }
+        }
+      ],
+      "results": [
+        {
+            "message": {
+              "text": "Function"
+            },
+            "kind": "informational",
+            "level": "none",
+            "ruleId": "FUNCTIONS",
+            "locations": [
+              {
+                "physicalLocation": {
+                  "address": {
+                    "absoluteAddress": 4198464,
+                    "length": 21
+                  }
+                }
+              }
+            ],
+            "properties": {
+              "additionalProperties": {
+                "name": "c",
+                "namespace": "A",
+                "namespaceIsClass": false,
+                "location": "00401040",
+                "value": "int __stdcall c(undefined4 x, undefined4 y)",
+                "callingConvention": "__stdcall",
+                "signatureSource": "USER_DEFINED",
+                "sourceType": "USER_DEFINED",
+                "hasVarArgs": false,
+                "isInline": false,
+                "hasNoReturn": false,
+                "hasCustomStorage": false,
+                "isStackPurgeSizeValid": true,
+                "isLibrary": false,
+                "isGlobal": false,
+                "isExternal": false,
+                "isThunk": false,
+                "stack": {
+                  "localVarSize": 4,
+                  "parameterOffset": 4,
+                  "returnAddressOffset": 0,
+                  "purgeSize": 8,
+                  "stackVars": [
+                    {
+                      "size": 4,
+                      "offset": 4,
+                      "typeName": "undefined4",
+                      "typeLocation": "/",
+                      "type": {
+                        "kind": "base",
+                        "size": 4,
+                        "name": "undefined4",
+                        "location": "/"
+                      },
+                      "name": "x",
+                      "location": "/"
+                    },
+                    {
+                      "size": 4,
+                      "offset": 8,
+                      "typeName": "undefined4",
+                      "typeLocation": "/",
+                      "type": {
+                        "kind": "base",
+                        "size": 4,
+                        "name": "undefined4",
+                        "location": "/"
+                      },
+                      "name": "y",
+                      "location": "/"
+                    }
+                  ]
+                },
+                "regVars": [],
+                "ret": {
+                  "ordinal": -1,
+                  "size": 4,
+                  "typeName": "int",
+                  "typeLocation": "/",
+                  "type": {
+                    "kind": "base",
+                    "size": 4,
+                    "name": "int",
+                    "location": "/",
+                    "settings": [
+                      {
+                        "name": "format",
+                        "kind": "long",
+                        "value": "1"
+                      }
+                    ]
+                  },
+                  "formalTypeName": "int",
+                  "formalTypeLocation": "/",
+                  "formalType": {
+                    "kind": "base",
+                    "size": 4,
+                    "name": "int",
+                    "location": "/",
+                    "settings": [
+                      {
+                        "name": "format",
+                        "kind": "long",
+                        "value": "1"
+                      }
+                    ]
+                  },
+                  "isAutoParameter": false,
+                  "isForcedIndirect": false,
+                  "registers": [
+                    "EAX"
+                  ],
+                  "stackOffset": -1,
+                  "name": "<RETURN>",
+                  "location": "/",
+                  "settings": [
+                    {
+                      "name": "format",
+                      "kind": "long",
+                      "value": "1"
+                    }
+                  ]
+                },
+                "params": [
+                  {
+                    "ordinal": 1,
+                    "size": 4,
+                    "typeName": "undefined4",
+                    "typeLocation": "/",
+                    "type": {
+                      "kind": "base",
+                      "size": 4,
+                      "name": "undefined4",
+                      "location": "/"
+                    },
+                    "formalTypeName": "undefined4",
+                    "formalTypeLocation": "/",
+                    "formalType": {
+                      "kind": "base",
+                      "size": 4,
+                      "name": "undefined4",
+                      "location": "/"
+                    },
+                    "isAutoParameter": false,
+                    "isForcedIndirect": false,
+                    "stackOffset": 4,
+                    "name": "x",
+                    "location": "/"
+                  },
+                  {
+                    "ordinal": 2,
+                    "size": 4,
+                    "typeName": "undefined4",
+                    "typeLocation": "/",
+                    "type": {
+                      "kind": "base",
+                      "size": 4,
+                      "name": "undefined4",
+                      "location": "/"
+                    },
+                    "formalTypeName": "undefined4",
+                    "formalTypeLocation": "/",
+                    "formalType": {
+                      "kind": "base",
+                      "size": 4,
+                      "name": "undefined4",
+                      "location": "/"
+                    },
+                    "isAutoParameter": false,
+                    "isForcedIndirect": false,
+                    "stackOffset": 8,
+                    "name": "y",
+                    "location": "/"
+                  }
+                ]
+              }
+            }
+          }
+      ]
+    }
+  ]
+}

@@ -22,6 +22,14 @@ def example_class_example_functions_fixture():
       return vprs_functions
 
 @pytest.fixture
+def example_namespace_example_functions_fixture():
+    with open("tests/data/namespace-example.sarif.json", 'r') as f:
+      j = json.load(f)
+      sarifExport: SarifExport = SarifExport.from_dict(j)
+      vprs_functions = [f for f in sarifExport.runs[0].results if f.ruleId == "FUNCTIONS"]
+      return vprs_functions
+
+@pytest.fixture
 def example_struct_example_fixture():
     with open("tests/data/struct-example.sarif.json", 'r') as f:
       j = json.load(f)
