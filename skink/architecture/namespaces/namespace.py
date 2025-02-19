@@ -1,5 +1,6 @@
 from typing import List
 
+from skink.architecture.structs.struct import Struct
 from skink.utils.OrderedSet import OrderedSet
 from ...export.context import DEFAULT
 from ...architecture.functions.function import Function
@@ -7,7 +8,8 @@ from ...architecture.functions.function import Function
 
 class Namespace(object):
     
-    def __init__(self, namespace: str, functions: List[Function]):
+    # TODO: implement structures
+    def __init__(self, namespace: str, functions: List[Function], structures: List[Struct] = None):
         self.namespace = namespace
         self.location = namespace.replace("::", "/")
         self.name = self.location.split("/")[-1]
