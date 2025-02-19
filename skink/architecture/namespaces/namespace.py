@@ -12,6 +12,9 @@ class Namespace(object):
         self.location = namespace.replace("::", "/")
         self.name = self.location.split("/")[-1]
         self.functions = functions
+        for f in self.functions:
+            if f.namespace() != self.namespace:
+                raise Exception(f"namespace of function ({f.namespace()}) is not same as Namespace {self.namespace}")
 
     def path(self, ctx = DEFAULT):
         return f"{self.location}/{self.name}.h"
