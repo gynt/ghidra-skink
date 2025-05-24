@@ -11,7 +11,7 @@ from skink.sarif.datatypes.AdditionalDataTypeProperties import AdditionalDataTyp
 from skink.sarif.datatypes.DataTypeResult import DataTypeResult
 from skink.sarif.functions.AdditionalFunctionProperties import AdditionalFunctionProperties
 from skink.sarif.functions.FunctionResult import FunctionResult
-from .cls import Class
+from ...architecture.classes.cls import Class
 
 @dataclass_json
 @dataclass

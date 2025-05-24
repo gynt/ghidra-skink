@@ -1,4 +1,4 @@
-from skink.architecture.classes.collect import collect_classes
+from skink.export.classes.collect import collect_classes
 from skink.export.context import DEFAULT
 
 def test_export_path1(example_collect_joint_data):
