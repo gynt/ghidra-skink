@@ -45,14 +45,15 @@ class SymbolDatabase(object):
       key = sanitize(key)
     return key in self.db
 
-  def add_entry(self, path, kind, address = 0, external = False, permit_overwrite = False, extra=None):
+  def add_entry(self, path, kind, address = 0, external = False, permit_overwrite = False, extra=None) -> bool:
     if self.sanitize:
       path = sanitize(path)
     if path in self.db:
       o = self.get(path)
       if o.kind == kind and o.address == address and o.external == external:
-        return
+        return False
     self.set(path, SymbolEntry(path, kind, address, external, extra=extra), permit_overwrite=permit_overwrite)
+    return True
 
   def get_all_in_namespace(self, path, recursive = False):
     o = self.get(path)

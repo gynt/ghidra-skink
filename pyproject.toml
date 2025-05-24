@@ -1,0 +1,32 @@
+[build-system]
+requires = ["hatchling >= 1.26"]
+build-backend = "hatchling.build"
+
+[project]
+name = "skink"
+dynamic = ["version"]
+dependencies = [
+  "ijson",
+  "dataclasses_json",
+]
+requires-python = ">= 3.12"
+description = "Skink: a Python script to export Ghidra functions and structures to C and C++ header files"
+license = "AGPL-3.0-or-later"
+
+[project.scripts]
+skink = "skink.main:main_cli"
+
+[project.urls]
+Repository = "https://github.com/gynt/ghidra-skink"
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "skink/*.py",
+  "/tests",
+]
+
+[tool.hatch.version]
+path = "skink/__about__.py"
