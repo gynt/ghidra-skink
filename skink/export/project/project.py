@@ -11,7 +11,7 @@ class Project(object):
     self.path = path
     self.symdb = SymbolDatabase()
 
-  def process_symbol_results(self, filters = ['address'], prefix = "", permit_overwrite = False, drop_submembers = True) -> Generator[SymbolResult]:
+  def process_symbol_results(self, filters = ['address'], prefix = "", permit_overwrite = False, drop_submembers = True, store_symbol_result = False) -> Generator[SymbolResult]:
     if not self.path:
       raise Exception(f"no path set: {self.path}")
     
@@ -37,7 +37,7 @@ class Project(object):
               if self.symdb.get(sp).kind == 'member':
                 continue
 
-          self.symdb.add_entry(f"{l}{n}", k, a, e, extra=sr, permit_overwrite=permit_overwrite)
+          self.symdb.add_entry(f"{l}{n}", k, a, e, extra=sr if store_symbol_result else None, permit_overwrite=permit_overwrite)
 
           if 'address' in filters:
             if len(sr.locations) == 0:
