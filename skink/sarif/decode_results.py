@@ -1,4 +1,5 @@
 
+from .symbols.symbol import SymbolResult
 from .UnusedResult import UnusedResult
 from .datatypes.DataTypeResult import DataTypeResult
 from .functions.FunctionResult import FunctionResult
@@ -9,6 +10,8 @@ def decode_result(result):
         return FunctionResult.from_dict(result)
     elif result['ruleId'] == "DATATYPE":
         return DataTypeResult.from_dict(result)
+    elif result['ruleId'] == "SYMBOLS":
+        return SymbolResult.from_dict(result)
     else:
         return UnusedResult.from_dict(result)
 
