@@ -2,6 +2,7 @@ from typing import Any, Generator, Iterable, List
 import ijson
 
 from skink.sarif.BasicResult import BasicResult
+from skink.sarif.decode_results import decode_result
 
 from ..project.databases.symboldatabase import SymbolDatabase
 from ...sarif.symbols.symbol import SymbolResult
@@ -40,6 +41,10 @@ class Project(object):
     for path in self.paths:
       with open(path, 'r') as f:
         yield from ijson.items(f, 'runs.item.results.item')
+
+  def yield_decoded_objects(self) -> Iterable[BasicResult]:
+    for obj in self.yield_objects():
+      yield decode_result(obj)
 
   def process_symbol_results(self, yield_filters = ['address'], prefix = "", permit_overwrite = False, drop_submembers = True, store_symbol_result = False) -> Generator[SymbolResult]:
     if not self.paths:
