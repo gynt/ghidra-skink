@@ -8,6 +8,7 @@ dynamic = ["version"]
 dependencies = [
   "ijson",
   "dataclasses_json",
+  "pathvalidate",
 ]
 requires-python = ">= 3.12"
 description = "Skink: a Python script to export Ghidra functions and structures to C and C++ header files"

@@ -13,8 +13,10 @@ class StructField:
     offset: int
     type: TypeInfo
     ordinal: int
-    length: int
-    field_name: str
+    length: int    
     name: str
     location: str
     extra: CatchAll
+    noFieldName: bool = False
+    comment: str = ""
+    field_name: str = ""

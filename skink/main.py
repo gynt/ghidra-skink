@@ -3,16 +3,27 @@ import pathlib
 import sys
 import os
 
+from skink.cli.create import main_create
+from skink.cli.preprocess import main_preprocess
 from skink.export.project.project import Project
 
 parser = argparse.ArgumentParser(prog="skink", add_help=True)
-parser.add_argument("--dir", required=False, default=".", help="output directory (default: '.')")
-parser.add_argument("files", nargs='+', help="sarif files to be parsed and processed")
-parser.add_argument("--export", required=False, default="all", help='what to export (default "all")', choices=['all', 'classes', 'functions', 'structures', 'enums'])
-parser.add_argument("--limit", type=int, help="limit the export to this amount of entries (default: no limit)", default=0)
-parser.add_argument("--prefix", required=False, default="", help="filter sarif contents for namespaces with this prefix (default: '')")
 parser.add_argument("--debug", required=False, default=False, action='store_true')
 parser.add_argument("--verbose", required=False, default=False, action='store_true')
+subparsers = parser.add_subparsers(title="subcommands", required=True, dest='subcommand')
+
+preprocess = subparsers.add_parser('preprocess')
+preprocess.add_argument("file", nargs=1, help="sarif file to preprocess")
+preprocess.add_argument("--filter-namespace", type=str, default="", required=False)
+preprocess.add_argument("--output", default="preprocessed.json")
+
+create = subparsers.add_parser('create')
+create.add_argument("--dir", required=False, default=".", help="output directory (default: '.')")
+create.add_argument("files", nargs='+', help="sarif files to be parsed and processed")
+create.add_argument("--export", required=False, default="all", help='what to export (default "all")', choices=['all', 'classes', 'functions', 'structures', 'enums'])
+create.add_argument("--limit", type=int, help="limit the export to this amount of entries (default: no limit)", default=0)
+create.add_argument("--prefix", required=False, default="", help="filter sarif contents for namespaces with this prefix (default: '')")
+
 
 def main_cli():
   args = parser.parse_args()
@@ -22,24 +33,7 @@ def main_cli():
 
   print(f"Current directory: {os.getcwd()}")
 
-  files = [pathlib.Path(fpath).absolute() for fpath in args.files]
-  print("Files:")
-  for fpath in files:
-    print("  " + str(fpath))
-
-  export_directory = pathlib.Path(args.dir).absolute()
-  print(f"Export directory: {export_directory}")
-
-  print(f"Exporting: {args.export}. Limit: {args.limit if args.limit > 0 else "no limit"}")
-  project = Project(paths=files)
-
-  print(f"Importing sarif files")
-  project.process_all_symbol_results(prefix = args.prefix, store_symbol_result = args.debug)
-  print(f"Total imported symbols: {project.counts['total']}")
-  print(project.counts)
-
-  if args.debug:
-    print("Debug: Dumping symbols")
-    for k, v in project.symdb.db.items():
-      print(v)
-  
+  if args.subcommand == "create":
+    return main_create(args)
+  if args.subcommand == "preprocess":
+    return main_preprocess(args)

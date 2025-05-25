@@ -1,5 +1,7 @@
-from typing import Generator, Iterable, List
+from typing import Any, Generator, Iterable, List
 import ijson
+
+from skink.sarif.BasicResult import BasicResult
 
 from ..project.databases.symboldatabase import SymbolDatabase
 from ...sarif.symbols.symbol import SymbolResult
@@ -15,19 +17,26 @@ def promote_pathstring(path: str | pathlib.Path):
 
 class Project(object):
   
-  def __init__(self, path: pathlib.Path | str | None = None, paths: Iterable[str] | Iterable[pathlib.Path] = None):
+  def __init__(self, path: pathlib.Path | str | None = None, paths: Iterable[str] | Iterable[pathlib.Path] = None, objects: Iterable[BasicResult] = None):
     self.paths: List[pathlib.Path] = list()
+    self.objects = None
     if path:
-      self.paths = list(promote_pathstring(path))
+      self.paths = [promote_pathstring(path)]
     elif paths:
       self.paths = list(promote_pathstring(p) for p in paths)
+    elif objects:
+      self.objects = objects
     self.symdb = SymbolDatabase()
     self.counts = {'total': 0, 'member': 0, 'class': 0, 'namespace': 0}
 
   def reset_counts(self):
     self.counts = {'total': 0, 'member': 0, 'class': 0, 'namespace': 0}    
 
-  def yield_objects(self):
+  def yield_objects(self) -> Iterable[Any]:
+    if self.objects:
+      yield from self.objects
+    if self.objects:
+      return
     for path in self.paths:
       with open(path, 'r') as f:
         yield from ijson.items(f, 'runs.item.results.item')
