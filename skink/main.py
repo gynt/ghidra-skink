@@ -5,6 +5,7 @@ import os
 
 from skink.cli.create import main_create
 from skink.cli.export import main_export
+from skink.cli.settings import main_options
 from skink.cli.preprocess import main_preprocess
 from skink.export.project.project import Project
 
@@ -31,6 +32,8 @@ export.add_argument("--input", required=True, help="input file")
 export.add_argument("--output", required=False, default="output", help="outpath path")
 export.add_argument("--input-format", default="sarif")
 
+settings = subparsers.add_parser("settings")
+
 def main_cli():
   args = parser.parse_args()
 
@@ -45,3 +48,5 @@ def main_cli():
     return main_preprocess(args)
   if args.subcommand == "export":
     return main_export(args)
+  if args.subcommand == "options":
+    return main_options(args)

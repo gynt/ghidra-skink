@@ -16,10 +16,19 @@ class StructExportPart:
 
 class Field(object):
 
-    def __init__(self, f: StructField):
+    def __init__(self, f: StructField, name: str = ""):
         self.f: StructField = f
+        if self.f.noFieldName and not name:
+            raise Exception(f"no name set")
+        if name:
+            self.f.field_name = name
 
     def declaration(self, ctx = DEFAULT):
+        if self.f.type.kind == "array":
+            c = self.f.type.count
+            tname = self.f.type.name.replace(f"[{c}]", "", 1)
+            fname = self.f.field_name + f"[{c}]"
+            return f"{tname} {fname};"
         return f"{self.f.type.name} {self.f.field_name};"
 
 
@@ -47,7 +56,7 @@ class Struct(object):
     
     def export_field_declarations(self, ctx = DEFAULT):
         for n, sf in self.s.properties.additionalProperties.fields.items():
-            f = Field(sf)
+            f = Field(sf, name=n)
             yield f.declaration(ctx)
     
     def export_fields(self, ctx = DEFAULT) -> StructExportPart:
@@ -71,9 +80,6 @@ class Struct(object):
         else:
             structWrap = lambda x: f"struct {name} {{\n\n    {x}\n\n  }};"
 
-        declarations = []
-        for n, sf in self.s.properties.additionalProperties.fields.items():
-            f = Field(sf)
-            declarations.append(f.declaration(ctx))
+        declarations = list(self.export_field_declarations(ctx=ctx))
 
         return f"{"\n".join(includes)}\n\n{namespaceWrap(structWrap("\n\n    ".join(declarations)))}"

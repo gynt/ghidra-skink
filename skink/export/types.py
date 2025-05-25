@@ -18,6 +18,12 @@ def generate_include_for_type(type_name: str, type_info: TypeInfo, ctx = DEFAULT
             loc = transform_location(loc, ctx)
             if type_name.endswith(" *"):
                 type_name = type_name[:-2]
+            if "[" in type_name and type_name.endswith("]"):
+                s = type_name.index("[")
+                f = type_name.index("]")
+                if f < s:
+                    raise Exception()
+                type_name = type_name[:s] + type_name[(f+1):]
 
             yield f'#include "{loc}/{type_name}.h"'
 
