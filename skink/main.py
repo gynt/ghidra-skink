@@ -5,6 +5,7 @@ import os
 
 from skink.cli.create import main_create
 from skink.cli.export import main_export
+from skink.cli.sarif import main_sarif
 from skink.cli.settings import main_settings
 from skink.cli.preprocess import main_preprocess
 from skink.export.project.project import Project
@@ -34,6 +35,14 @@ export.add_argument("--input-format", default="sarif")
 
 settings = subparsers.add_parser("settings")
 
+sarif = subparsers.add_parser("sarif")
+sarif_actions = sarif.add_subparsers(title = "action", dest="sarif_action")
+sarif_extract = sarif_actions.add_parser('extract')
+sarif_extract.add_argument("--input", required=True, help="input file")
+sarif_extract.add_argument("--output", required=False, default="output", help="outpath path")
+sarif_extract.add_argument("--input-format", default="sarif")
+
+
 def main_cli():
   args = parser.parse_args()
 
@@ -50,4 +59,6 @@ def main_cli():
     return main_export(args)
   if args.subcommand == "settings":
     return main_settings(args)
+  if args.subcommand == "sarif":
+    return main_sarif(args)
   raise Exception(f"unimplemented subcommand {args.subcommand}")

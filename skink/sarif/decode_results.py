@@ -1,4 +1,5 @@
 
+from skink.sarif.datatypes.EnumResult import EnumResult
 from .symbols.symbol import SymbolResult
 from .UnusedResult import UnusedResult
 from .datatypes.DataTypeResult import DataTypeResult
@@ -9,8 +10,12 @@ def decode_result(result):
     if result['ruleId'] == "FUNCTIONS":
         return FunctionResult.from_dict(result)
     elif result['ruleId'] == "DATATYPE":
-        if result['message']['text'] == "DT.Struct":
-          return DataTypeResult.from_dict(result)
+        if result['message']['text'] == "DT.Enum":
+            return EnumResult.from_dict(result)
+        elif result['message']['text'] == "DT.Struct":
+            return DataTypeResult.from_dict(result)
+        else:
+            pass # TODO: print drop of result here
     elif result['ruleId'] == "SYMBOLS":
         return SymbolResult.from_dict(result)
     else:

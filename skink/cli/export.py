@@ -20,10 +20,10 @@ def main_export(args):
     project = Project(path=input_path)
   else:
     raw_objs = json.loads(input_path.read_text())
-    project = Project(objects = decode_results(raw_objs))
+    project = Project(objects = raw_objs)
 
   if "classes" in args.what:
-    results = list(project.yield_objects())
+    results = list(project.yield_decoded_objects())
     if args.debug:
       print(len(results))
       a = list(collect_classes(results))

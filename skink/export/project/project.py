@@ -42,8 +42,10 @@ class Project(object):
       with open(path, 'r') as f:
         yield from ijson.items(f, 'runs.item.results.item')
 
-  def yield_decoded_objects(self) -> Iterable[BasicResult]:
+  def yield_decoded_objects(self, debug=False) -> Iterable[BasicResult]:
     for obj in self.yield_objects():
+      if debug:
+        print(obj)
       yield decode_result(obj)
 
   def process_symbol_results(self, yield_filters = ['address'], prefix = "", permit_overwrite = False, drop_submembers = True, store_symbol_result = False) -> Generator[SymbolResult]:

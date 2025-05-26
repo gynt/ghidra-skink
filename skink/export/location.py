@@ -7,6 +7,8 @@ patterns: Dict[str, re.Pattern] = {}
 ROOT = '/'
 
 def normalize_location(l: str, ctx = DEFAULT):
+  if len(l) == 0:
+    return l
   if l[0] == ROOT:
     l = l[1:]
   if l.endswith(".h"):
