@@ -5,7 +5,7 @@ import os
 
 from skink.cli.create import main_create
 from skink.cli.export import main_export
-from skink.cli.settings import main_options
+from skink.cli.settings import main_settings
 from skink.cli.preprocess import main_preprocess
 from skink.export.project.project import Project
 
@@ -48,5 +48,6 @@ def main_cli():
     return main_preprocess(args)
   if args.subcommand == "export":
     return main_export(args)
-  if args.subcommand == "options":
-    return main_options(args)
+  if args.subcommand == "settings":
+    return main_settings(args)
+  raise Exception(f"unimplemented subcommand {args.subcommand}")

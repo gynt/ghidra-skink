@@ -31,7 +31,7 @@ class ClassRules(AbstractContext):
     prefix: str = ""
     suffix: str = "Class"
     inline_struct: bool = False
-
+    export_constructor: bool = False
 
 @dataclass_json
 @dataclass
@@ -50,6 +50,8 @@ class StructRules(AbstractContext):
 @dataclass_json
 @dataclass
 class TransformationRules(AbstractContext):
+    use_regex: bool = False
+    regex: Dict[str, str] = field(default_factory=dict)
     use_mapping: bool = False
     mapping: Dict[str, str] = field(default_factory=dict)
     use_include_list: bool = False

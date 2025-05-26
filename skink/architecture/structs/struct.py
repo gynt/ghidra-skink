@@ -3,7 +3,7 @@ from typing import List
 from skink.utils.OrderedSet import OrderedSet
 
 from ...export.context import DEFAULT
-from ...export.location import normalize_location
+from ...export.location import normalize_location, transform_location
 from ...export.types import generate_include_for_type
 from ...sarif.datatypes.DataTypeResult import DataTypeResult
 from ...sarif.datatypes.StructField import StructField
@@ -35,14 +35,19 @@ class Field(object):
 class Struct(object):
 
     def __init__(self, s: DataTypeResult):
-        loc = normalize_location(s.properties.additionalProperties.location)
-        self.namespace = "::".join(v for v in loc.split("/") if v)
-        self.location = loc
+        self.loc = s.properties.additionalProperties.location
+        self.ns = "::".join(v for v in self.loc.split("/") if v)
         self.name = s.properties.additionalProperties.name
         self.s = s
 
+    def namespace(self, ctx = DEFAULT):
+        return transform_location(self.ns.replace("::", "/"), ctx).replace("/", "::")
+
+    def location(self, ctx = DEFAULT):
+        return transform_location(self.loc, ctx)
+
     def path(self, ctx = DEFAULT):
-        return f"{self.location}/{ctx.struct_rules.prefix}{self.name}{ctx.struct_rules.suffix}.h"
+        return f"{self.location(ctx)}/{ctx.struct_rules.prefix}{self.name}{ctx.struct_rules.suffix}.h"
 
     def include(self, ctx = DEFAULT):
         return f'#include "{self.path(ctx)}"'
@@ -70,7 +75,7 @@ class Struct(object):
         includes += self.includes(ctx=ctx)
 
         if ctx.style.namespace:
-            namespaceWrap = lambda x: f"namespace {self.namespace} {{\n\n  {x}\n\n}}"
+            namespaceWrap = lambda x: f"namespace {self.namespace(ctx)} {{\n\n  {x}\n\n}}"
         else:
             namespaceWrap = lambda x: x
         

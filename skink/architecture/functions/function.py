@@ -7,6 +7,7 @@ from ...sarif.functions.FunctionResult import FunctionResult
 class Function(object):
     def __init__(self, f: FunctionResult):
         self.f = f
+        self.name = self.f.properties.additionalProperties.name
 
     # Note: includes return type sometimes
     def _collect_includes(self, ctx = DEFAULT):
