@@ -31,3 +31,6 @@ include = [
 
 [tool.hatch.version]
 path = "skink/__about__.py"
+
+[tool.setuptools.package-data]
+skink = ["*.yml"]

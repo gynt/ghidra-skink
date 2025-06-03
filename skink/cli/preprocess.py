@@ -1,7 +1,7 @@
 import json
 import pathlib
 
-from skink import fatal
+from skink.logger import fatal
 from skink.export.project.project import Project
 from skink.sarif.decode_results import decode_result
 from skink.sarif.importing.filters.namespaces import belongs_in_namespace
