@@ -8,18 +8,18 @@ from .functions.FunctionResult import FunctionResult
 
 def decode_result(result):
     if result['ruleId'] == "FUNCTIONS":
-        return FunctionResult.from_dict(result)
+        return FunctionResult.from_dict(result) # type: ignore
     elif result['ruleId'] == "DATATYPE":
         if result['message']['text'] == "DT.Enum":
-            return EnumResult.from_dict(result)
+            return EnumResult.from_dict(result) # type: ignore
         elif result['message']['text'] == "DT.Struct":
-            return DataTypeResult.from_dict(result)
+            return DataTypeResult.from_dict(result) # type: ignore
         else:
-            pass # TODO: print drop of result here
+            pass
+            # pass # TODO: print drop of result here
     elif result['ruleId'] == "SYMBOLS":
-        return SymbolResult.from_dict(result)
-    else:
-        return UnusedResult.from_dict(result)
+        return SymbolResult.from_dict(result) # type: ignore
+    return UnusedResult.from_dict(result) # type: ignore
 
 
 def decode_results(results):

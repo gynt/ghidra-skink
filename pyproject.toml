@@ -15,7 +15,7 @@ description = "Skink: a Python script to export Ghidra functions and structures 
 license = "AGPL-3.0-or-later"
 
 [project.scripts]
-skink = "skink.main:main_cli"
+skink = "skink.cli.main:main_cli"
 
 [project.urls]
 Repository = "https://github.com/gynt/ghidra-skink"

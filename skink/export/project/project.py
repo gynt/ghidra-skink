@@ -9,7 +9,7 @@ from ...sarif.symbols.symbol import SymbolResult
 
 import pathlib
 
-
+from ...logger import log, logging
 
 def promote_pathstring(path: str | pathlib.Path):
   if isinstance(path, pathlib.Path):
@@ -18,7 +18,7 @@ def promote_pathstring(path: str | pathlib.Path):
 
 class Project(object):
   
-  def __init__(self, path: pathlib.Path | str | None = None, paths: Iterable[str] | Iterable[pathlib.Path] = None, objects: Iterable[BasicResult] = None):
+  def __init__(self, path: pathlib.Path | str | None = None, paths: Iterable[str] | Iterable[pathlib.Path] | None = None, objects: Iterable[BasicResult] | None = None):
     self.paths: List[pathlib.Path] = list()
     self.objects = None
     if path:
@@ -45,7 +45,7 @@ class Project(object):
   def yield_decoded_objects(self, debug=False) -> Iterable[BasicResult]:
     for obj in self.yield_objects():
       if debug:
-        print(obj)
+        log(logging.DEBUG, obj)
       yield decode_result(obj)
 
   def process_symbol_results(self, yield_filters = ['address'], prefix = "", permit_overwrite = False, drop_submembers = True, store_symbol_result = False) -> Generator[SymbolResult]:
@@ -56,7 +56,7 @@ class Project(object):
     
     for obj in self.yield_objects():
       if obj['ruleId'] == 'SYMBOLS':
-        sr: SymbolResult = SymbolResult.from_dict(obj)
+        sr: SymbolResult = SymbolResult.from_dict(obj) # type: ignore
         n = sr.properties.additionalProperties.name
         l = sr.properties.additionalProperties.location
         if prefix:

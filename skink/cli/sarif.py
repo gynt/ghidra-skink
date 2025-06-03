@@ -10,7 +10,7 @@ from skink.sarif.datatypes.DataTypeResult import DataTypeResult
 from skink.sarif.decode_results import decode_results
 from skink.sarif.functions.FunctionResult import FunctionResult
 from skink.sarif.symbols.symbol import SymbolResult
-
+from ..logger import log, logging
 
 def write_obj(fname, fpath):
   pass
@@ -31,7 +31,7 @@ def main_sarif(args):
 
   for obj in project.yield_decoded_objects(debug=args.debug):
     if args.debug:
-      print(obj)
+      log(logging.DEBUG, obj)
     if isinstance(obj, FunctionResult):
       fr: FunctionResult = obj
       ns = fr.properties.additionalProperties.namespace
@@ -43,7 +43,7 @@ def main_sarif(args):
         raise Exception(cloc)
       d = o / pathlib.Path(loc)
       d.mkdir(parents = True, exist_ok = True)
-      (d / "function.json").write_text(obj.to_json(indent = 2))
+      (d / "function.json").write_text(obj.to_json(indent = 2)) # type: ignore
     if isinstance(obj, DataTypeResult):
       dtr: DataTypeResult = obj
       ns = dtr.properties.additionalProperties.location
@@ -55,7 +55,7 @@ def main_sarif(args):
         raise Exception(cloc)
       d = o / pathlib.Path(loc)
       d.mkdir(parents = True, exist_ok = True)
-      (d / "datatype.json").write_text(obj.to_json(indent = 2))
+      (d / "datatype.json").write_text(obj.to_json(indent = 2)) # type: ignore
     if isinstance(obj, SymbolResult):
       sr: SymbolResult = obj
       ns = sr.properties.additionalProperties.location
@@ -67,4 +67,4 @@ def main_sarif(args):
         raise Exception(cloc)
       d = o / pathlib.Path(loc)
       d.mkdir(parents = True, exist_ok = True)
-      (d / "symbol.json").write_text(obj.to_json(indent = 2))
+      (d / "symbol.json").write_text(obj.to_json(indent = 2)) # type: ignore

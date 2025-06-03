@@ -1,14 +1,6 @@
-import argparse
-import pathlib
-import sys
-import os
 
-from skink.cli.create import main_create
-from skink.cli.export import main_export
-from skink.cli.sarif import main_sarif
-from skink.cli.settings import main_settings
-from skink.cli.preprocess import main_preprocess
-from skink.export.project.project import Project
+import argparse
+
 
 parser = argparse.ArgumentParser(prog="skink", add_help=True)
 parser.add_argument("--debug", required=False, default=False, action='store_true')
@@ -16,9 +8,12 @@ parser.add_argument("--verbose", required=False, default=False, action='store_tr
 subparsers = parser.add_subparsers(title="subcommands", required=True, dest='subcommand')
 
 preprocess = subparsers.add_parser('preprocess')
+preprocess.add_argument(dest='action', choices=['filter'])
 preprocess.add_argument("file", nargs=1, help="sarif file to preprocess")
 preprocess.add_argument("--filter-namespace", type=str, default="", required=False)
 preprocess.add_argument("--output", default="preprocessed.json")
+preprocess.add_argument("--or", default=False, action='store_true', required=False)
+preprocess.add_argument("--and", default=False, action='store_true', required=False)
 
 create = subparsers.add_parser('create')
 create.add_argument("--dir", required=False, default=".", help="output directory (default: '.')")
@@ -41,24 +36,3 @@ sarif_extract = sarif_actions.add_parser('extract')
 sarif_extract.add_argument("--input", required=True, help="input file")
 sarif_extract.add_argument("--output", required=False, default="output", help="outpath path")
 sarif_extract.add_argument("--input-format", default="sarif")
-
-
-def main_cli():
-  args = parser.parse_args()
-
-  if args.verbose or args.debug:
-    print(f"Debug: {args}")
-
-  print(f"Current directory: {os.getcwd()}")
-
-  if args.subcommand == "create":
-    return main_create(args)
-  if args.subcommand == "preprocess":
-    return main_preprocess(args)
-  if args.subcommand == "export":
-    return main_export(args)
-  if args.subcommand == "settings":
-    return main_settings(args)
-  if args.subcommand == "sarif":
-    return main_sarif(args)
-  raise Exception(f"unimplemented subcommand {args.subcommand}")

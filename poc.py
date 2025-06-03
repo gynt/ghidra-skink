@@ -20,18 +20,18 @@ struct = namespace + "Struct"
 func = vprs_functions[0]
 ff = Function(func)
 
-print(ff.export())
+log(logging.DEBUG, ff.export())
 
 n = Namespace(namespace, [Function(f) for f in vprs_functions])
 
-print(n.export())
+log(logging.DEBUG, n.export())
 
 c = Class(namespace, [Function(f) for f in vprs_functions])
 
-print(c.export())
+log(logging.DEBUG, c.export())
 
 ctx = DEFAULT
 ctx = ctx.mutate(function_rules = ctx.function_rules.mutate(virtual = True))
 ctx = ctx.mutate(class_rules = ctx.class_rules.mutate(prefix = "_"))
-print(ctx.to_json())
-print(c.export(ctx))
+log(logging.DEBUG, ctx.to_json())
+log(logging.DEBUG, c.export(ctx))

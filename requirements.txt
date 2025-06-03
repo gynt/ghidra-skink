@@ -1,3 +1,5 @@
 dataclasses_json
 ijson
 pathvalidate
+pyyaml
+colorlog
