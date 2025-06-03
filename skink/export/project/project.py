@@ -11,7 +11,8 @@ import pathlib
 
 from ...logger import log, logging
 
-log(logging.DEBUG, f"ijson: using backend {ijson.backend_name}")
+def log_ijson_backend():
+  log(logging.DEBUG, f"ijson: using backend {ijson.backend_name}")
 
 def promote_pathstring(path: str | pathlib.Path):
   if isinstance(path, pathlib.Path):

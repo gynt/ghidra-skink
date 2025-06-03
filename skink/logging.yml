@@ -3,17 +3,25 @@ formatters:
   colored:
     '()': 'colorlog.ColoredFormatter'
     format: '%(log_color)s%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+  basic:
+    format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 handlers:
   console:
     class: logging.StreamHandler
     level: DEBUG
     formatter: colored
     stream: ext://sys.stdout
+  file:
+    class : logging.handlers.RotatingFileHandler
+    formatter: basic
+    filename: skink.log
+    maxBytes: 1048576
+    backupCount: 3
 loggers:
   "":
     level: DEBUG
-    handlers: [console]
+    handlers: [console, file]
     propagate: no
 root:
   level: DEBUG
-  handlers: [console]
+  handlers: [console, file]

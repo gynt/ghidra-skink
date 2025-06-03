@@ -33,6 +33,11 @@ def main_preprocess(args):
   path = pathlib.Path(args.file[0]).absolute()
   output_path = pathlib.Path(args.output).absolute()
 
+  if output_path.exists():
+    answer = input(f"Proceeding will overwrite the file '{output_path.name}'. Are you sure you want to continue? [y/n]")
+    if answer not in "yY":
+      return
+
   if args.action == 'filter':
     return main_preprocess_filter(path, output_path, args)
 
