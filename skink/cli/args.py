@@ -5,6 +5,7 @@ import argparse
 parser = argparse.ArgumentParser(prog="skink", add_help=True)
 parser.add_argument("--debug", required=False, default=False, action='store_true')
 parser.add_argument("--verbose", required=False, default=False, action='store_true')
+parser.add_argument("--silent", required=False, default=False, action='store_true')
 
 def parse_bool(v):
     if isinstance(v, bool):
@@ -17,6 +18,7 @@ def parse_bool(v):
         raise argparse.ArgumentTypeError('Boolean value expected.')
     
 parser.add_argument("--log-console", required=False, default=True, type=parse_bool)
+parser.add_argument("--log-console-to-stderr", required=False, default=False, type=parse_bool)
 parser.add_argument("--log-file", required=False, default=False, type=parse_bool)
 subparsers = parser.add_subparsers(title="subcommands", required=True, dest='subcommand')
 

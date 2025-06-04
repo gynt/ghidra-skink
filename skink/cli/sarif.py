@@ -29,7 +29,7 @@ def main_sarif(args):
     raw_objs = json.loads(input_path.read_text())
     project = Project(objects = raw_objs)
 
-  for obj in project.yield_decoded_objects(debug=args.debug):
+  for obj in project.yield_objects(debug=args.debug):
     if args.debug:
       log(logging.DEBUG, obj)
     if isinstance(obj, FunctionResult):

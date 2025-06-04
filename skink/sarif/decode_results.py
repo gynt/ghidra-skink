@@ -1,4 +1,6 @@
 
+from typing import Iterable
+from skink.sarif.BasicResult import BasicResult
 from skink.sarif.datatypes.EnumResult import EnumResult
 from .symbols.symbol import SymbolResult
 from .UnusedResult import UnusedResult
@@ -6,7 +8,7 @@ from .datatypes.DataTypeResult import DataTypeResult
 from .functions.FunctionResult import FunctionResult
 
 
-def decode_result(result):
+def decode_result(result) -> BasicResult:
     if result['ruleId'] == "FUNCTIONS":
         return FunctionResult.from_dict(result) # type: ignore
     elif result['ruleId'] == "DATATYPE":
@@ -22,7 +24,7 @@ def decode_result(result):
     return UnusedResult.from_dict(result) # type: ignore
 
 
-def decode_results(results):
+def decode_results(results) -> Iterable[BasicResult]:
     objs = []
     for result in results:
         objs.append(decode_result(result))

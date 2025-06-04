@@ -23,7 +23,7 @@ def main_export(args):
     project = Project(objects = raw_objs)
 
   if "classes" in args.what:
-    results = list(project.yield_decoded_objects())
+    results = list(project.yield_objects())
     if args.debug:
       log(logging.DEBUG, len(results))
       a = list(collect_classes(results))

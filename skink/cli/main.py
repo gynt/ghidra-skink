@@ -14,7 +14,7 @@ from ..logger import log, logging, setup_logger, test_logger
 def main_cli():
   args = parser.parse_args()
 
-  setup_logger(include_console=args.log_console, include_file=args.log_console)
+  setup_logger(include_console=args.log_console, include_file=args.log_file, console_stderr=args.log_console_to_stderr, silent=args.silent)
 
   log(logging.INFO, f"Current directory: {os.getcwd()}")
 

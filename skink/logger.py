@@ -7,17 +7,29 @@ import importlib.resources
 from yaml import safe_load
 import logging.config
 
-def setup_logger(include_file = True, include_console = True):
+def setup_logger(include_file = True, include_console = True, console_stderr = False, silent=False):
   with importlib.resources.open_text('skink', 'logging.yml') as f:
     logging.config.dictConfig(safe_load(f))
   l = logging.getLogger()
   # Remove handlers for file and console if desired.
-  if not include_file and not include_console:
-    raise Exception(f"Logging disabled. This is not what you want.")
+  if silent:
+    logging.disable(logging.CRITICAL)
+    return
   if not include_file:
-    l.handlers = [h for h in l.handlers if not h._name == "file"]
+    l.handlers = [h for h in l.handlers if not h.name == "file"]
   if not include_console:
-    l.handlers = [h for h in l.handlers if not h._name == "console"]
+    if console_stderr:
+      raise Exception(f"incompatible logging options")
+    l.handlers = [h for h in l.handlers if not h.name == "console"]
+  if console_stderr:
+    hs = [h for h in l.handlers if h.name == "console"]
+    if len(hs) != 1:
+      raise Exception("incompatible logging options")
+    h = hs[0]
+    if not isinstance(h, logging.StreamHandler):
+      raise Exception("logging handler not a StreamHandler")
+    h.setStream(sys.stderr)
+
 
 def log(level, msg, *args, **kwargs):
   return logging.log(level=level, msg=msg, *args, **kwargs)

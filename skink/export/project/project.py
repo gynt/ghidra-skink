@@ -21,7 +21,7 @@ def promote_pathstring(path: str | pathlib.Path):
 
 class Project(object):
   
-  def __init__(self, path: pathlib.Path | str | None = None, paths: Iterable[str] | Iterable[pathlib.Path] | None = None, objects: Iterable[BasicResult] | None = None):
+  def __init__(self, path: pathlib.Path | str | None = None, paths: Iterable[str] | Iterable[pathlib.Path] | None = None, objects: Iterable[Any] | None = None):
     self.paths: List[pathlib.Path] = list()
     self.objects = None
     if path:
@@ -36,7 +36,7 @@ class Project(object):
   def reset_counts(self):
     self.counts = {'total': 0, 'member': 0, 'class': 0, 'namespace': 0}    
 
-  def yield_objects(self) -> Iterable[Any]:
+  def yield_raw_objects(self) -> Generator[Any]:
     if self.objects:
       yield from self.objects
     if self.objects:
@@ -45,8 +45,8 @@ class Project(object):
       with open(path, 'r') as f:
         yield from ijson.items(f, 'runs.item.results.item')
 
-  def yield_decoded_objects(self, debug=False) -> Iterable[BasicResult]:
-    for obj in self.yield_objects():
+  def yield_objects(self, debug=False) -> Generator[BasicResult]:
+    for obj in self.yield_raw_objects():
       if debug:
         log(logging.DEBUG, obj)
       yield decode_result(obj)
@@ -57,7 +57,7 @@ class Project(object):
     
     self.reset_counts()
     
-    for obj in self.yield_objects():
+    for obj in self.yield_raw_objects():
       if obj['ruleId'] == 'SYMBOLS':
         sr: SymbolResult = SymbolResult.from_dict(obj) # type: ignore
         n = sr.properties.additionalProperties.name

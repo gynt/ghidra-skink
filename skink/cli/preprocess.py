@@ -7,7 +7,7 @@ from skink.sarif.decode_results import decode_result
 from skink.sarif.importing.filters.namespaces import belongs_in_namespace
 from ..logger import log, logging
 
-def main_preprocess_filter(path, output_path, args):
+def main_preprocess_filter(input_path, output_path, args):
   logic = 'and'
   if getattr(args, 'and'):
     if getattr(args, 'or'):
@@ -15,13 +15,14 @@ def main_preprocess_filter(path, output_path, args):
     logic = 'and'
   if getattr(args, 'or'):
     logic = 'or'
-  log(logging.DEBUG, f"Applying filter: {logic}")
+
+  log(logging.INFO, f"Applying filter: {logic}")
   nsf = args.filter_namespace
   if nsf:
-    project = Project(path=path)
+    project = Project(path=input_path)
 
     l = list()
-    for a in project.yield_objects():
+    for a in project.yield_raw_objects():
       if args.debug:
         log(logging.DEBUG, a)
       obj = decode_result(a)
@@ -40,4 +41,4 @@ def main_preprocess(args):
 
   if args.action == 'filter':
     return main_preprocess_filter(path, output_path, args)
-
+  raise Exception(f"preprocess: unhandled action: {args.action}")
