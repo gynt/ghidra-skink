@@ -1,6 +1,6 @@
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Dict, Generator, List
 
 from skink.sarif.symbols.symbol import SymbolResult
 
@@ -21,8 +21,14 @@ class SymbolEntry:
 class SymbolDatabase(object):
 
   def __init__(self, sanitize = True):
-    self.db = {}
-    self.sanitize = sanitize
+    self.db: Dict[str, SymbolEntry] = {}
+    self.address_db: Dict[int, List[SymbolEntry]] = {}
+    self.sanitize: bool = sanitize
+
+  def by_address(self, address) -> Generator[SymbolEntry]:
+    if address not in self.address_db:
+      raise Exception(f"address not in database: {address}")
+    yield from self.address_db[address]
 
   def get(self, key) -> SymbolEntry:
     if self.sanitize:
@@ -31,7 +37,7 @@ class SymbolDatabase(object):
       return self.db[key]
     raise Exception(f"no such key: {key}")
   
-  def set(self, key, value, permit_overwrite = False):
+  def set(self, key: str, value: SymbolEntry, permit_overwrite = False):
     if not isinstance(value, SymbolEntry):
       raise Exception(f"not a symbol entry: {value}")
     if self.sanitize:
@@ -39,6 +45,9 @@ class SymbolDatabase(object):
     if not permit_overwrite and key in self.db:
       raise Exception(f"duplicate key '{key}'\n{value}")
     self.db[key] = value
+    if not value.address in self.address_db:
+      self.address_db[value.address] = []
+    self.address_db[value.address].append(value)
 
   def has(self, key):
     if self.sanitize:

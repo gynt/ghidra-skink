@@ -16,12 +16,12 @@ def belongs_in_namespace(result: Any, ns: str):
     if loc == ns or loc.startswith(prefix):
       return True
   elif isinstance(result, FunctionResult):
-    ap: AdditionalFunctionProperties = result.properties.additionalProperties
-    if ap.namespace == ns or ap.namespace.startswith(prefix):
+    afp: AdditionalFunctionProperties = result.properties.additionalProperties
+    if afp.namespace == ns or afp.namespace.startswith(prefix):
       return True
   elif isinstance(result, DataTypeResult):
-    ap: AdditionalDataTypeProperties = result.properties.additionalProperties
-    loc = normalize_location(ap.location) + f"/{ap.name}"
+    adtp: AdditionalDataTypeProperties = result.properties.additionalProperties
+    loc = normalize_location(adtp.location) + f"/{adtp.name}"
     nns = loc.replace("/", "::")
     if nns == ns or nns.startswith(prefix):
       return True
