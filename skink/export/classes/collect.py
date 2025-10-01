@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Dict, List
+from typing import Dict, List, Iterable
 
 from dataclasses_json import dataclass_json
 from skink.architecture.functions.function import Function
@@ -20,7 +20,7 @@ class PreClass:
     functions: List[FunctionResult] = field(default_factory=list)
     structure: DataTypeResult = None
 
-def collect_classes(results: List[BasicResult]):
+def collect_classes(results: Iterable[BasicResult]):
     classes: Dict[str, PreClass] = {}
     for result in results:
         if isinstance(result, FunctionResult):

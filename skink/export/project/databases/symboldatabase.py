@@ -43,7 +43,8 @@ class SymbolDatabase(object):
     if self.sanitize:
       key = sanitize(key)
     if not permit_overwrite and key in self.db:
-      raise Exception(f"duplicate key '{key}'\n{value}")
+      duplicate = self.get(key)
+      raise Exception(f"duplicate key '{key}'\nexisting\n{duplicate}\nnew\n{value}")
     self.db[key] = value
     if not value.address in self.address_db:
       self.address_db[value.address] = []
