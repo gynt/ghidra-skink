@@ -32,11 +32,11 @@ class ClassRules(AbstractContext):
     suffix: str = "Class"
     inline_struct: bool = False
     export_constructor: bool = False
-
+    virtual: bool = False
+    
 @dataclass_json
 @dataclass
 class FunctionRules(AbstractContext):
-    virtual: bool = False
     include_convention: bool = True
     include_this: bool = True
 

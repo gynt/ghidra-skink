@@ -59,7 +59,7 @@ class Function(object):
             all_params = ", ".join([f"{param.type.name} {param.name}" for param in params])
         
         virtual_wrapper = lambda x: f"{x};"
-        if ctx.function_rules.virtual:
+        if ctx.class_rules.virtual:
             virtual_wrapper = lambda x: f"virtual {x} = 0;" 
  
         return virtual_wrapper(f"{ret} {cc} {name}({all_params})") # TODO: improve

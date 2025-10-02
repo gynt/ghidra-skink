@@ -31,7 +31,7 @@ c = Class(namespace, [Function(f) for f in vprs_functions])
 log(logging.DEBUG, c.export())
 
 ctx = DEFAULT
-ctx = ctx.mutate(function_rules = ctx.function_rules.mutate(virtual = True))
+ctx = ctx.mutate(class_rules = ctx.class_rules.mutate(virtual = True))
 ctx = ctx.mutate(class_rules = ctx.class_rules.mutate(prefix = "_"))
 log(logging.DEBUG, ctx.to_json())
 log(logging.DEBUG, c.export(ctx))
