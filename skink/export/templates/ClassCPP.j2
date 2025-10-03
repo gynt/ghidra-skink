@@ -1,0 +1,25 @@
+{% from "macros/wrap_namespaces.j2" import wrap_namespaces with context %}
+{% from "macros/includes.j2" import includes %}
+{%- set ns = (namespace_path.split('::') if namespace_path is string else namespace_path)
+              | reject('equalto','') | list -%}
+{%- set ns_ = (namespace_path.replace('::', "__")) -%}
+
+#pragma once
+
+{{ includes(include_paths) }}
+
+
+{%- call wrap_namespaces(ns) -%}
+
+{# Unused for now:  && !defined(REIMPLEMENT_{{ ns_ }}_{{ class_name }}_{{ method.name }}) #}
+{% for method in methods %}
+{{ method.returnType }} {{ class_name }}::{{ method.name }}({{ method.parameters | join(', ') }}) {
+#if !defined(REIMPLEMENT_IF_AVAILABLE) && !defined(REIMPLEMENT_addr_{{ context.abbreviation }}_{{ context.hash }}_{{ method.address }})
+  return this->_{{ method.name }}({{ method.parameter_names | join(', ') }});
+#else
+#error "No reimplementation available for '{{ namespace_path }}::{{ class_name }}::{{ method.name }}({{ method.parameters | join(', ') }})'"
+#endif
+}
+{% endfor %}
+
+{%- endcall -%}

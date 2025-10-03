@@ -1,0 +1,26 @@
+{% from "macros/wrap_namespaces.j2" import wrap_namespaces with context %}
+{% from "macros/includes.j2" import includes %}
+{%- set ns = (namespace_path.split('::') if namespace_path is string else namespace_path)
+              | reject('equalto','') | list -%}
+{%- set ns_ = (namespace_path.replace('::', "__")) -%}
+
+#pragma once
+
+{{ includes(include_paths) }}
+
+
+{%- call wrap_namespaces(ns) -%}
+
+MemberFunctionPointer_DefineSingleton({{ class_name }}, ADDRESS_{{ ns_ }}_{{ class_name }}_singleton);
+
+{# Unused for now:  && !defined(REIMPLEMENT_{{ ns_ }}_{{ class_name }}_{{ method.name }}) #}
+{% for method in methods %}
+MemberFunctionPointer_DefineMethodPointer_oneliner(_{{ class_name }}, _{{ method.name }}, ADDRESS_{{ ns_ }}_{{ class_name }}_{{ method.name }}, {{ method.returnType }}, {{ method.parameters | join(', ') }});
+
+{{ method.returnType }} {{ class_name }}::_{{ method.name }}({{ method.parameters | join(', ') }}) {
+  return MemberFunctionPointer_InvokeMethod(_{{ class_name }}, 
+    _{{ method.name }}, {{ method.parameter_names | join(', ') }});
+}
+{% endfor %}
+
+{%- endcall -%}

@@ -1,0 +1,29 @@
+{% from "macros/wrap_namespaces.j2" import wrap_namespaces with context %}
+{% from "macros/includes.j2" import includes %}
+{%- set ns = (namespace_path.split('::') if namespace_path is string else namespace_path)
+              | reject('equalto','') | list -%}
+
+#pragma once
+
+{{ includes(include_paths) }}
+
+{# Do NOT pass `caller` here—it's injected implicitly by `call` #}
+{%- call wrap_namespaces(ns) -%}
+class {{ class_name }}
+{
+  public:
+    {{ class_name }}({{ class_name }} const&) = delete;
+    void operator=({{ class_name }} const&) = delete;
+  private:
+    {{ class_name }}();
+    ~{{ class_name }}();
+  
+  public:
+    // These are here to satisfy the C++ compiler, don't use them
+    {% for method in methods %}
+    virtual {{ method.returnType }} _{{ method.name }}({{ method.parameters | join(', ') }}) = 0;
+    {% endfor %}
+  
+};
+
+{%- endcall -%}
