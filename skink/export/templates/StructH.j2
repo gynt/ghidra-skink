@@ -1,0 +1,23 @@
+{% from "macros/wrap_namespaces.j2" import wrap_namespaces with context %}
+{% from "macros/includes.j2" import includes %}
+{%- set ns = (namespace_path.split('::') if namespace_path is string else namespace_path)
+              | reject('equalto','') | list -%}
+
+#pragma once
+
+{{ includes(include_paths) }}
+
+{# Do NOT pass `caller` here—it's injected implicitly by `call` #}
+{%- call wrap_namespaces(ns) -%}
+struct {{ struct_name }}
+{
+
+    {% for field in fields -%}
+    {{ field }};
+    {% endfor %}
+
+};
+
+static_assert(sizeof({{ struct_name }}) == {{ struct_size }});
+
+{%- endcall -%}
