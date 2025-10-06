@@ -15,11 +15,11 @@ MemberFunctionPointer_DefineSingleton({{ class_name }}, ADDRESS_{{ ns_ }}_{{ cla
 
 {# Unused for now:  && !defined(REIMPLEMENT_{{ ns_ }}_{{ class_name }}_{{ method.name }}) #}
 {% for method in methods %}
-MemberFunctionPointer_DefineMethodPointer_oneliner(_{{ class_name }}, _{{ method.name }}, ADDRESS_{{ ns_ }}_{{ class_name }}_{{ method.name }}, {{ method.returnType }}, {{ method.parameters | join(', ') }});
+MemberFunctionPointer_DefineMethodPointer_oneliner(_{{ class_name }}, _{{ method.name }}, ADDRESS_{{ ns_ }}_{{ class_name }}_{{ method.name }}, {{ method.returnType }}{{', ' + method.parameters | join(', ') if method.parameters else '' }});
 
 {{ method.returnType }} {{ class_name }}::_{{ method.name }}({{ method.parameters | join(', ') }}) {
   return MemberFunctionPointer_InvokeMethod(_{{ class_name }}, 
-    _{{ method.name }}, {{ method.parameter_names | join(', ') }});
+    _{{ method.name }}{{ ', ' + method.parameter_names | join(', ') if method.parameter_names else '' }});
 }
 {% endfor %}
 
