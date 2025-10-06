@@ -73,23 +73,32 @@ class Project(object):
       if self.cache_objects:
         if not self.raw_objects:
           self.raw_objects = []
-      for path in self.paths:
-        with open(path, 'r') as f:
-          if self.cache_objects:
+        for path in self.paths:
+          with open(path, 'r') as f:
             for item in ijson.items(f, 'runs.item.results.item'):
               self.raw_objects.append(item)
-              yield item
-          else:
+        yield from self.raw_objects
+      else:
+        for path in self.paths:
+          with open(path, 'r') as f:
             yield from ijson.items(f, 'runs.item.results.item')
 
   def yield_objects(self, debug=False) -> Generator[BasicResult]:
     if self.objects:
       yield from self.objects
     else:
-      for obj in self.yield_raw_objects():
-        if debug:
-          log(logging.DEBUG, obj)
-        yield decode_result(obj)
+      if self.cache_objects:
+        if not self.objects:
+          self.objects = []
+        for obj in self.yield_raw_objects():
+          dobj = decode_result(obj)
+          self.objects.append(dobj)
+        yield from self.objects
+      else:
+        for obj in self.yield_raw_objects():
+          if debug:
+            log(logging.DEBUG, obj)
+          yield decode_result(obj)
 
   def process_symbol_results(self, yield_filters = ['address'], prefix = "", permit_overwrite = False, drop_submembers = True, store_symbol_result = False) -> Generator[SymbolResult]:
     if not self.paths:
