@@ -24,17 +24,28 @@ def promote_pathstring(path: str | pathlib.Path):
 
 class Project(object):
   
-  def __init__(self, path: pathlib.Path | str | None = None, paths: Iterable[str] | Iterable[pathlib.Path] | None = None, objects: Iterable[Any] | None = None):
+  def __init__(self, 
+               path: pathlib.Path | str | None = None, 
+               paths: Iterable[str] | Iterable[pathlib.Path] | None = None, 
+               raw_objects: Iterable[Any] | None = None,
+               objects: Iterable[Any] | None = None,
+               cache_objects: bool = False):
     self.paths: List[pathlib.Path] = list()
+    self.raw_objects = None
     self.objects = None
     if path:
       self.paths = [promote_pathstring(path)]
     elif paths:
       self.paths = list(promote_pathstring(p) for p in paths)
+    elif raw_objects:
+      self.raw_objects = raw_objects
     elif objects:
       self.objects = objects
+    else:
+      raise Exception()
     self.symdb = SymbolDatabase()
     self.counts = {'total': 0, 'member': 0, 'class': 0, 'namespace': 0, 'unknown': 0}
+    self.cache_objects = cache_objects
 
   def save_project(self, path: str | pathlib.Path):
     items = list(obj.to_dict() for obj in self.yield_raw_objects())
@@ -52,19 +63,33 @@ class Project(object):
     self.counts = {'total': 0, 'member': 0, 'class': 0, 'namespace': 0, 'unknown': 0}    
 
   def yield_raw_objects(self) -> Generator[Any]:
-    if self.objects:
-      yield from self.objects
-    if self.objects:
-      return
-    for path in self.paths:
-      with open(path, 'r') as f:
-        yield from ijson.items(f, 'runs.item.results.item')
+    if self.raw_objects:
+      yield from self.raw_objects
+    elif self.objects:
+      logging.log(logging.WARNING, "rawify-ing parsed objects to raw objects, probably not what you want")
+      for obj in self.yield_objects():
+        yield obj.to_dict() # rawify
+    else:
+      if self.cache_objects:
+        if not self.raw_objects:
+          self.raw_objects = []
+      for path in self.paths:
+        with open(path, 'r') as f:
+          if self.cache_objects:
+            for item in ijson.items(f, 'runs.item.results.item'):
+              self.raw_objects.append(item)
+              yield item
+          else:
+            yield from ijson.items(f, 'runs.item.results.item')
 
   def yield_objects(self, debug=False) -> Generator[BasicResult]:
-    for obj in self.yield_raw_objects():
-      if debug:
-        log(logging.DEBUG, obj)
-      yield decode_result(obj)
+    if self.objects:
+      yield from self.objects
+    else:
+      for obj in self.yield_raw_objects():
+        if debug:
+          log(logging.DEBUG, obj)
+        yield decode_result(obj)
 
   def process_symbol_results(self, yield_filters = ['address'], prefix = "", permit_overwrite = False, drop_submembers = True, store_symbol_result = False) -> Generator[SymbolResult]:
     if not self.paths:
@@ -167,7 +192,7 @@ class Project(object):
         addresses = [addr for addr in addresses if not addr in looked_up_lsymbols]
         visited = False
         for address in addresses:
-          if looked_up_lsymbols[address]:
+          if address in looked_up_lsymbols and looked_up_lsymbols[address]:
             visited = True
           looked_up_lsymbols[address] = True
         if not visited:
@@ -182,6 +207,19 @@ class Project(object):
           yield fr
         elif recursive and loc.startswith(location):
           yield fr
+      elif ruleId == "DATATYPE":
+        if obj["message"]["text"] == "DT.Struct": # TODO: improve
+          dtr: DataTypeResult = DataTypeResult.from_dict(obj)
+          locations = [
+            dtr.properties.additionalProperties.location,
+            f"{dtr.properties.additionalProperties.location}/{dtr.properties.additionalProperties.name}",
+          ]
+          for l in locations:
+            hit = l == location
+            if not hit:
+              hit = recursive and l.startswith(location)
+            if hit:
+              yield dtr
       elif ruleId == "DEFINED_DATA":
         dd: DefinedDataResult = DefinedDataResult.from_dict(obj)
         locations = [
@@ -202,4 +240,5 @@ class Project(object):
               addresses = [addr for addr in addresses if not addr in looked_up_lsymbols]
               for address in addresses:
                 looked_up_lsymbols[address] = True
+                # TODO: avoid another iteration over the same file...
                 yield from self.find_symbols_for_address(address)
