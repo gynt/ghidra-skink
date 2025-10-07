@@ -66,7 +66,12 @@ class Struct(object):
         for n, sf in self.s.properties.additionalProperties.fields.items():
             f = Field(sf, name=n)
             yield f.declaration(ctx)
-    
+
+    def export_field_declarations_with_offsets(self, ctx = DEFAULT):
+        for n, sf in self.s.properties.additionalProperties.fields.items():
+            f = Field(sf, name=n)
+            yield f.declaration(ctx), f.f.offset
+
     def export_fields(self, ctx = DEFAULT) -> StructExportPart:
         includes = self.includes(ctx = ctx)
         declarations = list(self.export_field_declarations())

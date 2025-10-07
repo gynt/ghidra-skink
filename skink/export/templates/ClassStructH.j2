@@ -9,14 +9,16 @@
 
 {# Do NOT pass `caller` here—it's injected implicitly by `call` #}
 {%- call wrap_namespaces(ns) -%}
+#pragma pack(push, 1)
 typedef struct {{ struct_name }}
 {
 
     {% for field in fields -%}
-    {{ field }};
+    {{ field.string }}; // {{ '0x%08X' % field.offset }}
     {% endfor %}
 
 } {{ struct_name }};
+#pragma pack(pop)
 
 static_assert(sizeof({{ struct_name }}) == {{ struct_size }});
 

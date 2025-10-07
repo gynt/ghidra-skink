@@ -9,6 +9,7 @@
 
 {# Do NOT pass `caller` here—it's injected implicitly by `call` #}
 {%- call wrap_namespaces(ns) -%}
+// SIZE: {{ "0x%08X" % class_size }}
 class {{ class_name }} : public {{ struct_name }}
 {
   public:

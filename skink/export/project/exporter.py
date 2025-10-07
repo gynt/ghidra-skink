@@ -25,14 +25,18 @@ EXPORT_SETTINGS_CLASS_SHIM_FILENAME.location_rules = EXPORT_SETTINGS_CLASS_SHIM_
 class BinaryContext:
   hash: str = "3bb0a8c1"
   abbreviation: str = "shc"
+  reccmp_binary: str = "STRONGHOLDCRUSADER"
 
 @dataclass
 class ExportContents:
   path: str
   contents: str
+  no_touch: bool = True
 
   def __repr__(self) -> str:
-    return f"/**\n  AUTO_GENERATED: DO NOT TOUCH THIS FILE\n  path: '{self.path}'\n*/\n\n{self.contents}"
+    if self.no_touch:
+      return f"/**\n  AUTO_GENERATED: DO NOT TOUCH THIS FILE\n  path: '{self.path}'\n*/\n\n{self.contents}"
+    return f"/**\n  path: '{self.path}'\n*/\n\n{self.contents}"
 
 DEFAULT_BINARY_CONTEXT: BinaryContext = BinaryContext()
 
@@ -50,7 +54,7 @@ class Exporter(object):
       env = Environment(loader=FileSystemLoader(str(p)))
       template = env.get_template("ClassH.j2")
 
-      includes = OrderedSet()
+      includes = OrderedSet[str]()
       for m in c.fs:
         includes += list(m.includes(EXPORT_SETTINGS_CLASS_INCLUDE))
 
@@ -76,7 +80,7 @@ class Exporter(object):
     anchor, *names = self.template_path.split(".")
     with path(anchor, *names) as p:
 
-      includes = OrderedSet()
+      includes = OrderedSet[str]()
       for m in c.fs:
         includes += list(m.includes(EXPORT_SETTINGS_CLASS_INCLUDE))
 
@@ -106,11 +110,11 @@ class Exporter(object):
     with path(anchor, *names) as p:
       s: Struct = c.structure
       env = Environment(loader=FileSystemLoader(str(p)))
-      template = env.get_template("StructH.j2")
+      template = env.get_template("ClassStructH.j2")
 
       includes = OrderedSet(s.includes(EXPORT_SETTINGS_CLASS_INCLUDE))
 
-      fields =  list(s.export_field_declarations(EXPORT_SETTINGS_CLASS_INCLUDE))
+      fields =  list({"string": s, "offset": o} for s, o in s.export_field_declarations_with_offsets(EXPORT_SETTINGS_CLASS_INCLUDE))
       
       contents = template.render({
         "include_paths": sorted(includes),
@@ -130,7 +134,7 @@ class Exporter(object):
       env = Environment(loader=FileSystemLoader(str(p)))
       template = env.get_template("ClassCPP.j2")
 
-      includes = OrderedSet()
+      includes = OrderedSet[str]()
       for m in c.fs:
         includes += list(m.includes(EXPORT_SETTINGS_CLASS_INCLUDE))
 
@@ -150,7 +154,7 @@ class Exporter(object):
         "methods": methods,
       })
 
-      return ExportContents(path=f"{c.location(ctx=EXPORT_SETTINGS_CLASS_INCLUDE)}/{c.name}Class.cpp", contents=contents)
+      return ExportContents(path=f"{c.location(ctx=EXPORT_SETTINGS_CLASS_INCLUDE)}/{c.name}Class.cpp", contents=contents, no_touch=False)
 
   def export_class_body_shim(self, c: Class):
     if self.template_path != DEFAULT_TEMPLATE_PATH:
@@ -160,7 +164,7 @@ class Exporter(object):
       env = Environment(loader=FileSystemLoader(str(p)))
       template = env.get_template("ClassCPP_.j2")
 
-      includes = OrderedSet()
+      includes = OrderedSet[str]()
       for m in c.fs:
         includes += list(m.includes(EXPORT_SETTINGS_CLASS_INCLUDE))
 
@@ -188,9 +192,9 @@ class Exporter(object):
     anchor, *names = self.template_path.split(".")
     with path(anchor, *names) as p:
       env = Environment(loader=FileSystemLoader(str(p)))
-      template = env.get_template("NamespaceH.j2")
+      template = env.get_template("ClassNamespaceH.j2")
 
-      includes = OrderedSet()
+      includes = OrderedSet[str]()
       for m in c.fs:
         includes += list(m.includes(EXPORT_SETTINGS_CLASS_INCLUDE))
 
