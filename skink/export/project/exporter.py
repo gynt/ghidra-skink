@@ -1,10 +1,15 @@
 from jinja2 import Environment, FileSystemLoader
 from importlib.resources import path
 
+from skink.sarif.datatypes.EnumResult import EnumResult
 from skink.architecture.classes.cls import Class
 from skink.architecture.structs.struct import Struct
+from skink.architecture.enums import Enum
+from skink.export.project.exportcontents import ExportContents
 from skink.utils.OrderedSet import OrderedSet
 from skink.export.context import DEFAULT, Context
+
+from typing import List
 
 from dataclasses import dataclass
 from dataclasses_json import dataclass_json
@@ -27,16 +32,7 @@ class BinaryContext:
   abbreviation: str = "shc"
   reccmp_binary: str = "STRONGHOLDCRUSADER"
 
-@dataclass
-class ExportContents:
-  path: str
-  contents: str
-  no_touch: bool = True
 
-  def __repr__(self) -> str:
-    if self.no_touch:
-      return f"/**\n  AUTO_GENERATED: DO NOT TOUCH THIS FILE\n  path: '{self.path}'\n*/\n\n{self.contents}"
-    return f"/**\n  path: '{self.path}'\n*/\n\n{self.contents}"
 
 DEFAULT_BINARY_CONTEXT: BinaryContext = BinaryContext()
 
@@ -103,7 +99,7 @@ class Exporter(object):
 
       return ExportContents(path=f"{c.location(ctx=EXPORT_SETTINGS_CLASS_INCLUDE)}/{c.name}Class_.h", contents=contents)
 
-  def export_struct_header_for_class(self, c: Class):
+  def export_class_struct_header(self, c: Class):
     if self.template_path != DEFAULT_TEMPLATE_PATH:
       raise Exception()
     anchor, *names = self.template_path.split(".")
@@ -186,7 +182,7 @@ class Exporter(object):
 
       return ExportContents(path=f"{c.location(ctx=EXPORT_SETTINGS_CLASS_INCLUDE)}/{c.name}Class_.cpp", contents=contents)
     
-  def export_namespace_for_class(self, c: Class):
+  def export_class_namespace(self, c: Class):
     if self.template_path != DEFAULT_TEMPLATE_PATH:
       raise Exception()
     anchor, *names = self.template_path.split(".")
@@ -216,3 +212,58 @@ class Exporter(object):
       })
 
       return ExportContents(path=f"{c.location(ctx=EXPORT_SETTINGS_CLASS_INCLUDE)}/{c.name}Namespace.h", contents=contents)
+
+  def export_enum(self, e: Enum):
+    if self.template_path != DEFAULT_TEMPLATE_PATH:
+      raise Exception()
+    anchor, *names = self.template_path.split(".")
+    with path(anchor, *names) as p:
+      env = Environment(loader=FileSystemLoader(str(p)))
+      template1 = env.get_template("EnumH.j2")
+
+      namespace_path = e.namespace(ctx=EXPORT_SETTINGS_CLASS_INCLUDE)
+
+      fields = [{"name": key, "value": value} for key, value in e.er.properties.additionalProperties.constants.items()]
+      name = e.er.properties.additionalProperties.name
+      type = e.er.properties.additionalProperties.base
+      contents = template1.render({
+        "namespace_path": namespace_path,
+        "name": name,
+        "type": type,
+        "fields": fields,
+      })
+      return ExportContents(path=f"{e.location(ctx=EXPORT_SETTINGS_CLASS_INCLUDE)}/{e.name}.h", contents=contents)
+
+
+  def export_sized_enum(self, e: Enum) -> List[ExportContents]:
+    if self.template_path != DEFAULT_TEMPLATE_PATH:
+      raise Exception()
+    anchor, *names = self.template_path.split(".")
+    with path(anchor, *names) as p:
+      env = Environment(loader=FileSystemLoader(str(p)))
+      template1 = env.get_template("SizedEnum_CPP03_H.j2")
+      template2 = env.get_template("SizedEnum_CPP03_CPP.j2")
+
+      namespace_path = e.namespace(ctx=EXPORT_SETTINGS_CLASS_INCLUDE)
+
+      fields = [{"name": key, "value": value} for key, value in e.er.properties.additionalProperties.constants.items()]
+      name = e.er.properties.additionalProperties.name
+      type = e.er.properties.additionalProperties.base
+      path1 = f"{e.location(ctx=EXPORT_SETTINGS_CLASS_INCLUDE)}/{e.name}.h"
+      contents1 = template1.render({
+        "namespace_path": namespace_path,
+        "name": name,
+        "type": type,
+        "fields": fields,
+      })
+
+      path2 = f"{e.location(ctx=EXPORT_SETTINGS_CLASS_INCLUDE)}/{e.name}.cpp"
+      contents2 = template2.render({
+        "include_paths": [path1],
+        "namespace_path": namespace_path,
+        "name": name,
+        "type": type,
+        "fields": fields,
+      })
+
+      return [ExportContents(path=path1, contents=contents1), ExportContents(path=path2, contents=contents2)]

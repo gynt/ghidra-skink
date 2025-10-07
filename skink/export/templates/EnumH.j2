@@ -5,22 +5,18 @@
 
 #pragma once
 
-{{ includes(include_paths) }}
-
 {# Do NOT pass `caller` here—it's injected implicitly by `call` #}
 {%- call wrap_namespaces(ns) -%}
-#pragma pack(push, 1)
-// SIZE: {{ "0x%08X" % struct_size }}
-typedef struct {{ struct_name }}
+
+typedef enum {{ name }}
 {
 
     {% for field in fields -%}
-    {{ field.string }}; // {{ '0x%08X' % field.offset }}
+    {{ field.name }} = {{ field.value }}{{ ',' if not loop.last }} // {{ '0x%08X' % field.value }}
     {% endfor %}
 
-} {{ struct_name }};
-#pragma pack(pop)
+} {{ name }};
 
-static_assert(sizeof({{ struct_name }}) == {{ struct_size }});
+static_assert(sizeof({{ name }}) == 4);
 
 {%- endcall -%}

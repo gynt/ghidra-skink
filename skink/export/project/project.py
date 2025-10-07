@@ -58,6 +58,15 @@ class Project(object):
   @staticmethod
   def load_saved_project(path: str | pathlib.Path):
     return Project(path = path)
+  
+  def merge_project(self, other: "Project"):
+    if self.paths and other.paths:
+      return Project(paths = self.paths + other.paths)
+    if self.objects and other.objects:
+      return Project(objects = self.objects + other.objects)
+    if self.raw_objects and other.raw_objects:
+      return Project(raw_objects = self.raw_objects + other.raw_objects)
+    return Project(raw_objects=list(self.yield_raw_objects()) + list(other.yield_raw_objects()))
 
   def reset_counts(self):
     self.counts = {'total': 0, 'member': 0, 'class': 0, 'namespace': 0, 'unknown': 0}    
