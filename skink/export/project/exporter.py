@@ -61,7 +61,7 @@ class Exporter(object):
       } for f in c.fs]
 
       contents = template.render({
-        "include_paths": sorted(includes),
+        "include_paths": sorted(includes) + [f"{c.location(ctx=EXPORT_SETTINGS_CLASS_INCLUDE)}/{c.name}Struct.h"],
         "namespace_path": c.namespace(ctx=EXPORT_SETTINGS_CLASS_INCLUDE),
         "class_name": f"{c.name}Class",
         "class_size": c.structure.s.properties.additionalProperties.size,
@@ -143,7 +143,7 @@ class Exporter(object):
 
       contents = template.render({
         "context": self.binary_context,
-        "include_paths": sorted(includes),
+        "include_paths": sorted(includes) + [f"{c.location(ctx=EXPORT_SETTINGS_CLASS_INCLUDE)}/{c.name}Class.h"],
         "namespace_path": c.namespace(ctx=EXPORT_SETTINGS_CLASS_INCLUDE),
         "class_name": f"{c.name}Class",
         "class_size": c.structure.s.properties.additionalProperties.size,
@@ -173,7 +173,10 @@ class Exporter(object):
 
       contents = template.render({
         "context": self.binary_context,
-        "include_paths": sorted(includes),
+        "include_paths": sorted(includes) + [
+           f"{c.location(ctx=EXPORT_SETTINGS_CLASS_INCLUDE)}/{c.name}Namespace.h",
+           f"{c.location(ctx=EXPORT_SETTINGS_CLASS_INCLUDE)}/{c.name}Class_.h",
+        ],
         "namespace_path": c.namespace(ctx=EXPORT_SETTINGS_CLASS_INCLUDE),
         "class_name": f"{c.name}Class",
         "class_size": c.structure.s.properties.additionalProperties.size,
@@ -203,7 +206,9 @@ class Exporter(object):
 
       contents = template.render({
         "context": self.binary_context,
-        "include_paths": sorted(includes),
+        "include_paths": sorted(includes) + [
+          f"{c.location(ctx=EXPORT_SETTINGS_CLASS_INCLUDE)}/{c.name}Class.h",
+        ],
         "namespace_path": c.namespace(ctx=EXPORT_SETTINGS_CLASS_INCLUDE),
         "class_name": f"{c.name}Class",
         "class_size": c.structure.s.properties.additionalProperties.size,
