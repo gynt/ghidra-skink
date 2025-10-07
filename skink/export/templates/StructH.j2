@@ -9,14 +9,14 @@
 
 {# Do NOT pass `caller` here—it's injected implicitly by `call` #}
 {%- call wrap_namespaces(ns) -%}
-struct {{ struct_name }}
+typedef struct {{ struct_name }}
 {
 
     {% for field in fields -%}
     {{ field }};
     {% endfor %}
 
-};
+} {{ struct_name }};
 
 static_assert(sizeof({{ struct_name }}) == {{ struct_size }});
 

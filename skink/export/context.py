@@ -23,6 +23,7 @@ class AbstractContext(object):
 @dataclass
 class IncludeRules(AbstractContext):
     functions_this_parameter_type: bool = False
+    prefix_include: bool = True
 
 
 @dataclass_json
@@ -46,6 +47,7 @@ class StructRules(AbstractContext):
     prefix: str = ""
     typedef: bool = False
     suffix: str = "Struct"
+    field_eol_char: bool = True
 
 @dataclass_json
 @dataclass

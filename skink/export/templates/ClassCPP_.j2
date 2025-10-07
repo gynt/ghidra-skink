@@ -11,11 +11,11 @@
 
 {%- call wrap_namespaces(ns) -%}
 
-MemberFunctionPointer_DefineSingleton({{ class_name }}, ADDRESS_{{ ns_ }}_{{ class_name }}_singleton);
+MemberFunctionPointer_DefineSingleton({{ class_name }}, ADDRESS_{{ context.abbreviation }}_{{ context.hash }}_{{ ns_ }}_{{ class_name }}_singleton);
 
 {# Unused for now:  && !defined(REIMPLEMENT_{{ ns_ }}_{{ class_name }}_{{ method.name }}) #}
 {% for method in methods %}
-MemberFunctionPointer_DefineMethodPointer_oneliner(_{{ class_name }}, _{{ method.name }}, ADDRESS_{{ ns_ }}_{{ class_name }}_{{ method.name }}, {{ method.returnType }}{{', ' + method.parameters | join(', ') if method.parameters else '' }});
+MemberFunctionPointer_DefineMethodPointer_oneliner(_{{ class_name }}, _{{ method.name }}, ADDRESS_{{ context.abbreviation }}_{{ context.hash }}_{{ '0x%08X' % method.address }}, {{ method.returnType }}{{', ' + method.parameters | join(', ') if method.parameters else '' }});
 
 {{ method.returnType }} {{ class_name }}::_{{ method.name }}({{ method.parameters | join(', ') }}) {
   return MemberFunctionPointer_InvokeMethod(_{{ class_name }}, 

@@ -9,7 +9,7 @@
 
 {# Do NOT pass `caller` here—it's injected implicitly by `call` #}
 {%- call wrap_namespaces(ns) -%}
-class {{ class_name }}
+class _{{ class_name }}
 {
   public:
     {{ class_name }}({{ class_name }} const&) = delete;

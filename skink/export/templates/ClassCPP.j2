@@ -14,7 +14,8 @@
 {# Unused for now:  && !defined(REIMPLEMENT_{{ ns_ }}_{{ class_name }}_{{ method.name }}) #}
 {% for method in methods %}
 {{ method.returnType }} {{ class_name }}::{{ method.name }}({{ method.parameters | join(', ') }}) {
-#if !defined(REIMPLEMENT_IF_AVAILABLE) && !defined(REIMPLEMENT_addr_{{ context.abbreviation }}_{{ context.hash }}_{{ method.address }})
+// Add this when reimplemented: && !defined(REIMPLEMENT_IF_AVAILABLE)
+#if !defined(REIMPLEMENT_ADDRESS_{{ context.abbreviation }}_{{ context.hash }}_{{ '0x%08X' % method.address }}) 
   return this->_{{ method.name }}({{ method.parameter_names | join(', ') }});
 #else
 #error "No reimplementation available for '{{ namespace_path }}::{{ class_name }}::{{ method.name }}({{ method.parameters | join(', ') }})'"
