@@ -5,6 +5,8 @@
 
 #pragma once
 
+{{ '#include "pch.h"' if use_pch }}
+
 {# Do NOT pass `caller` here—it's injected implicitly by `call` #}
 {%- call wrap_namespaces(ns) -%}
 

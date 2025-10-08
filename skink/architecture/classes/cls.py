@@ -16,18 +16,31 @@ class Class(object):
     self.baseloc = "/".join(self.loc.split("/")[:-1])
     self.name = self.loc.split("/")[-1]
     self.fs: List[Function] = []
+    self.constructor: Function = None
+    self.structure = structure
     for f in functions:
       self.add_function(f)
-    self.structure = structure
+    self.find_constructor()
+
+  def find_constructor(self):
+    if self.constructor:
+      return self.constructor
+    for f in self.fs:
+      tn = f.f.properties.additionalProperties.ret.typeName
+      if "*" in tn:
+        if tn.replace("*", "").strip() == self.name:
+          self.constructor = f
+    
 
   def add_function(self, f: Function):
     self.fs.append(f)
+    self.find_constructor()
 
   def functions(self, ctx = DEFAULT):
     for f in self.fs:
       if not ctx.class_rules.export_constructor:
         if f.namespace() == self.ns:
-          if "Constructor_" in f.name:
+          if f == self.constructor: # "Constructor_" in f.name or
             # TODO: log warning message about this filtering
             continue
       yield f

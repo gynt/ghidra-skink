@@ -48,7 +48,7 @@ class Project(object):
     self.cache_objects = cache_objects
 
   def save_project(self, path: str | pathlib.Path):
-    items = list(obj.to_dict() for obj in self.yield_raw_objects())
+    items = list(obj for obj in self.yield_raw_objects())
     pathlib.Path(path).write_text(json.dumps({
       "runs": [{
         "results": items
@@ -200,8 +200,16 @@ class Project(object):
   def namespace_to_location(self, namespace: str):
     return f"/{'/'.join(namespace.split('::'))}"
 
-  def find_all_by_location(self, location: str, recursive: bool = True, lookup_lsymbols: bool = False) -> Generator[BasicResult]:
+  def find_all_by_location(self, location: str, name: str = None, recursive: bool = False, lookup_lsymbols: bool = False) -> Generator[BasicResult]:
     looked_up_lsymbols = {}
+
+    def find_symbols(addresses):
+      addresses = [addr for addr in addresses if not addr in looked_up_lsymbols]
+      for address in addresses:
+        looked_up_lsymbols[address] = True
+        # TODO: avoid another iteration over the same file...
+        yield from self.find_symbols_for_address(address)
+
     for obj in self.yield_raw_objects():
       ruleId = obj['ruleId']
       if ruleId == 'SYMBOLS':
@@ -215,14 +223,22 @@ class Project(object):
           looked_up_lsymbols[address] = True
         if not visited:
           if sr.properties.additionalProperties.location == location:
-            yield sr
+            if name:
+              if sr.properties.additionalProperties.name == name:
+                yield sr
+            else:
+              yield sr
           elif recursive and sr.properties.additionalProperties.location.startswith(location):
             yield sr
       elif ruleId == "FUNCTIONS":
         fr: FunctionResult = FunctionResult.from_dict(obj)
         loc = self.namespace_to_location(fr.properties.additionalProperties.namespace)
         if loc == location:
-          yield fr
+          if name:
+            if fr.properties.additionalProperties.name == name:
+              yield fr
+          else:
+            yield fr
         elif recursive and loc.startswith(location):
           yield fr
       elif ruleId == "DATATYPE":
@@ -236,6 +252,13 @@ class Project(object):
             hit = l == location
             if not hit:
               hit = recursive and l.startswith(location)
+            else:
+              if name:
+                if dtr.properties.additionalProperties.name == name:
+                  yield dtr
+              else:
+                yield dtr
+              continue
             if hit:
               yield dtr
       elif ruleId == "DEFINED_DATA":
@@ -251,12 +274,18 @@ class Project(object):
           hit = l == location
           if not hit:
             hit = recursive and l.startswith(location)
+          else:
+            if name:
+              if dd.properties.additionalProperties.name == name:
+                yield dd
+                if lookup_lsymbols:
+                  yield from find_symbols(addresses=[loc.physicalLocation.address.absoluteAddress for loc in dd.locations])
+            else:
+              yield dd
+              if lookup_lsymbols:
+                yield from find_symbols(addresses=[loc.physicalLocation.address.absoluteAddress for loc in dd.locations])
+            continue
           if hit:
             yield dd
             if lookup_lsymbols:
-              addresses = [loc.physicalLocation.address.absoluteAddress for loc in dd.locations]
-              addresses = [addr for addr in addresses if not addr in looked_up_lsymbols]
-              for address in addresses:
-                looked_up_lsymbols[address] = True
-                # TODO: avoid another iteration over the same file...
-                yield from self.find_symbols_for_address(address)
+              yield from find_symbols(addresses=[loc.physicalLocation.address.absoluteAddress for loc in dd.locations])

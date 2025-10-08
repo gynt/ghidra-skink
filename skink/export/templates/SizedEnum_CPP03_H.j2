@@ -5,6 +5,8 @@
 
 #pragma once
 
+{{ '#include "pch.h"' if use_pch }}
+
 {% call wrap_namespaces(ns) -%}
 
 class {{ name }}
