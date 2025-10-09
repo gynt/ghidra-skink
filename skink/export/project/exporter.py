@@ -1,7 +1,11 @@
 from jinja2 import Environment, FileSystemLoader
 from importlib.resources import path
 
+from skink.sarif.BasicResult import BasicResult
 from skink.sarif.datatypes.EnumResult import EnumResult
+from skink.sarif.defineddata.DefinedDataResult import DefinedDataResult
+from skink.sarif.symbols.symbol import SymbolResult
+from skink.sarif.functions.FunctionResult import FunctionResult
 from skink.architecture.classes.cls import Class
 from skink.architecture.structs.struct import Struct
 from skink.architecture.enums import Enum
@@ -9,7 +13,7 @@ from skink.export.project.exportcontents import ExportContents
 from skink.utils.OrderedSet import OrderedSet
 from skink.export.context import DEFAULT, Context
 
-from typing import List
+from typing import List, Iterable
 
 from dataclasses import dataclass
 from dataclasses_json import dataclass_json
@@ -42,6 +46,36 @@ class Exporter(object):
   def __init__(self, template_path: str = DEFAULT_TEMPLATE_PATH, binary_context: BinaryContext = DEFAULT_BINARY_CONTEXT):
     self.template_path = template_path
     self.binary_context = binary_context
+
+  def export_addresses(self, objects: Iterable[BasicResult]):
+    if self.template_path != DEFAULT_TEMPLATE_PATH:
+      raise Exception()
+    anchor, *names = self.template_path.split(".")
+    with path(anchor, *names) as p:
+      env = Environment(loader=FileSystemLoader(str(p)))
+      template = env.get_template("AddressesH.j2")
+
+      addresses: OrderedSet[int] = OrderedSet()
+
+      for obj in objects:
+        if isinstance(obj, DefinedDataResult):
+          for l in obj.locations:
+            addresses.add(l.physicalLocation.address.absoluteAddress)
+        elif isinstance(obj, SymbolResult):
+          for l in obj.locations:
+            addresses.add(l.physicalLocation.address.absoluteAddress)
+        elif isinstance(obj, FunctionResult):
+          for l in obj.locations:
+            addresses.add(l.physicalLocation.address.absoluteAddress)
+      
+      return ExportContents(path=f"Addresses/addresses-{self.binary_context.abbreviation}-{self.binary_context.hash}.h",
+                            contents=template.render({
+                              "context": self.binary_context,
+                              "addresses": addresses,
+                              "use_pch": True,
+                            }),
+                            no_touch=True)
+
 
   def export_class_header(self, c: Class):
     if self.template_path != DEFAULT_TEMPLATE_PATH:
