@@ -7,7 +7,7 @@ from .UnusedResult import UnusedResult
 from .datatypes.DataTypeResult import DataTypeResult
 from .functions.FunctionResult import FunctionResult
 from .defineddata.DefinedDataResult import DefinedDataResult
-
+from .datatypes.FunctionSignatureResult import FunctionSignatureResult
 
 def decode_result(result: Dict) -> BasicResult:
     if result['ruleId'] == "FUNCTIONS":
@@ -17,6 +17,8 @@ def decode_result(result: Dict) -> BasicResult:
             return EnumResult.from_dict(result) # type: ignore
         elif result['message']['text'] == "DT.Struct":
             return DataTypeResult.from_dict(result) # type: ignore
+        elif result['message']['text'] == "DT.Function":
+            return FunctionSignatureResult.from_dict(result)
         else:
             pass
             # pass # TODO: print drop of result here
