@@ -1,4 +1,4 @@
-
+import logging
 from typing import Iterable, Dict
 from skink.sarif.BasicResult import BasicResult
 from skink.sarif.datatypes.EnumResult import EnumResult
@@ -6,6 +6,7 @@ from .symbols.symbol import SymbolResult
 from .UnusedResult import UnusedResult
 from .datatypes.DataTypeResult import DataTypeResult
 from .functions.FunctionResult import FunctionResult
+from .defineddata.DefinedDataResult import DefinedDataResult
 
 
 def decode_result(result: Dict) -> BasicResult:
@@ -21,6 +22,9 @@ def decode_result(result: Dict) -> BasicResult:
             # pass # TODO: print drop of result here
     elif result['ruleId'] == "SYMBOLS":
         return SymbolResult.from_dict(result) # type: ignore
+    elif result['ruleId'] == "DEFINED_DATA":
+        return DefinedDataResult.from_dict(result)
+    logging.log(logging.WARNING, f"unused result: {result['message']['text']}")
     return UnusedResult.from_dict(result) # type: ignore
 
 

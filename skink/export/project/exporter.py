@@ -203,6 +203,7 @@ class Exporter(object):
         "class_name": f"{c.name}Class",
         "class_size": c.structure.s.properties.additionalProperties.size,
         "methods": methods,
+        "singleton_address": c.singleton.defined_data.address() if c.singleton else 0,
       })
 
       return ExportContents(path=f"{c.location(ctx=EXPORT_SETTINGS_CLASS_INCLUDE)}/{c.name}Class_.cpp", contents=contents)

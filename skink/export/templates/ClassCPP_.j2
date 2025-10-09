@@ -12,7 +12,12 @@
 
 {{ usings(using_paths) }}
 
-MemberFunctionPointer_DefineSingleton({{ class_name }}, ADDRESS_{{ context.abbreviation }}_{{ context.hash }}_{{ ns_ }}_{{ class_name }}_singleton);
+{% if singleton_address -%}
+MemberFunctionPointer_DefineSingleton({{ class_name }}, ADDRESS_{{ context.abbreviation }}_{{ context.hash }}_{{ '0x%08X' % singleton_address }});
+{% else %}
+// Not a singleton class, if it is, fill in this line:
+// MemberFunctionPointer_DefineSingleton({{ class_name }}, ADDRESS_{{ context.abbreviation }}_{{ context.hash }}_?);
+{%- endif %}
 
 {# Unused for now:  && !defined(REIMPLEMENT_{{ ns_ }}_{{ class_name }}_{{ method.name }}) #}
 {% for method in methods %}

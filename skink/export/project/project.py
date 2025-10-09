@@ -1,4 +1,5 @@
-from typing import Any, Generator, Iterable, List
+from dataclasses import dataclass
+from typing import Any, Generator, Iterable, List, Set
 import ijson, json
 
 from skink.sarif.BasicResult import BasicResult
@@ -21,6 +22,12 @@ def promote_pathstring(path: str | pathlib.Path):
   if isinstance(path, pathlib.Path):
     return path
   return pathlib.Path(path).absolute()
+
+@dataclass
+class SingletonSearchResult:
+  dtr: DataTypeResult
+  ddr: DefinedDataResult
+  sr: SymbolResult
 
 class Project(object):
   
@@ -108,6 +115,23 @@ class Project(object):
           if debug:
             log(logging.DEBUG, obj)
           yield decode_result(obj)
+
+  # def find_first_defined_data_for_class(self, dtr: DataTypeResult):
+  #   loc = dtr.properties.additionalProperties.location
+  #   name = dtr.properties.additionalProperties.name
+  #   for obj in self.yield_objects():
+  #     if obj.ruleId == "DEFINED_DATA":
+  #       ddr: DefinedDataResult = obj
+  #       if ddr.properties.additionalProperties.location == loc:
+  #         if ddr.properties.additionalProperties.name == name:
+  #           if len(ddr.locations) == 1:
+  #             address = ddr.locations[0].physicalLocation.address.absoluteAddress
+  #             for obj2 in self.yield_objects():
+  #               if obj2.ruleId == "SYMBOL":
+  #                 sr: SymbolResult = obj2
+  #                 if len(sr.locations) == 1:
+  #                   if sr.locations[0].physicalLocation.address.absoluteAddress == address:
+  #                     return SingletonSearchResult(dtr, ddr, sr)
 
   def process_symbol_results(self, yield_filters = ['address'], prefix = "", permit_overwrite = False, drop_submembers = True, store_symbol_result = False) -> Generator[SymbolResult]:
     if not self.paths:

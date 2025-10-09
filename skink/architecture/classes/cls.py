@@ -1,17 +1,23 @@
 from skink.architecture.structs.struct import Struct
 from skink.architecture.defineddata import DefinedData
+from skink.sarif.symbols.symbol import SymbolResult
 from skink.export.location import normalize_location, transform_location
 from skink.utils.OrderedSet import OrderedSet
 from ...export.context import DEFAULT, Context, FunctionRules
 from ..functions import Function
+from dataclasses import dataclass
 
 
 from typing import List
 
+@dataclass
+class Singleton:
+  defined_data: DefinedData
+  sr: SymbolResult
 
 class Class(object):
 
-  def __init__(self, namespace: str, functions: List[Function], structure: Struct = None, singleton: DefinedData = None):
+  def __init__(self, namespace: str, functions: List[Function], structure: Struct = None, singleton: Singleton = None):
     self.ns = namespace
     self.loc = namespace.replace("::", "/")
     self.baseloc = "/".join(self.loc.split("/")[:-1])
