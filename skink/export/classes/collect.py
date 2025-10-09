@@ -61,7 +61,8 @@ def collect_classes(results: Iterable[BasicResult]):
       if not ns in classes:
         classes[ns] = PreClass(ns)
       if classes[ns].structure:
-        raise Exception("structure already set")
+        if classes[ns].structure != result:
+          raise Exception(f"structure already set and different: {ns}")
       # TODO: is this dirty? We promote this struct to a class struct and therefore move it next to the cls file
       # cp = DataTypeResult.from_dict(result.to_dict())
       # cp.properties.additionalProperties.location = loc

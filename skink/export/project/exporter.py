@@ -285,7 +285,7 @@ class Exporter(object):
       env = Environment(loader=FileSystemLoader(str(p)))
       template = env.get_template("IncludesOnlyH.j2")
 
-      includes = [f"{c.location(ctx=EXPORT_SETTINGS_CLASS_INCLUDE)}.h"]
+      includes = [f"{c.location(ctx=EXPORT_SETTINGS_CLASS_INCLUDE)}/{c.name}Namespace.h"]
       contents = template.render({
         "use_pch": True,
         "include_paths": includes,

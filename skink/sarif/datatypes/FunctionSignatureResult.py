@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from skink.sarif.TypeInfo import TypeInfo
 from skink.sarif.functions.Param import Param
@@ -20,16 +20,29 @@ class FunctionSignatureParam:
     ordinal: int
     location: str
     kind: str
+    extra: CatchAll
+
+@dataclass_json(undefined=Undefined.INCLUDE, letter_case=LetterCase.CAMEL)
+@dataclass
+class FunctionSignatureRetTypeInfo:
+    extra: CatchAll
+    kind: str = ""
+    name: str = ""
+    location: str = ""
+    subtype: Optional['TypeInfo'] = None
+    size: int = -1
+    count: int = -1
 
 @dataclass_json(undefined=Undefined.INCLUDE, letter_case=LetterCase.CAMEL)
 @dataclass
 class AdditionalFunctionSignatureProperties:
     name: str
     location: str
+    kind: str
     callingConventionName: str
     hasVarArgs: bool
     hasNoReturn: bool
-    retType: TypeInfo
+    retType: FunctionSignatureRetTypeInfo
     params: List[FunctionSignatureParam]
     extra: CatchAll
     comment: str = ""

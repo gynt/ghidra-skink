@@ -1,4 +1,4 @@
-import logging
+import logging, json
 from typing import Iterable, Dict
 from skink.sarif.BasicResult import BasicResult
 from skink.sarif.datatypes.EnumResult import EnumResult
@@ -10,22 +10,25 @@ from .defineddata.DefinedDataResult import DefinedDataResult
 from .datatypes.FunctionSignatureResult import FunctionSignatureResult
 
 def decode_result(result: Dict) -> BasicResult:
-    if result['ruleId'] == "FUNCTIONS":
-        return FunctionResult.from_dict(result) # type: ignore
-    elif result['ruleId'] == "DATATYPE":
-        if result['message']['text'] == "DT.Enum":
-            return EnumResult.from_dict(result) # type: ignore
-        elif result['message']['text'] == "DT.Struct":
-            return DataTypeResult.from_dict(result) # type: ignore
-        elif result['message']['text'] == "DT.Function":
-            return FunctionSignatureResult.from_dict(result)
-        else:
-            pass
-            # pass # TODO: print drop of result here
-    elif result['ruleId'] == "SYMBOLS":
-        return SymbolResult.from_dict(result) # type: ignore
-    elif result['ruleId'] == "DEFINED_DATA":
-        return DefinedDataResult.from_dict(result)
+    try:
+      if result['ruleId'] == "FUNCTIONS":
+          return FunctionResult.from_dict(result) # type: ignore
+      elif result['ruleId'] == "DATATYPE":
+          if result['message']['text'] == "DT.Enum":
+              return EnumResult.from_dict(result) # type: ignore
+          elif result['message']['text'] == "DT.Struct":
+              return DataTypeResult.from_dict(result) # type: ignore
+          elif result['message']['text'] == "DT.Function":
+              return FunctionSignatureResult.from_dict(result)
+          else:
+              pass
+              # pass # TODO: print drop of result here
+      elif result['ruleId'] == "SYMBOLS":
+          return SymbolResult.from_dict(result) # type: ignore
+      elif result['ruleId'] == "DEFINED_DATA":
+          return DefinedDataResult.from_dict(result)
+    except Exception as e:
+        raise Exception(f"{e}\nin parsing: {json.dumps(result, indent=2)}")
     logging.log(logging.WARNING, f"unused result: {result['message']['text']}")
     return UnusedResult.from_dict(result) # type: ignore
 

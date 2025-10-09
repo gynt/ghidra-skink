@@ -10,6 +10,7 @@ from ...sarif.symbols.symbol import SymbolResult
 from ...sarif.functions.FunctionResult import FunctionResult
 from ...sarif.datatypes.DataTypeResult import DataTypeResult
 from ...sarif.defineddata.DefinedDataResult import DefinedDataResult
+from ...sarif.datatypes.EnumResult import EnumResult
 
 import pathlib
 
@@ -142,7 +143,7 @@ class Project(object):
     for obj in self.yield_raw_objects():
       if obj['ruleId'] == 'SYMBOLS':
         sr: SymbolResult = SymbolResult.from_dict(obj) # type: ignore
-        log(logging.DEBUG, sr)
+#         log(logging.DEBUG, sr)
         n = sr.properties.additionalProperties.name
         l = sr.properties.additionalProperties.location
         g = not l
@@ -187,8 +188,13 @@ class Project(object):
         
         yield sr
 
-  def process_all_symbol_results(self, *args, **kwargs):
+  def process_all_symbol_results(self, log_progress=0, *args, **kwargs):
+    progress_i = 0
     for _ in self.process_symbol_results(*args, **kwargs):
+      progress_i += 1
+      if log_progress:
+        if progress_i % log_progress == 0:
+          logging.log(logging.DEBUG, f"progress:\t{progress_i}")
       continue
 
   def find_symbols_for_address(self, address: int) -> Generator[BasicResult]:
@@ -232,7 +238,8 @@ class Project(object):
       for address in addresses:
         looked_up_lsymbols[address] = True
         # TODO: avoid another iteration over the same file...
-        yield from self.find_symbols_for_address(address)
+        for entry in self.symdb.by_address(address=address, except_on_missing=False):
+          yield entry.extra
 
     for obj in self.yield_raw_objects():
       ruleId = obj['ruleId']
@@ -266,9 +273,28 @@ class Project(object):
         elif recursive and loc.startswith(location):
           yield fr
       elif ruleId == "DATATYPE":
-        if obj["message"]["text"] == "DT.Struct": # TODO: improve
+        if obj["message"]["text"] == "DT.Struct":
           dtr: DataTypeResult = DataTypeResult.from_dict(obj)
-          locations = [
+          locations: List[str] = [
+            dtr.properties.additionalProperties.location,
+            f"{dtr.properties.additionalProperties.location}/{dtr.properties.additionalProperties.name}",
+          ]
+          for l in locations:
+            hit = l == location
+            if not hit:
+              hit = recursive and l.startswith(location)
+            else:
+              if name:
+                if dtr.properties.additionalProperties.name == name:
+                  yield dtr
+              else:
+                yield dtr
+              continue
+            if hit:
+              yield dtr
+        elif obj["message"]["text"] == "DT.Enum":
+          dtr: EnumResult = EnumResult.from_dict(obj)
+          locations: List[str] = [
             dtr.properties.additionalProperties.location,
             f"{dtr.properties.additionalProperties.location}/{dtr.properties.additionalProperties.name}",
           ]

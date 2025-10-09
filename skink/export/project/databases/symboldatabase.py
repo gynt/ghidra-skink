@@ -15,7 +15,7 @@ class SymbolEntry:
   kind: str # 'class' | 'namespace' | 'function' | 'data' | 'member'
   address: int = 0
   external: bool = False
-  extra: Any = None
+  extra: SymbolResult | None = None
 
 
 class SymbolDatabase(object):
@@ -25,10 +25,13 @@ class SymbolDatabase(object):
     self.address_db: Dict[int, List[SymbolEntry]] = {}
     self.sanitize: bool = sanitize
 
-  def by_address(self, address) -> Generator[SymbolEntry]:
+  def by_address(self, address, except_on_missing = True) -> Generator[SymbolEntry]:
     if address not in self.address_db:
-      raise Exception(f"address not in database: {address}")
-    yield from self.address_db[address]
+      if except_on_missing:
+        raise Exception(f"address not in database: {address}")
+      yield from []
+    else:
+      yield from self.address_db[address]
 
   def get(self, key) -> SymbolEntry:
     if self.sanitize:

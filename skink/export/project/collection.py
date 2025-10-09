@@ -2,18 +2,21 @@ import logging
 import pathlib
 from typing import Dict
 from skink.export.project.exportcontents import ExportContents
-
+import pathvalidate
 
 class ExportedContentCollection(object):
 
-  def __init__(self):
+  def __init__(self, ignore_duplicates: bool = False):
     self.db: Dict[str, ExportContents] = {}
     self.stubs: Dict[str, bool] = {}
+    self.ignore_duplicates: bool = ignore_duplicates
 
   def add(self, *contents: ExportContents):
     for content in contents:
       if content.path in self.db:
-        raise Exception(f"already in collection: {content.path}")
+        if content.contents != self.db[content.path].contents:
+          if not self.ignore_duplicates:
+            raise Exception(f"already in collection and different: {content.path}")
       self.db[content.path] = content
 
   def stub(self, path: str):
@@ -33,5 +36,8 @@ class ExportedContentCollection(object):
       logging.log(logging.WARNING, f"there are {len(stbs)} unresolved paths")
     for path, contents in self.db.items():
       p: pathlib.Path = base / path
+      if not pathvalidate.is_valid_filepath(p):
+        logging.log(logging.WARNING, f"invalid path name, skipping: {str(p)}")
+        continue
       p.parent.mkdir(parents=True, exist_ok=True)
       p.write_text(contents.contents)
