@@ -10,10 +10,11 @@ class ExportedContentCollection(object):
     self.db: Dict[str, ExportContents] = {}
     self.stubs: Dict[str, bool] = {}
 
-  def add(self, content: ExportContents):
-    if content.path in self.db:
-      raise Exception(f"already in collection: {content.path}")
-    self.db[content.path] = content
+  def add(self, *contents: ExportContents):
+    for content in contents:
+      if content.path in self.db:
+        raise Exception(f"already in collection: {content.path}")
+      self.db[content.path] = content
 
   def stub(self, path: str):
     if path in self.stubs:

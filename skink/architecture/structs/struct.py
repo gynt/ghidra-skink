@@ -1,5 +1,6 @@
 from typing import List
 
+from skink.sarif.TypeInfo import TypeInfo
 from skink.utils.OrderedSet import OrderedSet
 
 from ...export.context import DEFAULT
@@ -68,8 +69,17 @@ class Struct(object):
             yield f.declaration(ctx)
 
     def export_field_declarations_with_offsets_and_lengths(self, ctx = DEFAULT):
+        # offset = 0, real offset = 0
+        offset = 0
         for n, sf in self.s.properties.additionalProperties.fields.items():
+            # 0 = 0 - 0
+            # 1 = 5 - 4
+            diff = sf.offset - offset
+            if diff > 0:
+                yield f"undefined1 padding_{hex(offset)}[{diff}]", offset, diff
             f = Field(sf, name=n)
+            # 4 = 0 + 4
+            offset = sf.offset + f.f.length
             yield f.declaration(ctx), f.f.offset, f.f.length
 
     def export_fields(self, ctx = DEFAULT) -> StructExportPart:

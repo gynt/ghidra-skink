@@ -1,0 +1,3 @@
+{% for address in addresses -%}
+#define ADDRESS_{{ context.abbreviation }}_{{ context.hash }}_{{ '0x%08X' % address }}  {{ '0x%08X' % address }}
+{%- endfor %}

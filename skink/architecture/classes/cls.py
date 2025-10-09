@@ -1,4 +1,5 @@
 from skink.architecture.structs.struct import Struct
+from skink.architecture.defineddata import DefinedData
 from skink.export.location import normalize_location, transform_location
 from skink.utils.OrderedSet import OrderedSet
 from ...export.context import DEFAULT, Context, FunctionRules
@@ -10,7 +11,7 @@ from typing import List
 
 class Class(object):
 
-  def __init__(self, namespace: str, functions: List[Function], structure: Struct = None):
+  def __init__(self, namespace: str, functions: List[Function], structure: Struct = None, singleton: DefinedData = None):
     self.ns = namespace
     self.loc = namespace.replace("::", "/")
     self.baseloc = "/".join(self.loc.split("/")[:-1])
@@ -18,6 +19,7 @@ class Class(object):
     self.fs: List[Function] = []
     self.constructor: Function = None
     self.structure = structure
+    self.singleton = singleton
     for f in functions:
       self.add_function(f)
     self.find_constructor()

@@ -258,6 +258,17 @@ class Exporter(object):
 
       return ExportContents(path=f"{c.location(ctx=EXPORT_SETTINGS_CLASS_INCLUDE)}.h", contents=contents)
     
+  def export_class(self, c: Class) -> List[ExportContents]:
+    return [
+      self.export_class_header(c),
+      self.export_class_header_shim(c),
+      self.export_class_struct_header(c),
+      self.export_class_body(c),
+      self.export_class_body_shim(c),
+      self.export_class_namespace(c),
+      self.export_class_namespace_helper(c),
+    ]
+    
   def export_struct(self, s: Struct):
     if self.template_path != DEFAULT_TEMPLATE_PATH:
       raise Exception()
