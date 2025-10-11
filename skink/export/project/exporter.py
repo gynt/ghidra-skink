@@ -8,6 +8,7 @@ from skink.sarif.symbols.symbol import SymbolResult
 from skink.sarif.functions.FunctionResult import FunctionResult
 from skink.architecture.classes.cls import Class
 from skink.architecture.structs.struct import Struct
+from skink.architecture.unions.union import Union
 from skink.architecture.enums import Enum
 from skink.export.project.exportcontents import ExportContents
 from skink.utils.OrderedSet import OrderedSet
@@ -327,6 +328,30 @@ class Exporter(object):
       })
     
       return ExportContents(path=f"{s.location(ctx=EXPORT_SETTINGS_CLASS_INCLUDE)}/{s.name}.h", contents=contents)
+
+  def export_union(self, u: Union):
+    if self.template_path != DEFAULT_TEMPLATE_PATH:
+      raise Exception()
+    anchor, *names = self.template_path.split(".")
+    with path(anchor, *names) as p:
+      env = Environment(loader=FileSystemLoader(str(p)))
+      template = env.get_template("UnionH.j2")
+
+      includes = OrderedSet(u.includes(EXPORT_SETTINGS_CLASS_INCLUDE))
+
+      fields =  list({"string": s, "offset": o, "length": l} for s, o, l in u.export_field_declarations_with_offsets_and_lengths(EXPORT_SETTINGS_CLASS_INCLUDE))
+      
+      contents = template.render({
+        "use_pch": True,
+        "include_paths": sorted(includes),
+        "using_paths": sorted(includes),
+        "namespace_path": u.namespace(ctx=EXPORT_SETTINGS_CLASS_INCLUDE),
+        "union_name": u.name,
+        "union_size": u.s.properties.additionalProperties.size,
+        "fields": fields,
+      })
+    
+      return ExportContents(path=f"{u.location(ctx=EXPORT_SETTINGS_CLASS_INCLUDE)}/{u.name}.h", contents=contents)
 
   def export_enum(self, e: Enum):
     if self.template_path != DEFAULT_TEMPLATE_PATH:

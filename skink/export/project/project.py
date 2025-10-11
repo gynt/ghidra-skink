@@ -11,6 +11,7 @@ from ...sarif.functions.FunctionResult import FunctionResult
 from ...sarif.datatypes.DataTypeResult import DataTypeResult
 from ...sarif.defineddata.DefinedDataResult import DefinedDataResult
 from ...sarif.datatypes.EnumResult import EnumResult
+from ...sarif.datatypes.UnionResult import UnionResult
 
 import pathlib
 
@@ -294,6 +295,25 @@ class Project(object):
               yield dtr
         elif obj["message"]["text"] == "DT.Enum":
           dtr: EnumResult = EnumResult.from_dict(obj)
+          locations: List[str] = [
+            dtr.properties.additionalProperties.location,
+            f"{dtr.properties.additionalProperties.location}/{dtr.properties.additionalProperties.name}",
+          ]
+          for l in locations:
+            hit = l == location
+            if not hit:
+              hit = recursive and l.startswith(location)
+            else:
+              if name:
+                if dtr.properties.additionalProperties.name == name:
+                  yield dtr
+              else:
+                yield dtr
+              continue
+            if hit:
+              yield dtr
+        elif obj["message"]["text"] == "DT.Union":
+          dtr: UnionResult = UnionResult.from_dict(obj)
           locations: List[str] = [
             dtr.properties.additionalProperties.location,
             f"{dtr.properties.additionalProperties.location}/{dtr.properties.additionalProperties.name}",

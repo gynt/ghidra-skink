@@ -2,6 +2,7 @@ import logging, json
 from typing import Iterable, Dict
 from skink.sarif.BasicResult import BasicResult
 from skink.sarif.datatypes.EnumResult import EnumResult
+from skink.sarif.datatypes.UnionResult import UnionResult
 from .symbols.symbol import SymbolResult
 from .UnusedResult import UnusedResult
 from .datatypes.DataTypeResult import DataTypeResult
@@ -20,6 +21,8 @@ def decode_result(result: Dict) -> BasicResult:
               return DataTypeResult.from_dict(result) # type: ignore
           elif result['message']['text'] == "DT.Function":
               return FunctionSignatureResult.from_dict(result)
+          elif result['message']['text'] == "DT.Union":
+              return UnionResult.from_dict(result)
           else:
               pass
               # pass # TODO: print drop of result here
