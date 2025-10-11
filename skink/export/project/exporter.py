@@ -1,6 +1,7 @@
 from jinja2 import Environment, FileSystemLoader
 from importlib.resources import path
 
+from skink.architecture.functionsignatures import FunctionSignature
 from skink.sarif.BasicResult import BasicResult
 from skink.sarif.datatypes.EnumResult import EnumResult
 from skink.sarif.defineddata.DefinedDataResult import DefinedDataResult
@@ -409,3 +410,32 @@ class Exporter(object):
       })
 
       return [ExportContents(path=path1, contents=contents1), ExportContents(path=path2, contents=contents2)]
+    
+  def export_function_signature(self, fs: FunctionSignature):
+    if self.template_path != DEFAULT_TEMPLATE_PATH:
+      raise Exception()
+    anchor, *names = self.template_path.split(".")
+    with path(anchor, *names) as p:
+      env = Environment(loader=FileSystemLoader(str(p)))
+      template1 = env.get_template("FunctionSignatureH.j2")
+
+      namespace_path = fs.namespace(ctx=EXPORT_SETTINGS_CLASS_INCLUDE)
+      include_paths: List[str] = []
+      
+      returnTypeName = fs.fsr.properties.additionalProperties.retType.name
+      returnTypeLocation = fs.fsr.properties.additionalProperties.retType.location
+      callingConvention = fs.fsr.properties.additionalProperties.callingConventionName
+
+      parameters = [f"{param.name} " for param in fs.fsr.properties.additionalProperties.params if param.name != "this"]
+      name = fs.fsr.properties.additionalProperties.name
+      contents = template1.render({
+        "include_paths": include_paths,
+        "use_pch": True,
+        "namespace_path": namespace_path,
+        "name": name,
+        "parameters": parameters,
+        "returnTypeName": returnTypeName,
+        "returnTypeLocation": returnTypeLocation,
+        # "type": type,
+      })
+      return ExportContents(path=f"{fs.location(ctx=EXPORT_SETTINGS_CLASS_INCLUDE)}/{fs.name}.h", contents=contents)
