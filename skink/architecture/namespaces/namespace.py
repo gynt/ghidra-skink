@@ -19,7 +19,7 @@ class Namespace(object):
                 raise Exception(f"namespace of function ({f.namespace()}) is not same as Namespace {self.namespace}")
 
     def path(self, ctx = DEFAULT):
-        return f"{self.location}/{self.name}.h"
+        return f"{self.location}/{self.name}{ctx.include.file_extension}"
 
     def export(self, ctx = DEFAULT):
         includes = OrderedSet()

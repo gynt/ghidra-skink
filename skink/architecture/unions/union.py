@@ -53,7 +53,7 @@ class Union(object):
         return transform_location(self.loc, ctx)
 
     def path(self, ctx = DEFAULT):
-        return f"{self.location(ctx)}/{ctx.struct_rules.prefix}{self.name}{ctx.struct_rules.suffix}.h"
+        return f"{self.location(ctx)}/{ctx.struct_rules.prefix}{self.name}{ctx.struct_rules.suffix}{ctx.include.file_extension}"
 
     def include(self, ctx = DEFAULT):
         return f'#include "{self.path(ctx)}"'

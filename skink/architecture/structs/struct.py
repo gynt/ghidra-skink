@@ -51,7 +51,7 @@ class Struct(object):
         return transform_location(self.loc, ctx)
 
     def path(self, ctx = DEFAULT):
-        return f"{self.location(ctx)}/{ctx.struct_rules.prefix}{self.name}{ctx.struct_rules.suffix}.h"
+        return f"{self.location(ctx)}/{ctx.struct_rules.prefix}{self.name}{ctx.struct_rules.suffix}{ctx.include.file_extension}"
 
     def include(self, ctx = DEFAULT):
         return f'#include "{self.path(ctx)}"'
@@ -81,6 +81,10 @@ class Struct(object):
             # 4 = 0 + 4
             offset = sf.offset + f.f.length
             yield f.declaration(ctx), f.f.offset, f.f.length
+        # Do this once more if we haven't reached the end of the struct size yet:
+        diff = self.s.properties.additionalProperties.size - offset
+        if diff > 0:
+            yield f"undefined1 padding_{hex(offset)}[{diff}]", offset, diff
 
     def export_fields(self, ctx = DEFAULT) -> StructExportPart:
         includes = self.includes(ctx = ctx)

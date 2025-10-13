@@ -60,7 +60,7 @@ class Class(object):
     return transform_location(self.loc, ctx)
 
   def path(self, ctx = DEFAULT):
-    return f"{self.location(ctx)}/{ctx.class_rules.prefix}{self.name}{ctx.class_rules.suffix}.h"
+    return f"{self.location(ctx)}/{ctx.class_rules.prefix}{self.name}{ctx.class_rules.suffix}{ctx.include.file_extension}"
 
   def export(self, ctx = DEFAULT):
     fr: FunctionRules = ctx.function_rules.mutate(include_convention = False)
@@ -73,7 +73,7 @@ class Class(object):
       if not ctx.class_rules.inline_struct:
         includes.append(self.structure.include(ctx))
     else:
-      includes.append(f'#include "{self.location(ctx)}/{self.name}{ctx.struct_rules.suffix}.h"')
+      includes.append(f'#include "{self.location(ctx)}/{self.name}{ctx.struct_rules.suffix}{ctx.include.file_extension}"')
 
     for f in self.functions(ctx):
       new_includes = list(f.includes(ctx))

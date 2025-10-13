@@ -25,7 +25,13 @@ def generate_include_for_type(type_name: str, type_info: TypeInfo, ctx = DEFAULT
   if not assumeGlobal:
     if loc.endswith(".h"):
       loc = transform_location(loc, ctx)
-      result = f"{loc}.h" 
+      result = f"{loc}{ctx.include.file_extension}"
+      if ctx.include.prefix_include:
+        result = f'#include "{result}"'
+      yield result
+    elif loc.endswith(".hpp"):
+      loc = transform_location(loc, ctx)
+      result = f"{loc}{ctx.include.file_extension}"
       if ctx.include.prefix_include:
         result = f'#include "{result}"'
       yield result
@@ -34,7 +40,7 @@ def generate_include_for_type(type_name: str, type_info: TypeInfo, ctx = DEFAULT
 
       type_name = repair_asterisk(type_name)
       type_name = repair_indexing(type_name)
-      result = f"{loc}/{type_name}.h" 
+      result = f"{loc}/{type_name}{ctx.include.file_extension}"
       if ctx.include.prefix_include:
         result = f'#include "{result}"'
       yield result

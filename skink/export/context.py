@@ -24,6 +24,7 @@ class AbstractContext(object):
 class IncludeRules(AbstractContext):
     functions_this_parameter_type: bool = False
     prefix_include: bool = True
+    file_extension: str = ".hpp"
 
 
 @dataclass_json

@@ -12,7 +12,9 @@ def normalize_location(l: str, ctx = DEFAULT):
   if l[0] == ROOT:
     l = l[1:]
   if l.endswith(".h"):
-    l = l[:-2]
+    l = l[:-len(".h")]
+  elif l.endswith(".hpp"):
+    l = l[:-len(".hpp")]
   return l
 
 def transform_location(l: str, ctx = DEFAULT):

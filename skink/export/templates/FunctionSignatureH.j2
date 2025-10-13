@@ -1,0 +1,20 @@
+{% from "macros/wrap_namespaces.j2" import wrap_namespaces with context %}
+{% from "macros/includes.j2" import includes %}
+{% from "macros/usings.j2" import usings %}
+{%- set ns = (namespace_path.split('::') if namespace_path is string else namespace_path)
+              | reject('equalto','') | list -%}
+{%- set ns_ = (namespace_path.replace('::', "__")) -%}
+
+#pragma once
+
+{{ '#include "pch.h"' if use_pch }}
+
+{{ includes(include_paths) }}
+
+{%- call wrap_namespaces(ns) -%}
+
+{{ usings(using_paths) }}
+
+typedef {{ returnTypeName }} {{ name }}({{ parameters | join(', ') }});
+
+{%- endcall -%}
