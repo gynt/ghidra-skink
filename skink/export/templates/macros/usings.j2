@@ -2,7 +2,7 @@
 {% macro usings(names) %}
 {%- for header in names %}
 {%- if header.endswith('.h') or header.endswith('.hpp') %}
-using {{ header | replace('/', '::') | replace(".h", "") | replace(".hpp", "") }};
+using {{ header | replace('/', '::') | replace(".hpp", "") | replace(".h", "") }};
 {%- endif %}
 {%- endfor %}
 {% endmacro %}
