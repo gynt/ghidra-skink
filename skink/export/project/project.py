@@ -16,6 +16,7 @@ from ...sarif.datatypes.FunctionSignatureResult import FunctionSignatureResult
 from skink.sarif.datatypes.TypedefResult import TypedefResult
 
 import pathlib
+import pickle
 
 from ...logger import log, logging
 
@@ -40,7 +41,8 @@ class Project(object):
                paths: Iterable[str] | Iterable[pathlib.Path] | None = None, 
                raw_objects: Iterable[Any] | None = None,
                objects: Iterable[Any] | None = None,
-               cache_objects: bool = False):
+               cache_objects: bool = False,
+               cache_symbols_to_path: str | None = None):
     self.paths: List[pathlib.Path] = list()
     self.raw_objects = None
     self.objects = None
@@ -55,8 +57,14 @@ class Project(object):
     else:
       raise Exception()
     self.symdb = SymbolDatabase()
+    self.cache_symbols_to_path = cache_symbols_to_path
+    if self.cache_symbols_to_path:
+      if pathlib.Path(self.cache_symbols_to_path).exists():
+        with open(self.cache_symbols_to_path, 'rb') as f:
+          self.symdb = pickle.load(file=f)
     self.counts = {'total': 0, 'member': 0, 'class': 0, 'namespace': 0, 'unknown': 0}
     self.cache_objects = cache_objects
+    
 
   def save_project(self, path: str | pathlib.Path):
     items = list(obj for obj in self.yield_raw_objects())
@@ -191,7 +199,10 @@ class Project(object):
         
         yield sr
 
-  def process_all_symbol_results(self, log_progress=0, *args, **kwargs):
+  def process_all_symbol_results(self, log_progress=0, clear_cache=False, *args, **kwargs):
+    if not clear_cache and (self.cache_symbols_to_path and pathlib.Path(self.cache_symbols_to_path).exists()):
+      log(logging.INFO, f"using cached symbols: {self.cache_symbols_to_path}")
+      return
     progress_i = 0
     for _ in self.process_symbol_results(*args, **kwargs):
       progress_i += 1
@@ -199,6 +210,10 @@ class Project(object):
         if progress_i % log_progress == 0:
           logging.log(logging.DEBUG, f"progress:\t{progress_i}")
       continue
+    if self.cache_symbols_to_path:
+      logging.log(logging.INFO, f"caching symbols to: {self.cache_symbols_to_path}")
+      with open(self.cache_symbols_to_path, 'wb') as f:
+        pickle.dump(obj=self.symdb, file=f)
 
   def find_symbols_for_address(self, address: int) -> Generator[BasicResult]:
     for obj in self.yield_raw_objects():

@@ -15,6 +15,7 @@ from skink.architecture.enums import Enum
 from skink.export.project.exportcontents import ExportContents
 from skink.utils.OrderedSet import OrderedSet
 from skink.export.context import DEFAULT, Context
+from skink.architecture.common.sanitization import sanitize_name
 
 from typing import List, Iterable
 
@@ -94,8 +95,8 @@ class Exporter(object):
 
       methods = [{
         "returnType": f.f.properties.additionalProperties.ret.typeName, 
-        "name": f.name.split("::")[-1], # split if necessary (mistake in export)
-        "parameters": [f"{param.typeName} {param.name}" for param in f.f.properties.additionalProperties.params if param.name != "this"],
+        "name": sanitize_name(f.name.split("::")[-1]), # split if necessary (mistake in export)
+        "parameters": [f"{param.typeName} {sanitize_name(param.name)}" for param in f.f.properties.additionalProperties.params if param.name != "this"],
       } for f in c.functions(EXPORT_SETTINGS_CLASS_INCLUDE)]
 
       contents = template.render({
@@ -109,8 +110,8 @@ class Exporter(object):
         "methods": methods,
         "constructor": {
           "returnType": c.constructor.f.properties.additionalProperties.ret.typeName, 
-          "name": c.constructor.name.split("::")[-1], # split if necessary (mistake in export)
-          "parameters": [f"{param.typeName} {param.name}" for param in c.constructor.f.properties.additionalProperties.params if param.name != "this"],
+          "name": sanitize_name(c.constructor.name.split("::")[-1]), # split if necessary (mistake in export)
+          "parameters": [f"{param.typeName} {sanitize_name(param.name)}" for param in c.constructor.f.properties.additionalProperties.params if param.name != "this"],
         } if c.constructor else None,
       })
 
@@ -128,8 +129,8 @@ class Exporter(object):
 
       methods = [{
         "returnType": f.f.properties.additionalProperties.ret.typeName, 
-        "name": f.name.split("::")[-1], # split if necessary (mistake in export)
-        "parameters": [f"{param.typeName} {param.name}" for param in f.f.properties.additionalProperties.params if param.name != "this"],
+        "name": sanitize_name(f.name.split("::")[-1]), # split if necessary (mistake in export)
+        "parameters": [f"{param.typeName} {sanitize_name(param.name)}" for param in f.f.properties.additionalProperties.params if param.name != "this"],
       } for f in c.functions(EXPORT_SETTINGS_CLASS_INCLUDE)]
 
       env = Environment(loader=FileSystemLoader(str(p)))
@@ -145,8 +146,8 @@ class Exporter(object):
         "methods": methods,
         "constructor": {
           "returnType": c.constructor.f.properties.additionalProperties.ret.typeName, 
-          "name": c.constructor.name.split("::")[-1], # split if necessary (mistake in export)
-          "parameters": [f"{param.typeName} {param.name}" for param in c.constructor.f.properties.additionalProperties.params if param.name != "this"],
+          "name": sanitize_name(c.constructor.name.split("::")[-1]), # split if necessary (mistake in export)
+          "parameters": [f"{param.typeName} {sanitize_name(param.name)}" for param in c.constructor.f.properties.additionalProperties.params if param.name != "this"],
         } if c.constructor else None,
       })
 
@@ -191,9 +192,9 @@ class Exporter(object):
 
       methods = [{
         "returnType": f.f.properties.additionalProperties.ret.typeName, 
-        "name": f.name.split("::")[-1], # split if necessary (mistake in export)
-        "parameters": [f"{param.typeName} {param.name}" for param in f.f.properties.additionalProperties.params if param.name != "this"],
-        "parameter_names": [f"{param.name}" for param in f.f.properties.additionalProperties.params if param.name != "this"],
+        "name": sanitize_name(f.name.split("::")[-1]), # split if necessary (mistake in export)
+        "parameters": [f"{param.typeName} {sanitize_name(param.name)}" for param in f.f.properties.additionalProperties.params if param.name != "this"],
+        "parameter_names": [f"{sanitize_name(param.name)}" for param in f.f.properties.additionalProperties.params if param.name != "this"],
         "address": f.f.locations[0].physicalLocation.address.absoluteAddress,
       } for f in c.functions(EXPORT_SETTINGS_CLASS_INCLUDE)]
 
@@ -223,9 +224,9 @@ class Exporter(object):
 
       methods = [{
         "returnType": f.f.properties.additionalProperties.ret.typeName, 
-        "name": f.name.split("::")[-1], # split if necessary (mistake in export)
-        "parameters": [f"{param.typeName} {param.name}" for param in f.f.properties.additionalProperties.params if param.name != "this"],
-        "parameter_names": [f"{param.name}" for param in f.f.properties.additionalProperties.params if param.name != "this"],
+        "name": sanitize_name(f.name.split("::")[-1]), # split if necessary (mistake in export)
+        "parameters": [f"{param.typeName} {sanitize_name(param.name)}" for param in f.f.properties.additionalProperties.params if param.name != "this"],
+        "parameter_names": [f"{sanitize_name(param.name)}" for param in f.f.properties.additionalProperties.params if param.name != "this"],
         "address": f.f.locations[0].physicalLocation.address.absoluteAddress,
       } for f in c.functions(EXPORT_SETTINGS_CLASS_INCLUDE)]
 
@@ -259,8 +260,8 @@ class Exporter(object):
 
       methods = [{
         "returnType": f.f.properties.additionalProperties.ret.typeName, 
-        "name": f.name.split("::")[-1], # split if necessary (mistake in export)
-        "parameters": [f"{param.typeName} {param.name}" for param in f.f.properties.additionalProperties.params if param.name != "this"],
+        "name": sanitize_name(f.name.split("::")[-1]), # split if necessary (mistake in export)
+        "parameters": [f"{param.typeName} {sanitize_name(param.name)}" for param in f.f.properties.additionalProperties.params if param.name != "this"],
         "address": f.f.locations[0].physicalLocation.address.absoluteAddress,
       } for f in c.functions(EXPORT_SETTINGS_CLASS_INCLUDE)]
 
@@ -324,7 +325,7 @@ class Exporter(object):
         "include_paths": sorted(includes),
         "using_paths": sorted(includes),
         "namespace_path": s.namespace(ctx=EXPORT_SETTINGS_CLASS_INCLUDE),
-        "struct_name": s.name,
+        "struct_name": sanitize_name(s.name),
         "struct_size": s.s.properties.additionalProperties.size,
         "fields": fields,
       })
@@ -348,7 +349,7 @@ class Exporter(object):
         "include_paths": sorted(includes),
         "using_paths": sorted(includes),
         "namespace_path": u.namespace(ctx=EXPORT_SETTINGS_CLASS_INCLUDE),
-        "union_name": u.name,
+        "union_name": sanitize_name(u.name),
         "union_size": u.s.properties.additionalProperties.size,
         "fields": fields,
       })
@@ -365,13 +366,13 @@ class Exporter(object):
 
       namespace_path = e.namespace(ctx=EXPORT_SETTINGS_CLASS_INCLUDE)
 
-      fields = [{"name": key, "value": value} for key, value in e.er.properties.additionalProperties.constants.items()]
+      fields = [{"name": sanitize_name(key), "value": value} for key, value in e.er.properties.additionalProperties.constants.items()]
       name = e.er.properties.additionalProperties.name
       type = e.er.properties.additionalProperties.base
       contents = template1.render({
         "use_pch": True,
         "namespace_path": namespace_path,
-        "name": name,
+        "name": sanitize_name(name),
         "type": type,
         "fields": fields,
       })
@@ -389,14 +390,14 @@ class Exporter(object):
 
       namespace_path = e.namespace(ctx=EXPORT_SETTINGS_CLASS_INCLUDE)
 
-      fields = [{"name": key, "value": value} for key, value in e.er.properties.additionalProperties.constants.items()]
+      fields = [{"name": sanitize_name(key), "value": value} for key, value in e.er.properties.additionalProperties.constants.items()]
       name = e.er.properties.additionalProperties.name
       type = e.er.properties.additionalProperties.base
       path1 = f"{e.location(ctx=EXPORT_SETTINGS_CLASS_INCLUDE)}/{e.name}.hpp"
       contents1 = template1.render({
         "use_pch": True,
         "namespace_path": namespace_path,
-        "name": name,
+        "name": sanitize_name(name),
         "type": type,
         "fields": fields,
       })
@@ -405,7 +406,7 @@ class Exporter(object):
       contents2 = template2.render({
         "include_paths": [path1],
         "namespace_path": namespace_path,
-        "name": name,
+        "name": sanitize_name(name),
         "type": type,
         "fields": fields,
       })
@@ -427,13 +428,13 @@ class Exporter(object):
       returnTypeLocation = fs.fsr.properties.additionalProperties.retType.location
       callingConvention = fs.fsr.properties.additionalProperties.callingConventionName
 
-      parameters = [f"{param.name} " for param in fs.fsr.properties.additionalProperties.params if param.name != "this"]
+      parameters = [f"{sanitize_name(param.name)} " for param in fs.fsr.properties.additionalProperties.params if param.name != "this"]
       name = fs.fsr.properties.additionalProperties.name
       contents = template1.render({
         "include_paths": include_paths,
         "use_pch": True,
         "namespace_path": namespace_path,
-        "name": name,
+        "name": sanitize_name(name),
         "parameters": parameters,
         "returnTypeName": returnTypeName,
         "returnTypeLocation": returnTypeLocation,
