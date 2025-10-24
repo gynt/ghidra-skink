@@ -2,6 +2,7 @@ import logging, json
 from typing import Iterable, Dict
 from skink.sarif.BasicResult import BasicResult
 from skink.sarif.datatypes.EnumResult import EnumResult
+from skink.sarif.datatypes.TypedefResult import TypedefResult
 from skink.sarif.datatypes.UnionResult import UnionResult
 from .symbols.symbol import SymbolResult
 from .UnusedResult import UnusedResult
@@ -20,16 +21,18 @@ def decode_result(result: Dict) -> BasicResult:
           elif result['message']['text'] == "DT.Struct":
               return DataTypeResult.from_dict(result) # type: ignore
           elif result['message']['text'] == "DT.Function":
-              return FunctionSignatureResult.from_dict(result)
+              return FunctionSignatureResult.from_dict(result) # type: ignore
           elif result['message']['text'] == "DT.Union":
-              return UnionResult.from_dict(result)
+              return UnionResult.from_dict(result) # type: ignore
+          elif result['message']['text'] == "DT.Typedef":
+              return TypedefResult.from_dict(result) # type: ignore
           else:
               pass
               # pass # TODO: print drop of result here
       elif result['ruleId'] == "SYMBOLS":
           return SymbolResult.from_dict(result) # type: ignore
       elif result['ruleId'] == "DEFINED_DATA":
-          return DefinedDataResult.from_dict(result)
+          return DefinedDataResult.from_dict(result) # type: ignore
     except Exception as e:
         raise Exception(f"{e}\nin parsing: {json.dumps(result, indent=2)}")
     logging.log(logging.WARNING, f"unused result: {result['message']['text']}")

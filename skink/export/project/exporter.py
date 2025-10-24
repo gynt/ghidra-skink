@@ -10,6 +10,7 @@ from skink.sarif.functions.FunctionResult import FunctionResult
 from skink.architecture.classes.cls import Class
 from skink.architecture.structs.struct import Struct
 from skink.architecture.unions.union import Union
+from skink.architecture.typedefs import Typedef
 from skink.architecture.enums import Enum
 from skink.export.project.exportcontents import ExportContents
 from skink.utils.OrderedSet import OrderedSet
@@ -439,3 +440,29 @@ class Exporter(object):
         # "type": type,
       })
       return ExportContents(path=f"{fs.location(ctx=EXPORT_SETTINGS_CLASS_INCLUDE)}/{fs.name}.hpp", contents=contents)
+
+  def export_typedef(self, td: Typedef):
+    if self.template_path != DEFAULT_TEMPLATE_PATH:
+      raise Exception()
+    anchor, *names = self.template_path.split(".")
+    with path(anchor, *names) as p:
+      env = Environment(loader=FileSystemLoader(str(p)))
+      template1 = env.get_template("TypedefH.j2")
+
+      namespace_path = td.namespace(ctx=EXPORT_SETTINGS_CLASS_INCLUDE)
+      include_paths: List[str] = []
+      
+      typeName = td.tr.properties.additionalProperties.type.name
+      # typeLocation = td.tr.properties.additionalProperties.type.location
+
+      name = td.tr.properties.additionalProperties.name
+      contents = template1.render({
+        "include_paths": include_paths,
+        "use_pch": True,
+        "namespace_path": namespace_path,
+        "name": sanitize_name(name),
+        "type": typeName,
+        # "returnTypeLocation": typeLocation,
+        # "type": type,
+      })
+      return ExportContents(path=f"{td.location(ctx=EXPORT_SETTINGS_CLASS_INCLUDE)}/{td.name}.hpp", contents=contents)

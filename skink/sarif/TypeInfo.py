@@ -15,9 +15,10 @@ class Settings:
 @dataclass_json(undefined=Undefined.INCLUDE, letter_case=LetterCase.CAMEL)
 @dataclass
 class TypeInfo:
-    kind: str
-    name: str
     extra: CatchAll
+    kind: str = ""
+    endian: str = ""
+    name: str = ""
     location: str = ""
     settings: Optional[List[Settings]] = None
     subtype: Optional['TypeInfo'] = None

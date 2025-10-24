@@ -13,6 +13,7 @@ from ...sarif.defineddata.DefinedDataResult import DefinedDataResult
 from ...sarif.datatypes.EnumResult import EnumResult
 from ...sarif.datatypes.UnionResult import UnionResult
 from ...sarif.datatypes.FunctionSignatureResult import FunctionSignatureResult
+from skink.sarif.datatypes.TypedefResult import TypedefResult
 
 import pathlib
 
@@ -244,138 +245,161 @@ class Project(object):
           yield entry.extra
 
     for obj in self.yield_raw_objects():
-      ruleId = obj['ruleId']
-      if ruleId == 'SYMBOLS':
-        sr: SymbolResult = SymbolResult.from_dict(obj) # type: ignore
-        addresses = [loc.physicalLocation.address.absoluteAddress for loc in dd.locations]
-        addresses = [addr for addr in addresses if not addr in looked_up_lsymbols]
-        visited = False
-        for address in addresses:
-          if address in looked_up_lsymbols and looked_up_lsymbols[address]:
-            visited = True
-          looked_up_lsymbols[address] = True
-        if not visited:
-          if sr.properties.additionalProperties.location == location:
-            if name:
-              if sr.properties.additionalProperties.name == name:
+      try:
+        ruleId = obj['ruleId']
+        if ruleId == 'SYMBOLS':
+          sr: SymbolResult = SymbolResult.from_dict(obj) # type: ignore
+          addresses = [loc.physicalLocation.address.absoluteAddress for loc in dd.locations]
+          addresses = [addr for addr in addresses if not addr in looked_up_lsymbols]
+          visited = False
+          for address in addresses:
+            if address in looked_up_lsymbols and looked_up_lsymbols[address]:
+              visited = True
+            looked_up_lsymbols[address] = True
+          if not visited:
+            if sr.properties.additionalProperties.location == location:
+              if name:
+                if sr.properties.additionalProperties.name == name:
+                  yield sr
+              else:
                 yield sr
-            else:
+            elif recursive and sr.properties.additionalProperties.location.startswith(location):
               yield sr
-          elif recursive and sr.properties.additionalProperties.location.startswith(location):
-            yield sr
-      elif ruleId == "FUNCTIONS":
-        fr: FunctionResult = FunctionResult.from_dict(obj)
-        loc = self.namespace_to_location(fr.properties.additionalProperties.namespace)
-        if loc == location:
-          if name:
-            if fr.properties.additionalProperties.name == name:
-              yield fr
-          else:
-            yield fr
-        elif recursive and loc.startswith(location):
-          yield fr
-      elif ruleId == "DATATYPE":
-        if obj["message"]["text"] == "DT.Struct":
-          dtr: DataTypeResult = DataTypeResult.from_dict(obj)
-          locations: List[str] = [
-            dtr.properties.additionalProperties.location,
-            f"{dtr.properties.additionalProperties.location}/{dtr.properties.additionalProperties.name}",
-          ]
-          for l in locations:
-            hit = l == location
-            if not hit:
-              hit = recursive and l.startswith(location)
-            else:
-              if name:
-                if dtr.properties.additionalProperties.name == name:
-                  yield dtr
-              else:
-                yield dtr
-              continue
-            if hit:
-              yield dtr
-        elif obj["message"]["text"] == "DT.Enum":
-          dtr: EnumResult = EnumResult.from_dict(obj)
-          locations: List[str] = [
-            dtr.properties.additionalProperties.location,
-            f"{dtr.properties.additionalProperties.location}/{dtr.properties.additionalProperties.name}",
-          ]
-          for l in locations:
-            hit = l == location
-            if not hit:
-              hit = recursive and l.startswith(location)
-            else:
-              if name:
-                if dtr.properties.additionalProperties.name == name:
-                  yield dtr
-              else:
-                yield dtr
-              continue
-            if hit:
-              yield dtr
-        elif obj["message"]["text"] == "DT.Union":
-          dtr: UnionResult = UnionResult.from_dict(obj)
-          locations: List[str] = [
-            dtr.properties.additionalProperties.location,
-            f"{dtr.properties.additionalProperties.location}/{dtr.properties.additionalProperties.name}",
-          ]
-          for l in locations:
-            hit = l == location
-            if not hit:
-              hit = recursive and l.startswith(location)
-            else:
-              if name:
-                if dtr.properties.additionalProperties.name == name:
-                  yield dtr
-              else:
-                yield dtr
-              continue
-            if hit:
-              yield dtr
-        elif obj["message"]["text"] == "DT.Function":
-          dtr: FunctionSignatureResult = FunctionSignatureResult.from_dict(obj)
-          locations: List[str] = [
-            dtr.properties.additionalProperties.location,
-            f"{dtr.properties.additionalProperties.location}/{dtr.properties.additionalProperties.name}",
-          ]
-          for l in locations:
-            hit = l == location
-            if not hit:
-              hit = recursive and l.startswith(location)
-            else:
-              if name:
-                if dtr.properties.additionalProperties.name == name:
-                  yield dtr
-              else:
-                yield dtr
-              continue
-            if hit:
-              yield dtr
-      elif ruleId == "DEFINED_DATA":
-        dd: DefinedDataResult = DefinedDataResult.from_dict(obj)
-        locations = [
-          dd.properties.additionalProperties.location,
-          dd.properties.additionalProperties.typeLocation,
-          f"{dd.properties.additionalProperties.location}/{dd.properties.additionalProperties.name}",
-          f"{dd.properties.additionalProperties.typeLocation}/{dd.properties.additionalProperties.typeName}",
-        ]
-
-        for l in locations:
-          hit = l == location
-          if not hit:
-            hit = recursive and l.startswith(location)
-          else:
+        elif ruleId == "FUNCTIONS":
+          fr: FunctionResult = FunctionResult.from_dict(obj)
+          loc = self.namespace_to_location(fr.properties.additionalProperties.namespace)
+          if loc == location:
             if name:
-              if dd.properties.additionalProperties.name == name:
+              if fr.properties.additionalProperties.name == name:
+                yield fr
+            else:
+              yield fr
+          elif recursive and loc.startswith(location):
+            yield fr
+        elif ruleId == "DATATYPE":
+          if obj["message"]["text"] == "DT.Struct":
+            dtr: DataTypeResult = DataTypeResult.from_dict(obj)
+            locations: List[str] = [
+              dtr.properties.additionalProperties.location,
+              f"{dtr.properties.additionalProperties.location}/{dtr.properties.additionalProperties.name}",
+            ]
+            for l in locations:
+              hit = l == location
+              if not hit:
+                hit = recursive and l.startswith(location)
+              else:
+                if name:
+                  if dtr.properties.additionalProperties.name == name:
+                    yield dtr
+                else:
+                  yield dtr
+                continue
+              if hit:
+                yield dtr
+          elif obj["message"]["text"] == "DT.Enum":
+            dtr: EnumResult = EnumResult.from_dict(obj)
+            locations: List[str] = [
+              dtr.properties.additionalProperties.location,
+              f"{dtr.properties.additionalProperties.location}/{dtr.properties.additionalProperties.name}",
+            ]
+            for l in locations:
+              hit = l == location
+              if not hit:
+                hit = recursive and l.startswith(location)
+              else:
+                if name:
+                  if dtr.properties.additionalProperties.name == name:
+                    yield dtr
+                else:
+                  yield dtr
+                continue
+              if hit:
+                yield dtr
+          elif obj["message"]["text"] == "DT.Union":
+            dtr: UnionResult = UnionResult.from_dict(obj)
+            locations: List[str] = [
+              dtr.properties.additionalProperties.location,
+              f"{dtr.properties.additionalProperties.location}/{dtr.properties.additionalProperties.name}",
+            ]
+            for l in locations:
+              hit = l == location
+              if not hit:
+                hit = recursive and l.startswith(location)
+              else:
+                if name:
+                  if dtr.properties.additionalProperties.name == name:
+                    yield dtr
+                else:
+                  yield dtr
+                continue
+              if hit:
+                yield dtr
+          elif obj["message"]["text"] == "DT.Function":
+            dtr: FunctionSignatureResult = FunctionSignatureResult.from_dict(obj)
+            locations: List[str] = [
+              dtr.properties.additionalProperties.location,
+              f"{dtr.properties.additionalProperties.location}/{dtr.properties.additionalProperties.name}",
+            ]
+            for l in locations:
+              hit = l == location
+              if not hit:
+                hit = recursive and l.startswith(location)
+              else:
+                if name:
+                  if dtr.properties.additionalProperties.name == name:
+                    yield dtr
+                else:
+                  yield dtr
+                continue
+              if hit:
+                yield dtr
+          elif obj["message"]["text"] == "DT.Typedef":
+            dtr: TypedefResult = TypedefResult.from_dict(obj)
+            locations: List[str] = [
+              dtr.properties.additionalProperties.location,
+              f"{dtr.properties.additionalProperties.location}/{dtr.properties.additionalProperties.name}",
+            ]
+            for l in locations:
+              hit = l == location
+              if not hit:
+                hit = recursive and l.startswith(location)
+              else:
+                if name:
+                  if dtr.properties.additionalProperties.name == name:
+                    yield dtr
+                else:
+                  yield dtr
+                continue
+              if hit:
+                yield dtr
+        elif ruleId == "DEFINED_DATA":
+          dd: DefinedDataResult = DefinedDataResult.from_dict(obj)
+          locations = [
+            dd.properties.additionalProperties.location,
+            dd.properties.additionalProperties.typeLocation,
+            f"{dd.properties.additionalProperties.location}/{dd.properties.additionalProperties.name}",
+            f"{dd.properties.additionalProperties.typeLocation}/{dd.properties.additionalProperties.typeName}",
+          ]
+
+          for l in locations:
+            hit = l == location
+            if not hit:
+              hit = recursive and l.startswith(location)
+            else:
+              if name:
+                if dd.properties.additionalProperties.name == name:
+                  yield dd
+                  if lookup_lsymbols:
+                    yield from find_symbols(addresses=[loc.physicalLocation.address.absoluteAddress for loc in dd.locations])
+              else:
                 yield dd
                 if lookup_lsymbols:
                   yield from find_symbols(addresses=[loc.physicalLocation.address.absoluteAddress for loc in dd.locations])
-            else:
+              continue
+            if hit:
               yield dd
               if lookup_lsymbols:
                 yield from find_symbols(addresses=[loc.physicalLocation.address.absoluteAddress for loc in dd.locations])
-            continue
-          if hit:
-            yield dd
-            if lookup_lsymbols:
-              yield from find_symbols(addresses=[loc.physicalLocation.address.absoluteAddress for loc in dd.locations])
+      except Exception as e:
+        log(logging.ERROR, obj)
+        raise(e)
