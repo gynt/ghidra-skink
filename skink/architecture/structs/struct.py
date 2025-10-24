@@ -8,32 +8,15 @@ from ...export.location import normalize_location, transform_location
 from ...export.types import generate_include_for_type
 from ...sarif.datatypes.DataTypeResult import DataTypeResult
 from ...sarif.datatypes.StructField import StructField
+from ...architecture.common.Field import Field
 from dataclasses import dataclass, field
+
+import re
 
 @dataclass
 class StructExportPart:
     fields: List[str] = field(default_factory = list)
     includes: List[str] = field(default_factory = list)
-
-class Field(object):
-
-    def __init__(self, f: StructField, name: str = ""):
-        self.f: StructField = f
-        if self.f.noFieldName and not name:
-            raise Exception(f"no name set")
-        if name:
-            self.f.field_name = name
-
-    def declaration(self, ctx = DEFAULT):
-        eol = ""
-        if ctx.struct_rules.field_eol_char:
-            eol = ";"
-        if self.f.type.kind == "array":
-            c = self.f.type.count
-            tname = self.f.type.name.replace(f"[{c}]", "", 1)
-            fname = self.f.field_name + f"[{c}]"
-            return f"{tname} {fname}{eol}"
-        return f"{self.f.type.name} {self.f.field_name}{eol}"
 
 
 class Struct(object):

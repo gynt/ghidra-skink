@@ -9,33 +9,13 @@ from ...export.types import generate_include_for_type
 from ...sarif.datatypes.DataTypeResult import DataTypeResult
 from ...sarif.datatypes.UnionResult import UnionField, UnionResult
 from ...sarif.datatypes.StructField import StructField
+from ...architecture.common.Field import Field
 from dataclasses import dataclass, field
 
 @dataclass
 class UnionExportPart:
     fields: List[str] = field(default_factory = list)
     includes: List[str] = field(default_factory = list)
-
-class Field(object):
-
-    def __init__(self, f: UnionField, name: str = ""):
-        self.f: UnionField = f
-        self.name = name
-        #if name:
-            # TODO: this is too dirty, improve
-            #self.f.field_name = name
-
-    def declaration(self, ctx = DEFAULT):
-        eol = ""
-        if ctx.struct_rules.field_eol_char:
-            eol = ";"
-        name = self.name if self.name else self.f.field_name
-        if self.f.type.kind == "array":
-            c = self.f.type.count
-            tname = self.f.type.name.replace(f"[{c}]", "", 1)
-            fname = name + f"[{c}]"
-            return f"{tname} {fname}{eol}"
-        return f"{self.f.type.name} {name}{eol}"
 
 
 class Union(object):
