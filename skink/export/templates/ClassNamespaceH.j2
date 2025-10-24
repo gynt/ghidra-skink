@@ -14,7 +14,7 @@
 {%- call wrap_namespaces(ns) -%}
 
 {% for method in methods %}
-extern {{ method.returnType }}( __thiscall * const {{ method.name }})({{ class_name }} * const _this{{ ', ' + method.parameters | join(', ') if method.parameters else '' }});
+extern {{ method.returnType }} ( __thiscall * const {{ method.name }})({{ class_name }} * const _this{{ ', ' + method.parameters | join(', ') if method.parameters else '' }});
 {% endfor %}
 
 // Singleton
