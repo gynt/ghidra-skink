@@ -15,7 +15,7 @@
 // {# Unused for now:  && !defined(REIMPLEMENT_{{ ns_ }}_{{ function.name }}) #}
 {% for function in functions %}
 // FUNCTION: {{ context.reccmp_binary }} {{ '0x%08X' % function.address }}
-{{ function.returnType }} {{ function.name }}({{ function.parameters | join(', ') }}) {
+{{ function.returnType }} {{ function.callingConvention }} {{ function.name }}({{ function.parameters | join(', ') }}) {
 // Add this when reimplemented: && !defined(REIMPLEMENT_IF_AVAILABLE)
 #if !defined(REIMPLEMENT_ADDRESS_{{ context.abbreviation }}_{{ context.hash }}_{{ '0x%08X' % function.address }}) 
   return (({{ function.returnType }} ({{ function.callingConvention }} * const)({{ function.parameters | join(', ') if function.parameters else '' }})) ADDRESS_{{ context.abbreviation }}_{{ context.hash }}_{{ '0x%08X' % function.address }} )({{ function.parameter_names | join(', ') if function.parameter_names else '' }});

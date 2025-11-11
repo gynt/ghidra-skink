@@ -14,7 +14,7 @@
 {%- call wrap_namespaces(ns) -%}
 
 {% for function in functions %}
-extern {{ function.returnType }} ( {{ function.callingConvention }} * const {{ function.name }})({{ function.parameters | join(', ') if function.parameters else '' }});
+{{ function.returnType }} {{ function.callingConvention }} {{ function.name }} ({{ function.parameters | join(', ') if function.parameters else '' }});
 {% endfor %}
 
 
