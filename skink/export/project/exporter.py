@@ -2,6 +2,7 @@ from jinja2 import Environment, FileSystemLoader
 from importlib.resources import path
 
 from skink.architecture.functionsignatures import FunctionSignature
+from skink.architecture.namespaces.namespace import Namespace
 from skink.sarif.BasicResult import BasicResult
 from skink.sarif.datatypes.EnumResult import EnumResult
 from skink.sarif.defineddata.DefinedDataResult import DefinedDataResult
@@ -467,3 +468,76 @@ class Exporter(object):
         # "type": type,
       })
       return ExportContents(path=f"{td.location(ctx=EXPORT_SETTINGS_CLASS_INCLUDE)}/{td.name}.hpp", contents=contents)
+  
+  def export_namespaced_functions_header(self, ns: Namespace):
+    if self.template_path != DEFAULT_TEMPLATE_PATH:
+      raise Exception()
+    anchor, *names = self.template_path.split(".")
+    with path(anchor, *names) as p:
+      env = Environment(loader=FileSystemLoader(str(p)))
+      template = env.get_template("NamespaceH.j2")
+
+      includes = OrderedSet[str]()
+      for f in ns.functions:
+        includes += list(f.includes(EXPORT_SETTINGS_CLASS_INCLUDE))
+
+      functions = [{
+        "returnType": f.f.properties.additionalProperties.ret.typeName, 
+        "callingConvention": f.f.properties.additionalProperties.callingConvention,
+        "name": sanitize_name(f.name.split("::")[-1]), # split if necessary (mistake in export)
+        "parameters": [f"{param.typeName} {sanitize_name(param.name)}" for param in f.f.properties.additionalProperties.params if param.name != "this"],
+        "address": f.f.locations[0].physicalLocation.address.absoluteAddress,
+      } for f in ns.functions]
+
+      contents = template.render({
+        "use_pch": True,
+        "context": self.binary_context,
+        "include_paths": sorted(includes),
+        "using_paths": sorted(includes),
+        "namespace_path": ns.namespace(ctx=EXPORT_SETTINGS_CLASS_INCLUDE),
+        "functions": functions,
+      })
+
+      # TODO: make Namespace fix location info just like classes
+      return ExportContents(path=f"{ns.location(ctx=EXPORT_SETTINGS_CLASS_INCLUDE)}/{ns.name}.hpp", contents=contents)
+
+  def export_namespaced_functions_stubs(self, ns: Namespace):
+    if self.template_path != DEFAULT_TEMPLATE_PATH:
+      raise Exception()
+    anchor, *names = self.template_path.split(".")
+    with path(anchor, *names) as p:
+      env = Environment(loader=FileSystemLoader(str(p)))
+      template = env.get_template("NamespaceCPP.j2")
+
+      includes = OrderedSet[str]()
+      for f in ns.functions:
+        includes += list(f.includes(EXPORT_SETTINGS_CLASS_INCLUDE))
+
+      functions = [{
+        "returnType": f.f.properties.additionalProperties.ret.typeName, 
+        "callingConvention": f.f.properties.additionalProperties.callingConvention,
+        "name": sanitize_name(f.name.split("::")[-1]), # split if necessary (mistake in export)
+        "parameters": [f"{param.typeName} {sanitize_name(param.name)}" for param in f.f.properties.additionalProperties.params if param.name != "this"],
+        "parameter_names": [f"{sanitize_name(param.name)}" for param in f.f.properties.additionalProperties.params if param.name != "this"],
+        "address": f.f.locations[0].physicalLocation.address.absoluteAddress,
+      } for f in ns.functions]
+
+      contents = template.render({
+        "use_pch": True,
+        "context": self.binary_context,
+        "include_paths": sorted(includes) + [
+          f"{ns.location(ctx=EXPORT_SETTINGS_CLASS_INCLUDE)}/{ns.name}.hpp"
+        ],
+        "using_paths": sorted(includes),
+        "namespace_path": ns.namespace(ctx=EXPORT_SETTINGS_CLASS_INCLUDE),
+        "functions": functions,
+      })
+
+      # TODO: make Namespace fix location info just like classes
+      return ExportContents(path=f"{ns.location(ctx=EXPORT_SETTINGS_CLASS_INCLUDE)}/{ns.name}.cpp", contents=contents)
+
+  def export_namespace(self, ns: Namespace):
+    return [
+      self.export_namespaced_functions_header(ns),
+      self.export_namespaced_functions_stubs(ns)
+    ]

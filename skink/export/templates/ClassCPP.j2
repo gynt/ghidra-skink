@@ -12,7 +12,7 @@
 
 {{ usings(using_paths) }}
 
-{# Unused for now:  && !defined(REIMPLEMENT_{{ ns_ }}_{{ class_name }}_{{ method.name }}) #}
+// {# Unused for now:  && !defined(REIMPLEMENT_{{ ns_ }}_{{ class_name }}_{{ method.name }}) #}
 {% for method in methods %}
 // FUNCTION: {{ context.reccmp_binary }} {{ '0x%08X' % method.address }}
 {{ method.returnType }} {{ class_name }}::{{ method.name }}({{ method.parameters | join(', ') }}) {

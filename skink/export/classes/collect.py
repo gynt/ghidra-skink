@@ -16,6 +16,7 @@ from skink.sarif.functions.FunctionResult import FunctionResult
 from skink.sarif.symbols.symbol import SymbolResult
 from skink.sarif.defineddata.DefinedDataResult import DefinedDataResult
 from ...architecture.classes.cls import Class, Singleton
+from ...architecture.namespaces.namespace import Namespace
 
 @dataclass_json
 @dataclass
@@ -88,3 +89,25 @@ def collect_classes(results: Iterable[BasicResult]):
   
 def collect_classes_from_export(se: SarifExport):
   return collect_classes(se.runs[0].results)
+
+
+@dataclass
+class PreNamespace:
+  namespace: str
+  functions: List[FunctionResult] = field(default_factory=list)
+
+def collect_namespaced_functions(results):
+  namespaces: Dict[str, PreNamespace] = {}
+  for result in results:
+    if isinstance(result, FunctionResult):
+      ap: AdditionalFunctionProperties = result.properties.additionalProperties
+      if not ap.namespaceIsClass:
+        ns = ap.namespace
+        if not ns in namespaces:
+          namespaces[ns] = PreNamespace(ns)
+        namespaces[ns].functions.append(result)
+  for ns, prenamespace in namespaces.items():
+    if not prenamespace.functions:
+      continue
+    functions = [Function(fr) for fr in prenamespace.functions]
+    yield Namespace(namespace=ns, functions=functions)
