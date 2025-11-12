@@ -42,7 +42,7 @@ class {{ class_name }} : public {{ struct_name }}
 
 };
 
-static_assert(sizeof({{ class_name }}) == {{ class_size }});
+static_assert_cpp98_obj(sizeof({{ class_name }}) == {{ class_size }}, {{ class_name }});
 
 {% for method in methods %}
 MemberFunctionPointer_DefineThiscall_oneliner({{ class_name }}, {{ method.name }}, {{ method.returnType }}{{ ', ' + method.parameters | join(', ') if method.parameters else '' }});

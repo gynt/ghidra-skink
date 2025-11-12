@@ -553,3 +553,15 @@ class Exporter(object):
       self.export_namespaced_functions_header(ns),
       self.export_namespaced_functions_stubs(ns)
     ]
+  
+  def export_helpers(self, dst_folder: str = "util"):
+    if self.template_path != DEFAULT_TEMPLATE_PATH:
+      raise Exception()
+    anchor, *names = self.template_path.split(".")
+    with path(anchor, *names) as p:
+      env = Environment(loader=FileSystemLoader(str(p)))
+      return [
+        ExportContents(path=f"{dst_folder}/assertion.h", contents=env.get_template("Helpers_Assertion.j2").render()),
+        ExportContents(path=f"{dst_folder}/interfacing/DataReference.h", contents=env.get_template("Helpers_DataReference.j2").render()),
+        ExportContents(path=f"{dst_folder}/interfacing/MemberFunctionPointerGenerator.h", contents=env.get_template("Helpers_MemberFunctionPointerGenerator.j2").render()),
+      ]

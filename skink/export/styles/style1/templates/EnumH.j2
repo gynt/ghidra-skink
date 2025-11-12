@@ -19,6 +19,6 @@ typedef enum {{ name }}
 
 } {{ name }};
 
-static_assert(sizeof({{ name }}) == 4);
+static_assert_cpp98_obj(sizeof({{ name }}) == 4, {{ name }});
 
 {%- endcall -%}

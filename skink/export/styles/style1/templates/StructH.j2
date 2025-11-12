@@ -27,6 +27,6 @@ typedef struct {{ struct_name }}
 } {{ struct_name }};
 #pragma pack(pop)
 
-static_assert(sizeof({{ struct_name }}) == {{ struct_size }});
+static_assert_cpp98_obj(sizeof({{ struct_name }}) == {{ struct_size }}, {{ struct_name }});
 
 {%- endcall -%}

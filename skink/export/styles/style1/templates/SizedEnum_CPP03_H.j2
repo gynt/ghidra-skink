@@ -36,6 +36,6 @@ public:
   operator {{ type }}() const { return _value; }
 };
 
-static_assert(sizeof({{ name }}) == {{ size }});
+static_assert_cpp98_obj(sizeof({{ name }}) == {{ size }}, {{ name }});
 
 {%- endcall -%}

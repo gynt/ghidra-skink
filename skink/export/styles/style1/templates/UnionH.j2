@@ -27,6 +27,6 @@ typedef union {{ union_name }}
 } {{ union_name }};
 #pragma pack(pop)
 
-static_assert(sizeof({{ union_name }}) == {{ union_size }});
+static_assert_cpp98_obj(sizeof({{ union_name }}) == {{ union_size }}, {{ union_name }});
 
 {%- endcall -%}
