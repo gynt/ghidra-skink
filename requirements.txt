@@ -3,3 +3,4 @@ ijson
 pathvalidate
 pyyaml
 colorlog
+jinja2

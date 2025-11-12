@@ -400,6 +400,11 @@ class Exporter(object):
       fields = [{"name": sanitize_name(key), "value": value} for key, value in e.er.properties.additionalProperties.constants.items()]
       name = e.er.properties.additionalProperties.name
       type = e.er.properties.additionalProperties.base
+      size = e.er.properties.additionalProperties.size
+      if size == 2:
+        type = "short"
+      elif size == 1:
+        type = "char"
       path1 = f"{e.location(ctx=self.esci)}/{e.name}.hpp"
       contents1 = template1.render({
         "use_pch": True,
@@ -407,6 +412,7 @@ class Exporter(object):
         "name": sanitize_name(name),
         "type": type,
         "fields": fields,
+        "size": size
       })
 
       path2 = f"{e.location(ctx=self.esci)}/{e.name}.cpp"

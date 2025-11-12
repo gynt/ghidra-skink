@@ -36,6 +36,6 @@ public:
   operator {{ type }}() const { return _value; }
 };
 
-static_assert(sizeof({{ name }}) == sizeof({{ type }}));
+static_assert(sizeof({{ name }}) == {{ size }});
 
 {%- endcall -%}
