@@ -18,10 +18,14 @@
 // SIZE: {{ "0x%08X" % class_size }}
 class {{ class_name }} : public {{ struct_name }}
 {
-  public:
-    {{ class_name }}({{ class_name }} const&) = delete;
-    void operator=({{ class_name }} const&) = delete;
   private:
+    {{ class_name }}({{ class_name }} const&);
+    void operator=({{ class_name }} const&);
+{# This only works in higher version of C++ #}
+{#  public: #}
+{#    {{ class_name }}({{ class_name }} const&) = delete; #}
+{#    void operator=({{ class_name }} const&) = delete; #}
+{#  private: #}
     {{ class_name }}();
     ~{{ class_name }}();
   
