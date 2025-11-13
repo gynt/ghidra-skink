@@ -1,7 +1,7 @@
 #pragma once
 
 #define MemberFunctionPointer_DefineSingleton(baseClass, address)                                                      \
-    baseClass* const Singleton = (baseClass* const)address;
+    baseClass* const instance = (baseClass* const)address;
 
 #define MemberFunctionPointer_DefineProcType(className, funcName, returnType, ...)                                     \
     typedef returnType (*const _##className##_##funcName##_PROC)(__VA_ARGS__)
