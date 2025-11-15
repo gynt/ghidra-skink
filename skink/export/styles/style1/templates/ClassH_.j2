@@ -19,12 +19,12 @@
 class _{{ class_name }}
 {
   private:
-    {{ class_name }}({{ class_name }} const&);
-    void operator=({{ class_name }} const&);
+    _{{ class_name }}(_{{ class_name }} const&);
+    void operator=(_{{ class_name }} const&);
 {# This only works in higher version of C++ #}
 {#  public: #}
-{#    {{ class_name }}({{ class_name }} const&) = delete; #}
-{#    void operator=({{ class_name }} const&) = delete; #}
+{#    _{{ class_name }}(_{{ class_name }} const&) = delete; #}
+{#    void operator=(_{{ class_name }} const&) = delete; #}
 {#  private: #}
     _{{ class_name }}();
     ~_{{ class_name }}();
