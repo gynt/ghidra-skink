@@ -1,0 +1,8 @@
+{# Generate using lines #}
+{% macro usings(names) %}
+{%- for header in names %}
+{%- if header.endswith('.hpp') %}
+using {{ header | replace('/', '::') | replace(".hpp", "") }};
+{%- endif %}
+{%- endfor %}
+{% endmacro %}

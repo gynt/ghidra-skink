@@ -1,0 +1,41 @@
+{% from "macros/wrap_namespaces.j2" import wrap_namespaces with context %}
+{% from "macros/includes.j2" import includes %}
+{%- set ns = (namespace_path.split('::') if namespace_path is string else namespace_path)
+              | reject('equalto','') | list -%}
+
+#pragma once
+
+{{ '#include "pch.h"' if use_pch }}
+
+{% call wrap_namespaces(ns) -%}
+
+class {{ name }}
+{
+private:
+  // Note that the private enum cases have underscores to differentiate
+  // from the public cases
+  enum _{{ name }} { 
+    {# _Mon, _Tues, _Wed, _Thurs, _Fri, _Sat, _Sun #}
+    {% for field in fields -%}
+    _{{ field.name }} = {{ field.value }}{{ ',' if not loop.last }} // {{ '0x%08X' % field.value }}
+    {% endfor %}
+  };
+  {{ type }} const _value;
+ 
+public:
+  static const {{ name }}
+    {# Mon, Tues, Wed, Thurs, Fri, Sat, Sun; #}
+    {% for field in fields -%}
+    {{ field.name }}{{ ',' if not loop.last else ';' }}
+    {% endfor %}
+  explicit {{ name }}( const _{{ name }}& value ) : _value( value ){}
+ 
+  bool operator<( const {{ name }}& rhs ) const { return this->_value < rhs._value; }
+  bool operator==( const {{ name }}& rhs ) const { return this->_value == rhs._value; }
+  bool operator!=( const {{ name }}& rhs ) const { return !(this->operator==(rhs)); }
+  operator {{ type }}() const { return _value; }
+};
+
+static_assert_cpp98_obj(sizeof({{ name }}) == {{ size }}, {{ name }});
+
+{%- endcall -%}

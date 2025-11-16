@@ -1,0 +1,12 @@
+{% from "macros/wrap_namespaces.j2" import wrap_namespaces with context %}
+{% from "macros/includes.j2" import includes %}
+{%- set ns = (namespace_path.split('::') if namespace_path is string else namespace_path)
+              | reject('equalto','') | list -%}
+
+{{ includes(include_paths) }}
+
+{% call wrap_namespaces(ns) -%}
+{% for field in fields -%}
+const {{ name }} {{ name }}::{{ field.name }}( _{{ field.name }} ); // {{ '0x%08X' % field.value }}
+{% endfor %}
+{%- endcall -%}

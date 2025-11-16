@@ -1,0 +1,10 @@
+{# Generate #include lines #}
+{% macro includes(names) %}
+{%- for header in names %}
+{%- if header.endswith('.h') or header.endswith('.hpp') %}
+#include "{{ header }}"
+{%- else %}
+#include <{{ header }}>
+{%- endif %}
+{%- endfor %}
+{% endmacro %}

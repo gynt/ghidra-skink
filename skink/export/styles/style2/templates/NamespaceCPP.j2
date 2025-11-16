@@ -1,0 +1,28 @@
+{% from "macros/wrap_namespaces.j2" import wrap_namespaces with context %}
+{% from "macros/includes.j2" import includes %}
+{% from "macros/usings.j2" import usings %}
+{%- set ns = (namespace_path.split('::') if namespace_path is string else namespace_path)
+              | reject('equalto','') | list -%}
+{%- set ns_ = (namespace_path.replace('::', "__")) -%}
+
+
+{{ includes(include_paths) }}
+
+{%- call wrap_namespaces(ns) -%}
+
+{{ usings(using_paths) }}
+
+// {# Unused for now:  && !defined(REIMPLEMENT_{{ ns_ }}_{{ function.name }}) #}
+{% for function in functions %}
+// FUNCTION: {{ context.reccmp_binary }} {{ '0x%08X' % function.address }}
+{{ function.returnType }} {{ function.callingConvention }} {{ function.name }}({{ function.parameters | join(', ') }}) {
+// Add this when reimplemented: && !defined(REIMPLEMENT_IF_AVAILABLE)
+#if !defined(REIMPLEMENT_ADDRESS_{{ context.abbreviation }}_{{ context.hash }}_{{ '0x%08X' % function.address }}) 
+  return (({{ function.returnType }} ({{ function.callingConvention }} * const)({{ function.parameters | join(', ') if function.parameters else '' }})) ADDRESS_{{ context.abbreviation }}_{{ context.hash }}_{{ '0x%08X' % function.address }} )({{ function.parameter_names | join(', ') if function.parameter_names else '' }});
+#else
+#error "No reimplementation available for '{{ namespace_path }}::{{ function.name }}({{ function.parameters | join(', ') }})'"
+#endif
+}
+{% endfor %}
+
+{%- endcall -%}

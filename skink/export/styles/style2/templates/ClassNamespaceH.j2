@@ -1,0 +1,29 @@
+{% from "macros/wrap_namespaces.j2" import wrap_namespaces with context %}
+{% from "macros/includes.j2" import includes %}
+{%- set ns = (namespace_path.split('::') if namespace_path is string else namespace_path)
+              | reject('equalto','') | list -%}
+{%- set ns_ = (namespace_path.replace('::', "__")) -%}
+
+#pragma once
+
+{{ '#include "pch.h"' if use_pch }}
+
+{{ includes(include_paths) }}
+
+
+{%- call wrap_namespaces(ns) -%}
+
+{% for method in methods %}
+extern {{ method.returnType }} ( __thiscall * const {{ method.name }})({{ class_name }} * const _this{{ ', ' + method.parameters | join(', ') if method.parameters else '' }});
+{% if expose_original_methods %}
+extern {{ method.returnType }} ( __thiscall * const _{{ method.name }})({{ class_name }} * const _this{{ ', ' + method.parameters | join(', ') if method.parameters else '' }});
+{% endif %}
+{% endfor %}
+
+// Singleton
+extern {{ class_name }} * const instance;
+
+{% endcall %}
+
+#define {{ singleton_name }} ( * {{ namespace_path }}::instance)
+
