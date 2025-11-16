@@ -49,7 +49,8 @@ DEFAULT_BINARY_CONTEXT: BinaryContext = BinaryContext()
 class Exporter(object):
   
   def __init__(self, template_path: str = DEFAULT_TEMPLATE_PATH, binary_context: BinaryContext = DEFAULT_BINARY_CONTEXT,
-               transformation_rules: TransformationRules = TransformationRules()):
+               transformation_rules: TransformationRules = TransformationRules(),
+               expose_original_methods: bool = False):
     self.template_path = template_path
     self.binary_context = binary_context
     # self.transformation_rules = transformation_rules
@@ -57,6 +58,7 @@ class Exporter(object):
     self.esci.location_rules.transformation_rules = transformation_rules.copy()
     self.escsf: Context = EXPORT_SETTINGS_CLASS_SHIM_FILENAME.copy()
     self.escsf.location_rules.transformation_rules = transformation_rules.copy()
+    self.expose_original_methods = expose_original_methods
 
   def export_addresses(self, objects: Iterable[BasicResult]):
     if self.template_path != DEFAULT_TEMPLATE_PATH:
@@ -120,6 +122,7 @@ class Exporter(object):
           "name": sanitize_name(c.constructor.name.split("::")[-1]), # split if necessary (mistake in export)
           "parameters": [f"{param.typeName} {sanitize_name(param.name)}" for param in c.constructor.f.properties.additionalProperties.params if param.name != "this"],
         } if c.constructor else None,
+        "expose_original_methods": self.expose_original_methods,
       })
 
       return ExportContents(path=f"{c.location(ctx=self.esci)}/{c.name}Class.hpp", contents=contents)
@@ -284,6 +287,7 @@ class Exporter(object):
         "class_size": c.structure.s.properties.additionalProperties.size,
         "methods": methods,
         "singleton_name": f"DAT_{c.name}", # TODO: probably almost always correct?
+        "expose_original_methods": self.expose_original_methods,
       })
 
       return ExportContents(path=f"{c.location(ctx=self.esci)}/{c.name}Namespace.hpp", contents=contents)

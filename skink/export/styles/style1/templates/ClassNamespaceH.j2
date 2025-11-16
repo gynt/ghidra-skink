@@ -15,6 +15,9 @@
 
 {% for method in methods %}
 extern {{ method.returnType }} ( __thiscall * const {{ method.name }})({{ class_name }} * const _this{{ ', ' + method.parameters | join(', ') if method.parameters else '' }});
+{% if expose_original_methods %}
+extern {{ method.returnType }} ( __thiscall * const _{{ method.name }})({{ class_name }} * const _this{{ ', ' + method.parameters | join(', ') if method.parameters else '' }});
+{% endif %}
 {% endfor %}
 
 // Singleton

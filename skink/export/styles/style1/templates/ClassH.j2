@@ -29,6 +29,9 @@ class {{ class_name }} : public {{ struct_name }}
     {{ class_name }}();
     ~{{ class_name }}();
   
+  {% if expose_original_methods %}
+  public:
+  {% endif %}
     // Use these to call the original functions
     {% for method in methods %}
     {{ method.returnType }} _{{ method.name }}({{ method.parameters | join(', ') }});
