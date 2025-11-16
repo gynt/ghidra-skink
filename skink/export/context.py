@@ -35,6 +35,7 @@ class ClassRules(AbstractContext):
     inline_struct: bool = False
     export_constructor: bool = False
     virtual: bool = False
+    class_as_namespace: bool = True
     
 @dataclass_json
 @dataclass

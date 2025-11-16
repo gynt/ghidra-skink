@@ -46,13 +46,19 @@ class {{ class_name }}
     {{ method.returnType }} {{ method.name }}({{ method.parameters | join(', ') }});
     {% endfor %}
   
-
+    {% if is_singleton %}
+    #define {{ singleton_name }} ( * {{ namespace_path }}::{{ class_name }}::getInstance())
+    static {{ class_name }} * const getInstance() {
+    #ifdef DECLARE_SINGLETON_{{ (ns | join('_')) }}_{{ class_name }}
+      static {{ class_name }} instance;
+      return &instance;
+    #else
+      return (({{ class_name }} * const) ADDRESS_{{ context.abbreviation }}_{{ context.hash }}_{{ '0x%08X' % singleton_address }});
+    #endif
+    }
+    {% endif %}
 };
 
 static_assert_cpp98_obj(sizeof({{ class_name }}) == {{ class_size }}, {{ class_name }});
-
-{% for method in methods %}
-MemberFunctionPointer_DefineThiscall_oneliner({{ class_name }}, {{ method.name }}, {{ method.returnType }}{{ ', ' + method.parameters | join(', ') if method.parameters else '' }});
-{% endfor %}
 
 {%- endcall -%}

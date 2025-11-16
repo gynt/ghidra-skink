@@ -31,7 +31,6 @@
         = (_##className##_##funcName##_THISCALL&)_##className##_##funcName##_Method
 
 #define MemberFunctionPointer_DefineThiscall_oneliner(className, funcName, returnType, ...)                            \
-    typedef returnType (*const _##className##_##funcName##_PROC)(__VA_ARGS__);                                         \
     typedef returnType (className::* const _##className##_##funcName##_METHOD)(__VA_ARGS__);                           \
     _##className##_##funcName##_METHOD _##className##_##funcName##_Method                                              \
         = (_##className##_##funcName##_METHOD) & className::funcName;                                                  \

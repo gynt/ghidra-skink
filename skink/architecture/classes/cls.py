@@ -54,10 +54,16 @@ class Class(object):
       yield f
 
   def namespace(self, ctx = DEFAULT):
-    return transform_location(self.loc, ctx).replace("/", "::")
+    tl = transform_location(self.loc, ctx).replace("/", "::")
+    if ctx.class_rules.class_as_namespace:
+      return tl
+    return tl.removesuffix(f"::{self.name}")
 
   def location(self, ctx = DEFAULT):
-    return transform_location(self.loc, ctx)
+    tl = transform_location(self.loc, ctx)
+    if ctx.class_rules.class_as_namespace:
+      return tl
+    return tl.removesuffix(f"/{self.name}")
 
   def path(self, ctx = DEFAULT):
     return f"{self.location(ctx)}/{ctx.class_rules.prefix}{self.name}{ctx.class_rules.suffix}{ctx.include.file_extension}"
