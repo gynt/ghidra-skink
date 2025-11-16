@@ -54,10 +54,10 @@ class Exporter(object):
     self.template_path = template_path
     self.binary_context = binary_context
     # self.transformation_rules = transformation_rules
-    self.esci: Context = EXPORT_SETTINGS_CLASS_INCLUDE.copy()
-    self.esci.location_rules.transformation_rules = transformation_rules.copy()
-    self.escsf: Context = EXPORT_SETTINGS_CLASS_SHIM_FILENAME.copy()
-    self.escsf.location_rules.transformation_rules = transformation_rules.copy()
+    self.esci: Context = EXPORT_SETTINGS_CLASS_INCLUDE.copy() # type: ignore
+    self.esci.location_rules.transformation_rules = transformation_rules.copy() # type: ignore
+    self.escsf: Context = EXPORT_SETTINGS_CLASS_SHIM_FILENAME.copy() # type: ignore
+    self.escsf.location_rules.transformation_rules = transformation_rules.copy() # type: ignore
     self.expose_original_methods = expose_original_methods
 
   def export_addresses(self, objects: Iterable[BasicResult]):
@@ -108,6 +108,8 @@ class Exporter(object):
         "parameters": [f"{param.typeName} {sanitize_name(param.name)}" for param in f.f.properties.additionalProperties.params if param.name != "this"],
       } for f in c.functions(self.esci)]
 
+      fields =  list({"string": s, "offset": o, "length": l} for s, o, l in c.structure.export_field_declarations_with_offsets_and_lengths(self.esci))
+
       contents = template.render({
         "use_pch": True,
         "include_paths": sorted(includes) + [f"{c.location(ctx=self.esci)}/{c.name}Struct.hpp"],
@@ -115,6 +117,7 @@ class Exporter(object):
         "namespace_path": c.namespace(ctx=self.esci),
         "class_name": f"{c.name}Class",
         "struct_name": f"{c.name}Struct",
+        "fields": fields,
         "class_size": c.structure.s.properties.additionalProperties.size,
         "methods": methods,
         "constructor": {
@@ -162,31 +165,6 @@ class Exporter(object):
       })
 
       return ExportContents(path=f"{c.location(ctx=self.esci)}/{c.name}Class_.hpp", contents=contents)
-
-  def export_class_struct_header(self, c: Class):
-    if self.template_path != DEFAULT_TEMPLATE_PATH:
-      raise Exception()
-    anchor, *names = self.template_path.split(".")
-    with path(anchor, *names) as p:
-      s: Struct = c.structure
-      env = Environment(loader=FileSystemLoader(str(p)))
-      template = env.get_template("ClassStructH.j2")
-
-      includes = OrderedSet(s.includes(self.esci))
-
-      fields =  list({"string": s, "offset": o, "length": l} for s, o, l in s.export_field_declarations_with_offsets_and_lengths(self.esci))
-      
-      contents = template.render({
-        "use_pch": True,
-        "include_paths": sorted(includes),
-        "using_paths": sorted(includes),
-        "namespace_path": c.namespace(ctx=self.esci),
-        "struct_name": s.name + "Struct",
-        "struct_size": s.s.properties.additionalProperties.size,
-        "fields": fields,
-      })
-    
-      return ExportContents(path=f"{c.location(ctx=self.esci)}/{c.name}Struct.hpp", contents=contents)
   
   def export_class_body(self, c: Class):
     if self.template_path != DEFAULT_TEMPLATE_PATH:
@@ -312,7 +290,6 @@ class Exporter(object):
     return [
       self.export_class_header(c),
       self.export_class_header_shim(c),
-      self.export_class_struct_header(c),
       self.export_class_body(c),
       self.export_class_body_shim(c),
       self.export_class_namespace(c),

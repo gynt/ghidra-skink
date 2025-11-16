@@ -16,8 +16,12 @@
 {{ usings(using_paths) }}
 
 // SIZE: {{ "0x%08X" % class_size }}
-class {{ class_name }} : public {{ struct_name }}
+class {{ class_name }}
 {
+  public:
+    {% for field in fields -%}
+    {{ field.string }}; // {{ '0x%08X' % field.offset }} length: {{ field.length }}
+    {% endfor %}  
   private:
     {{ class_name }}({{ class_name }} const&);
     void operator=({{ class_name }} const&);
