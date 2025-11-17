@@ -27,4 +27,7 @@ class Field(object):
             tname = self.f.type.name.replace(array_part, "", 1)
             fname = name + array_part
             return f"{tname} {fname}{eol}"
-        return f"{self.f.type.name} {name}{eol}"
+        tname = self.f.type.name
+        if self.f.type.kind == 'pointer' and "*" not in tname:
+            tname += " *"
+        return f"{tname} {name}{eol}"
