@@ -57,7 +57,7 @@ def generate_include_for_type(type_name: str, type_info: TypeInfo, ctx = DEFAULT
 
 def generate_include_for_class(type_name: str, type_info: TypeInfo, ctx = DEFAULT):
   name = type_name.replace(" *", "")
-  ti: TypeInfo = TypeInfo.from_json(type_info.to_json())
+  ti: TypeInfo = TypeInfo.from_json(type_info.to_json()) # pyright: ignore[reportAttributeAccessIssue]
   # TODO: is this the right place to do this?
   if ctx.promote_to_class:
     ti.location += f"/{name}"

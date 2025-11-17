@@ -9,7 +9,7 @@ from dataclasses_json import CatchAll, LetterCase, Undefined, dataclass_json
 
 from dataclasses import dataclass
 
-@dataclass_json(undefined=Undefined.INCLUDE, letter_case=LetterCase.CAMEL)
+@dataclass_json(undefined=Undefined.INCLUDE, letter_case=LetterCase.CAMEL) # pyright: ignore[reportArgumentType]
 @dataclass
 class AdditionalTypedefProperties:
     type: TypeInfo
@@ -22,13 +22,13 @@ class AdditionalTypedefProperties:
     typeName: str = ""
     typeLocation: str = ""
 
-@dataclass_json(undefined=Undefined.INCLUDE, letter_case=LetterCase.CAMEL)
+@dataclass_json(undefined=Undefined.INCLUDE, letter_case=LetterCase.CAMEL) # pyright: ignore[reportArgumentType]
 @dataclass
 class TypedefProperties:
     additionalProperties: AdditionalTypedefProperties
     extra: CatchAll
 
-@dataclass_json(undefined=Undefined.INCLUDE, letter_case=LetterCase.CAMEL)
+@dataclass_json(undefined=Undefined.INCLUDE, letter_case=LetterCase.CAMEL) # pyright: ignore[reportArgumentType]
 @dataclass
 class TypedefResult:
     message: Message

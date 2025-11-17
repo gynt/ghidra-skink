@@ -10,7 +10,7 @@ from .symbolProperties import SymbolProperties
 from .location import Location
 
 
-@dataclass_json(undefined=Undefined.INCLUDE, letter_case=LetterCase.CAMEL)
+@dataclass_json(undefined=Undefined.INCLUDE, letter_case=LetterCase.CAMEL) # pyright: ignore[reportArgumentType]
 @dataclass
 class SymbolResult:
     ruleId: str

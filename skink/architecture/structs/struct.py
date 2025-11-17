@@ -73,10 +73,10 @@ class Struct(object):
     def export_fields(self, ctx = DEFAULT) -> StructExportPart:
         includes = self.includes(ctx = ctx)
         declarations = list(self.export_field_declarations())
-        return StructExportPart(fields = declarations, includes = includes)
+        return StructExportPart(fields = declarations, includes = list(includes))
 
     def export(self, ctx = DEFAULT):
-        includes = OrderedSet()
+        includes = OrderedSet[str]()
 
         includes += self.includes(ctx=ctx)
 

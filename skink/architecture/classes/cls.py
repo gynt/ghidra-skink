@@ -17,13 +17,13 @@ class Singleton:
 
 class Class(object):
 
-  def __init__(self, namespace: str, functions: List[Function], structure: Struct = None, singleton: Singleton = None):
+  def __init__(self, namespace: str, functions: List[Function], structure: Struct | None = None, singleton: Singleton | None = None):
     self.ns = namespace
     self.loc = namespace.replace("::", "/")
     self.baseloc = "/".join(self.loc.split("/")[:-1])
     self.name = self.loc.split("/")[-1]
     self.fs: List[Function] = []
-    self.constructor: Function = None
+    self.constructor: Function | None = None
     self.structure = structure
     self.singleton = singleton
     for f in functions:
@@ -101,6 +101,8 @@ class Class(object):
 
     fields = []
     if ctx.class_rules.inline_struct:
+      if not self.structure:
+        raise Exception()
       sep = self.structure.export_fields(ctx)
       for f in sep.fields:
         fields.append(f)

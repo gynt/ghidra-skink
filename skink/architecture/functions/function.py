@@ -24,7 +24,7 @@ class Function(object):
                 yield from generate_include_for_type(param.formalTypeName, param.formalType, ctx=ctx)
         
         param = self.f.properties.additionalProperties.ret
-        yield from generate_include_for_type(param.formalTypeName, param, ctx=ctx)
+        yield from generate_include_for_type(param.formalTypeName, param, ctx=ctx) # pyright: ignore[reportArgumentType]
 
     def includes(self, ctx = DEFAULT):
         return filter_includes(self._collect_includes(ctx), ctx)

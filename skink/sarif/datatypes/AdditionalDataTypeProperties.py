@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from typing import Dict
 
 
-@dataclass_json(undefined=Undefined.INCLUDE, letter_case=LetterCase.CAMEL)
+@dataclass_json(undefined=Undefined.INCLUDE, letter_case=LetterCase.CAMEL) # pyright: ignore[reportArgumentType]
 @dataclass
 class AdditionalDataTypeProperties:
     packed: str

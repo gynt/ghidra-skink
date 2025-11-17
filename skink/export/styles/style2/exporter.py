@@ -101,6 +101,9 @@ class Exporter(object):
       env = Environment(loader=FileSystemLoader(str(p)))
       template = env.get_template("ClassH.j2")
 
+      if not c.structure:
+        raise Exception()
+
       includes = OrderedSet[str](c.structure.includes(self.esci))
       for m in c.functions(self.esci):
         includes += list(m.includes(self.esci))
@@ -143,6 +146,9 @@ class Exporter(object):
     anchor, *names = self.template_path.split(".")
     with path(anchor, *names) as p:
 
+      if not c.structure:
+        raise Exception()
+      
       includes = OrderedSet[str]()
       for m in c.functions(self.esci):
         includes += list(m.includes(self.esci))
@@ -155,6 +161,7 @@ class Exporter(object):
 
       env = Environment(loader=FileSystemLoader(str(p)))
       template = env.get_template("ClassH_.j2")
+
 
       contents = template.render({
         "use_pch": True,
@@ -181,6 +188,10 @@ class Exporter(object):
       env = Environment(loader=FileSystemLoader(str(p)))
       template = env.get_template("ClassCPP.j2")
 
+
+      if not c.structure:
+        raise Exception()
+      
       includes = OrderedSet[str]()
       for m in c.functions(self.esci):
         includes += list(m.includes(self.esci))
@@ -213,6 +224,10 @@ class Exporter(object):
       env = Environment(loader=FileSystemLoader(str(p)))
       template = env.get_template("ClassCPP_.j2")
 
+
+      if not c.structure:
+        raise Exception()
+      
       includes = OrderedSet[str]()
       for m in c.functions(self.esci):
         includes += list(m.includes(self.esci))

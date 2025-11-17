@@ -4,7 +4,7 @@ from dataclasses_json import CatchAll, LetterCase, Undefined, dataclass_json
 
 from dataclasses import dataclass
 
-@dataclass_json(undefined=Undefined.INCLUDE, letter_case=LetterCase.CAMEL)
+@dataclass_json(undefined=Undefined.INCLUDE, letter_case=LetterCase.CAMEL) # pyright: ignore[reportArgumentType]
 @dataclass
 class Settings:
     name: str
@@ -12,7 +12,7 @@ class Settings:
     value: str
     extra: CatchAll
 
-@dataclass_json(undefined=Undefined.INCLUDE, letter_case=LetterCase.CAMEL)
+@dataclass_json(undefined=Undefined.INCLUDE, letter_case=LetterCase.CAMEL) # pyright: ignore[reportArgumentType]
 @dataclass
 class TypeInfo:
     extra: CatchAll

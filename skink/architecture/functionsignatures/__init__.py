@@ -18,10 +18,10 @@ class FunctionSignature():
   # Note: includes return type sometimes
   def _collect_includes(self, ctx = DEFAULT):
     for param in self.fsr.properties.additionalProperties.params:  
-        yield from generate_include_for_type(param.name, param, ctx=ctx)
+        yield from generate_include_for_type(param.name, param, ctx=ctx) # pyright: ignore[reportArgumentType]
     
     param = self.fsr.properties.additionalProperties.retType
-    yield from generate_include_for_type(param.name, param, ctx=ctx)
+    yield from generate_include_for_type(param.name, param, ctx=ctx) # pyright: ignore[reportArgumentType]
 
   def includes(self, ctx = DEFAULT):
     return filter_includes(self._collect_includes(ctx), ctx)

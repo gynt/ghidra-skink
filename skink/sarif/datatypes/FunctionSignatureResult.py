@@ -12,7 +12,7 @@ from dataclasses_json import CatchAll, LetterCase, Undefined, dataclass_json
 
 from dataclasses import dataclass
 
-@dataclass_json(undefined=Undefined.INCLUDE, letter_case=LetterCase.CAMEL)
+@dataclass_json(undefined=Undefined.INCLUDE, letter_case=LetterCase.CAMEL) # pyright: ignore[reportArgumentType]
 @dataclass
 class FunctionSignatureParam:
     name: str
@@ -22,7 +22,7 @@ class FunctionSignatureParam:
     kind: str
     extra: CatchAll
 
-@dataclass_json(undefined=Undefined.INCLUDE, letter_case=LetterCase.CAMEL)
+@dataclass_json(undefined=Undefined.INCLUDE, letter_case=LetterCase.CAMEL) # pyright: ignore[reportArgumentType]
 @dataclass
 class FunctionSignatureRetTypeInfo:
     extra: CatchAll
@@ -33,7 +33,7 @@ class FunctionSignatureRetTypeInfo:
     size: int = -1
     count: int = -1
 
-@dataclass_json(undefined=Undefined.INCLUDE, letter_case=LetterCase.CAMEL)
+@dataclass_json(undefined=Undefined.INCLUDE, letter_case=LetterCase.CAMEL) # pyright: ignore[reportArgumentType]
 @dataclass
 class AdditionalFunctionSignatureProperties:
     name: str
@@ -47,13 +47,13 @@ class AdditionalFunctionSignatureProperties:
     extra: CatchAll
     comment: str = ""
 
-@dataclass_json(undefined=Undefined.INCLUDE, letter_case=LetterCase.CAMEL)
+@dataclass_json(undefined=Undefined.INCLUDE, letter_case=LetterCase.CAMEL) # pyright: ignore[reportArgumentType]
 @dataclass
 class FunctionSignatureProperties:
     additionalProperties: AdditionalFunctionSignatureProperties
     extra: CatchAll
 
-@dataclass_json(undefined=Undefined.INCLUDE, letter_case=LetterCase.CAMEL)
+@dataclass_json(undefined=Undefined.INCLUDE, letter_case=LetterCase.CAMEL) # pyright: ignore[reportArgumentType]
 @dataclass
 class FunctionSignatureResult:
     ruleId: str

@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from typing import List
 
 
-@dataclass_json(undefined=Undefined.INCLUDE, letter_case=LetterCase.CAMEL)
+@dataclass_json(undefined=Undefined.INCLUDE, letter_case=LetterCase.CAMEL) # pyright: ignore[reportArgumentType]
 @dataclass
 class Stack:
     stackVars: List[StackVar]

@@ -68,10 +68,10 @@ class Union(object):
     def export_fields(self, ctx = DEFAULT) -> UnionExportPart:
         includes = self.includes(ctx = ctx)
         declarations = list(self.export_field_declarations())
-        return UnionExportPart(fields = declarations, includes = includes)
+        return UnionExportPart(fields = declarations, includes = list(includes))
 
     def export(self, ctx = DEFAULT):
-        includes = OrderedSet()
+        includes = OrderedSet[str]()
 
         includes += self.includes(ctx=ctx)
 
