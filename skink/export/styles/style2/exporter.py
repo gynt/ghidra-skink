@@ -376,7 +376,8 @@ class Exporter(object):
       returnTypeLocation = fs.fsr.properties.additionalProperties.retType.location
       callingConvention = fs.fsr.properties.additionalProperties.callingConventionName
 
-      parameters = [f"{sanitize_name(param.name)} " for param in fs.fsr.properties.additionalProperties.params if param.name != "this"]
+      # Function signature parameter names are the types...
+      parameters = [f"{param.name} " for param in fs.fsr.properties.additionalProperties.params if param.name != "this"]
       name = fs.fsr.properties.additionalProperties.name
       contents = template1.render({
         "include_paths": include_paths,
