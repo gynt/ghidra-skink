@@ -474,7 +474,7 @@ class Exporter(object):
       include_paths: OrderedSet[str] = OrderedSet[str]()
       include_paths += td.includes(ctx=self.esci)
       
-      typeName = td.tr.properties.additionalProperties.type.name
+      typeName = td.tr.properties.additionalProperties.type.name or td.tr.properties.additionalProperties.typeName
       # typeLocation = td.tr.properties.additionalProperties.type.location
 
       name = td.tr.properties.additionalProperties.name

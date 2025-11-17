@@ -15,8 +15,9 @@ def repair_indexing(type_name: str):
     type_name = type_name[:s] + type_name[(f+1):]
   return type_name
 
-def generate_include_for_type(type_name: str, type_info: TypeInfo, ctx = DEFAULT):
-  loc = type_info.location
+
+def generate_include_for_type_location(type_name: str, type_loc: str, ctx = DEFAULT):
+  loc = type_loc
   if not loc:
     raise Exception(f"no location for type: {type_name}")
   
@@ -44,6 +45,13 @@ def generate_include_for_type(type_name: str, type_info: TypeInfo, ctx = DEFAULT
       if ctx.include.prefix_include:
         result = f'#include "{result}"'
       yield result
+
+def generate_include_for_type(type_name: str, type_info: TypeInfo, ctx = DEFAULT):
+  loc = type_info.location
+  if not loc:
+    raise Exception(f"no location for type: {type_name}")
+  
+  yield from generate_include_for_type_location(type_name=type_name, type_loc=loc, ctx=ctx)
 
 
 def generate_include_for_class(type_name: str, type_info: TypeInfo, ctx = DEFAULT):

@@ -404,6 +404,8 @@ class Exporter(object):
       include_paths += td.includes(ctx=self.esci)
       
       typeName = td.tr.properties.additionalProperties.type.name
+      if not typeName:
+        typeName = td.tr.properties.additionalProperties.typeName
       # typeLocation = td.tr.properties.additionalProperties.type.location
 
       name = td.tr.properties.additionalProperties.name

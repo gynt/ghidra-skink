@@ -19,6 +19,8 @@ class AdditionalTypedefProperties:
     location: str
     extra: CatchAll
     endian: str = ""
+    typeName: str = ""
+    typeLocation: str = ""
 
 @dataclass_json(undefined=Undefined.INCLUDE, letter_case=LetterCase.CAMEL)
 @dataclass
