@@ -1,5 +1,6 @@
 from typing import List
 
+from skink.architecture.common.exclusion import filter_includes
 from skink.sarif.TypeInfo import TypeInfo
 from skink.utils.OrderedSet import OrderedSet
 
@@ -44,7 +45,7 @@ class Struct(object):
             yield from generate_include_for_type(field.name, field.type, ctx=ctx)
 
     def includes(self, ctx = DEFAULT):
-        return self._collect_includes(ctx=ctx)
+        return filter_includes(self._collect_includes(ctx), ctx)
     
     def export_field_declarations(self, ctx = DEFAULT):
         for n, sf in self.s.properties.additionalProperties.fields.items():

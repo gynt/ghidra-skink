@@ -1,5 +1,6 @@
 
 
+from skink.architecture.common.exclusion import filter_includes
 from skink.export.context import DEFAULT, Context
 from skink.export.location import transform_location
 from skink.export.types import generate_include_for_class, generate_include_for_type, generate_include_for_type_location
@@ -22,7 +23,7 @@ class Typedef():
       yield from generate_include_for_type(self.tr.properties.additionalProperties.name, self.tr.properties.additionalProperties.type, ctx=ctx)
 
   def includes(self, ctx = DEFAULT):
-    return self._collect_includes(ctx)
+    return filter_includes(self._collect_includes(ctx), ctx)
 
   def location(self, ctx = DEFAULT):
     return transform_location(self.loc, ctx)

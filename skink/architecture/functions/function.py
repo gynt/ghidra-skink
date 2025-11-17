@@ -1,3 +1,4 @@
+from skink.architecture.common.exclusion import filter_includes
 from ...export.context import DEFAULT, Context
 from ...export.types import generate_include_for_class, generate_include_for_type
 from ...sarif.functions.FunctionResult import FunctionResult
@@ -26,7 +27,7 @@ class Function(object):
         yield from generate_include_for_type(param.formalTypeName, param, ctx=ctx)
 
     def includes(self, ctx = DEFAULT):
-        return self._collect_includes(ctx)
+        return filter_includes(self._collect_includes(ctx), ctx)
     
     def declaration(self, ctx: Context):
         name = self.f.properties.additionalProperties.name

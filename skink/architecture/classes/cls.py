@@ -69,11 +69,12 @@ class Class(object):
     return f"{self.location(ctx)}/{ctx.class_rules.prefix}{self.name}{ctx.class_rules.suffix}{ctx.include.file_extension}"
 
   def export(self, ctx = DEFAULT):
-    fr: FunctionRules = ctx.function_rules.mutate(include_convention = False)
-    fr: FunctionRules = fr.mutate(include_this = False)
-    ctx: Context = ctx.mutate(function_rules = fr)
+    ctx = ctx.copy()
+    fr: FunctionRules = ctx.function_rules
+    fr.include_convention = False
+    fr.include_this = False
 
-    includes = OrderedSet()
+    includes = OrderedSet[str]()
 
     if self.structure:
       if not ctx.class_rules.inline_struct:

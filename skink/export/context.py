@@ -1,15 +1,15 @@
 from dataclasses import dataclass, field
 from typing import Dict, List
+from warnings import deprecated
 
-from dataclasses_json import dataclass_json
+from dataclasses_json import dataclass_json, DataClassJsonMixin
 
-@dataclass_json
 @dataclass
-class AbstractContext(object):
-
+class AbstractContext(DataClassJsonMixin):
     def copy(self) -> "AbstractContext":
         return self.from_json(self.to_json())
 
+    @deprecated("mutate() is deprecated")
     def mutate(self, **kwargs) -> "AbstractContext":
         ctx = self.copy()
         for k,v  in kwargs.items():
@@ -19,15 +19,17 @@ class AbstractContext(object):
         return ctx
 
 
-@dataclass_json
 @dataclass
 class IncludeRules(AbstractContext):
     functions_this_parameter_type: bool = False
     prefix_include: bool = True
     file_extension: str = ".hpp"
+    exclude: list[str] = field(default_factory=lambda: list[str](["WinDef[.]h", "winnt[.]h", "ntddk_32/.*", "^.+?[.]h$"]))
+    exclude_use_regex: bool = True
 
+    def copy(self) -> "IncludeRules":
+        return self.from_json(self.to_json())
 
-@dataclass_json
 @dataclass
 class ClassRules(AbstractContext):
     prefix: str = ""
@@ -36,14 +38,18 @@ class ClassRules(AbstractContext):
     export_constructor: bool = False
     virtual: bool = False
     class_as_namespace: bool = True
-    
-@dataclass_json
+
+    def copy(self) -> "ClassRules":
+        return self.from_json(self.to_json())
+
 @dataclass
 class FunctionRules(AbstractContext):
     include_convention: bool = True
     include_this: bool = True
 
-@dataclass_json
+    def copy(self) -> "FunctionRules":
+        return self.from_json(self.to_json())
+
 @dataclass
 class StructRules(AbstractContext):
     prefix: str = ""
@@ -51,7 +57,9 @@ class StructRules(AbstractContext):
     suffix: str = "Struct"
     field_eol_char: bool = True
 
-@dataclass_json
+    def copy(self) -> "StructRules":
+        return self.from_json(self.to_json())
+
 @dataclass
 class TransformationRules(AbstractContext):
     use_regex: bool = False
@@ -63,17 +71,23 @@ class TransformationRules(AbstractContext):
     use_exclude_list: bool = False
     exclude_list: List[str] = field(default_factory=list)
 
-@dataclass_json
+    def copy(self) -> "TransformationRules":
+        return self.from_json(self.to_json())
+
 @dataclass
 class LocationRules(AbstractContext):
     transformation_rules: TransformationRules = field(default_factory=lambda: TransformationRules())
 
-@dataclass_json
+    def copy(self) -> "LocationRules":
+        return self.from_json(self.to_json())
+
 @dataclass
 class StyleRules(AbstractContext):
     namespace: bool = True
 
-@dataclass_json
+    def copy(self) -> "StyleRules":
+        return self.from_json(self.to_json())
+
 @dataclass
 class Context(AbstractContext):
     root: str = ""
@@ -85,5 +99,7 @@ class Context(AbstractContext):
     struct_rules: StructRules = field(default_factory=lambda: StructRules())
     location_rules: LocationRules = field(default_factory=lambda: LocationRules())
 
+    def copy(self) -> "Context":
+        return self.from_json(self.to_json())
 
 DEFAULT = Context()

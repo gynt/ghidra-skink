@@ -1,3 +1,4 @@
+from skink.architecture.common.exclusion import filter_includes
 from .context import DEFAULT
 from .location import ROOT, transform_location
 from ..sarif.TypeInfo import TypeInfo
@@ -60,5 +61,5 @@ def generate_include_for_class(type_name: str, type_info: TypeInfo, ctx = DEFAUL
   # TODO: is this the right place to do this?
   if ctx.promote_to_class:
     ti.location += f"/{name}"
-    return generate_include_for_type(f"{ctx.class_rules.prefix}{name}{ctx.class_rules.suffix}", type_info=ti, ctx=ctx)
-  return generate_include_for_type(f"{name}", type_info=ti, ctx=ctx)
+    return filter_includes(generate_include_for_type(f"{ctx.class_rules.prefix}{name}{ctx.class_rules.suffix}", type_info=ti, ctx=ctx), ctx=ctx)
+  return filter_includes(generate_include_for_type(f"{name}", type_info=ti, ctx=ctx), ctx=ctx)
