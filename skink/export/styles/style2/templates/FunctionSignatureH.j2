@@ -15,6 +15,6 @@
 
 {{ usings(using_paths) }}
 
-typedef {{ returnTypeName }} {{ name }}({{ parameters | join(', ') }});
+typedef {{ returnTypeName }} ({{ callingConvention }} {{ name }})({{ parameters | join(', ') }});
 
 {%- endcall -%}

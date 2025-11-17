@@ -369,7 +369,8 @@ class Exporter(object):
       template1 = env.get_template("FunctionSignatureH.j2")
 
       namespace_path = fs.namespace(ctx=self.esci)
-      include_paths: List[str] = []
+      include_paths: OrderedSet[str] = OrderedSet[str]()
+      include_paths += fs.includes(ctx=self.esci)
       
       returnTypeName = fs.fsr.properties.additionalProperties.retType.name
       returnTypeLocation = fs.fsr.properties.additionalProperties.retType.location
@@ -385,6 +386,7 @@ class Exporter(object):
         "parameters": parameters,
         "returnTypeName": returnTypeName,
         "returnTypeLocation": returnTypeLocation,
+        "callingConvention": callingConvention,
         # "type": type,
       })
       return ExportContents(path=f"{fs.location(ctx=self.esci)}/{fs.name}.hpp", contents=contents)
@@ -398,7 +400,8 @@ class Exporter(object):
       template1 = env.get_template("TypedefH.j2")
 
       namespace_path = td.namespace(ctx=self.esci)
-      include_paths: List[str] = []
+      include_paths: OrderedSet[str] = OrderedSet[str]()
+      include_paths += td.includes(ctx=self.esci)
       
       typeName = td.tr.properties.additionalProperties.type.name
       # typeLocation = td.tr.properties.additionalProperties.type.location
