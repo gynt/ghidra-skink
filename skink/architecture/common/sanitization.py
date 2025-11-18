@@ -1,5 +1,5 @@
 import re
-INSANE = re.compile("[^A-Za-z0-9_-]")
+INSANE = re.compile("[^A-Za-z0-9_]")
 FORBIDDEN_WORDS = ["NULL", "char", "int", "short", "long", "void", "unsigned", "delete"]
 
 def sanitize_name(name: str):
