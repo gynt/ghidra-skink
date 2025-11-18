@@ -19,4 +19,6 @@ def sanitize_calling_convention(cc: str):
       return cc
     if cc.startswith(CC):
       return CC
+  if cc == "unknown":
+    return "__cdecl"
   raise Exception(f"unknown calling convention: {cc}")
