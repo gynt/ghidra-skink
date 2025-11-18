@@ -395,7 +395,8 @@ class Exporter(object):
       parameters = [f"{param.name} " for param in fs.fsr.properties.additionalProperties.params if param.name != "this"]
       name = fs.fsr.properties.additionalProperties.name
       contents = template1.render({
-        "include_paths": include_paths,
+        "include_paths": sorted(include_paths),
+        "using_paths": sorted(include_paths),
         "use_pch": True,
         "namespace_path": namespace_path,
         "name": sanitize_name(name),
@@ -426,7 +427,8 @@ class Exporter(object):
 
       name = td.tr.properties.additionalProperties.name
       contents = template1.render({
-        "include_paths": include_paths,
+        "include_paths": sorted(include_paths),
+        "using_paths": sorted(include_paths),
         "use_pch": True,
         "namespace_path": namespace_path,
         "name": sanitize_name(name),
