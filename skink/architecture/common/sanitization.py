@@ -7,3 +7,13 @@ def sanitize_name(name: str):
   while name in FORBIDDEN_WORDS:
     name = name + "_"
   return name
+
+CALLING_CONVENTIONS = ["__thiscall", "__cdecl", "__stdcall", "__fastcall"]
+
+def sanitize_calling_convention(cc: str):
+  for CC in CALLING_CONVENTIONS:
+    if cc == CC:
+      return cc
+    if cc.startswith(CC):
+      return CC
+  raise Exception(f"unknown calling convention: {cc}")

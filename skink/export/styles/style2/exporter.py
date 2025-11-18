@@ -16,7 +16,7 @@ from skink.architecture.enums import Enum
 from skink.export.project.exportcontents import ExportContents
 from skink.utils.OrderedSet import OrderedSet
 from skink.export.context import DEFAULT, Context, TransformationRules
-from skink.architecture.common.sanitization import sanitize_name
+from skink.architecture.common.sanitization import sanitize_calling_convention, sanitize_name
 
 from typing import List, Iterable
 
@@ -389,7 +389,7 @@ class Exporter(object):
       
       returnTypeName = fs.fsr.properties.additionalProperties.retType.name
       returnTypeLocation = fs.fsr.properties.additionalProperties.retType.location
-      callingConvention = fs.fsr.properties.additionalProperties.callingConventionName
+      callingConvention = sanitize_calling_convention(fs.fsr.properties.additionalProperties.callingConventionName)
 
       # Function signature parameter names are the types...
       parameters = [f"{param.name} " for param in fs.fsr.properties.additionalProperties.params if param.name != "this"]
@@ -452,7 +452,7 @@ class Exporter(object):
 
       functions = [{
         "returnType": f.f.properties.additionalProperties.ret.typeName, 
-        "callingConvention": f.f.properties.additionalProperties.callingConvention,
+        "callingConvention": sanitize_calling_convention(f.f.properties.additionalProperties.callingConvention),
         "name": sanitize_name(f.name.split("::")[-1]), # split if necessary (mistake in export)
         "parameters": [f"{param.typeName} {sanitize_name(param.name)}" for param in f.f.properties.additionalProperties.params if param.name != "this"],
         "address": f.f.locations[0].physicalLocation.address.absoluteAddress,
@@ -484,7 +484,7 @@ class Exporter(object):
 
       functions = [{
         "returnType": f.f.properties.additionalProperties.ret.typeName, 
-        "callingConvention": f.f.properties.additionalProperties.callingConvention,
+        "callingConvention": sanitize_calling_convention(f.f.properties.additionalProperties.callingConvention),
         "name": sanitize_name(f.name.split("::")[-1]), # split if necessary (mistake in export)
         "parameters": [f"{param.typeName} {sanitize_name(param.name)}" for param in f.f.properties.additionalProperties.params if param.name != "this"],
         "parameter_names": [f"{sanitize_name(param.name)}" for param in f.f.properties.additionalProperties.params if param.name != "this"],
