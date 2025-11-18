@@ -519,4 +519,5 @@ class Exporter(object):
         ExportContents(path=f"{dst_folder}/assertion.h", contents=env.get_template("Helpers_Assertion.j2").render()),
         ExportContents(path=f"{dst_folder}/interfacing/DataReference.h", contents=env.get_template("Helpers_DataReference.j2").render()),
         ExportContents(path=f"{dst_folder}/interfacing/MemberFunctionPointerGenerator.h", contents=env.get_template("Helpers_MemberFunctionPointerGenerator.j2").render()),
+        ExportContents(path=f"{dst_folder}/interfacing/common.hpp", contents=env.get_template("Helpers_Common.j2").render()),
       ]
