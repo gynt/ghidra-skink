@@ -24,7 +24,7 @@ class IncludeRules(AbstractContext):
     functions_this_parameter_type: bool = False
     prefix_include: bool = True
     file_extension: str = ".hpp"
-    exclude: list[str] = field(default_factory=lambda: list[str](["WinDef[.]h", "winnt[.]h", "ntddk_32/.*", "^.+?[.]h$"]))
+    exclude: list[str] = field(default_factory=lambda: list[str](["ntddk_32/.*"]))
     exclude_use_regex: bool = True
 
     def copy(self) -> "IncludeRules":
@@ -77,6 +77,7 @@ class TransformationRules(AbstractContext):
 @dataclass
 class LocationRules(AbstractContext):
     transformation_rules: TransformationRules = field(default_factory=lambda: TransformationRules())
+    no_h_subdirectories: bool = True
 
     def copy(self) -> "LocationRules":
         return self.from_json(self.to_json())
@@ -98,7 +99,7 @@ class Context(AbstractContext):
     class_rules: ClassRules = field(default_factory=lambda: ClassRules())
     struct_rules: StructRules = field(default_factory=lambda: StructRules())
     location_rules: LocationRules = field(default_factory=lambda: LocationRules())
-
+    
     def copy(self) -> "Context":
         return self.from_json(self.to_json())
 

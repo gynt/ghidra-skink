@@ -11,6 +11,9 @@ def normalize_location(l: str, ctx = DEFAULT):
     return l
   if l[0] == ROOT:
     l = l[1:]
+  if ctx.location_rules.no_h_subdirectories:
+    if ".h/" in l:
+      l = l.split(".h/", 2)[0]
   if l.endswith(".h"):
     l = l[:-len(".h")]
   elif l.endswith(".hpp"):

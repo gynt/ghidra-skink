@@ -31,6 +31,12 @@ def generate_include_for_type_location(type_name: str, type_loc: str, ctx = DEFA
       if ctx.include.prefix_include:
         result = f'#include "{result}"'
       yield result
+    elif ctx.location_rules.no_h_subdirectories and ".h/" in loc:
+      loc = transform_location(loc, ctx)
+      result = f"{loc}.h"
+      if ctx.include.prefix_include:
+        result = f'#include "{result}"'
+      yield result
     elif loc.endswith(".hpp"):
       loc = transform_location(loc, ctx)
       result = f"{loc}.hpp"
