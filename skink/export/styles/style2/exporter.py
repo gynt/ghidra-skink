@@ -112,6 +112,8 @@ class Exporter(object):
         "returnType": f.f.properties.additionalProperties.ret.typeName, 
         "name": sanitize_name(f.name.split("::")[-1]), # split if necessary (mistake in export)
         "parameters": [f"{param.typeName} {sanitize_name(param.name)}" for param in f.f.properties.additionalProperties.params if param.name != "this"],
+        "parameter_names": [f"{sanitize_name(param.name)}" for param in f.f.properties.additionalProperties.params if param.name != "this"],
+        "address": f.f.locations[0].physicalLocation.address.absoluteAddress,
       } for f in c.functions(self.esci)]
 
       fields =  list({"string": s, "offset": o, "length": l} for s, o, l in c.structure.export_field_declarations_with_offsets_and_lengths(self.esci))
@@ -139,46 +141,6 @@ class Exporter(object):
       })
 
       return ExportContents(path=f"{c.location(ctx=self.esci)}/{c.name}.hpp", contents=contents)
-    
-  def export_class_header_shim(self, c: Class):
-    if self.template_path != DEFAULT_TEMPLATE_PATH:
-      raise Exception()
-    anchor, *names = self.template_path.split(".")
-    with path(anchor, *names) as p:
-
-      if not c.structure:
-        raise Exception()
-      
-      includes = OrderedSet[str]()
-      for m in c.functions(self.esci):
-        includes += list(m.includes(self.esci))
-
-      methods = [{
-        "returnType": f.f.properties.additionalProperties.ret.typeName, 
-        "name": sanitize_name(f.name.split("::")[-1]), # split if necessary (mistake in export)
-        "parameters": [f"{param.typeName} {sanitize_name(param.name)}" for param in f.f.properties.additionalProperties.params if param.name != "this"],
-      } for f in c.functions(self.esci)]
-
-      env = Environment(loader=FileSystemLoader(str(p)))
-      template = env.get_template("ClassH_.j2")
-
-
-      contents = template.render({
-        "use_pch": True,
-        "include_paths": sorted(includes),
-        "using_paths": sorted(includes),
-        "namespace_path": c.namespace(ctx=self.esci),
-        "class_name": f"{c.name}",
-        "class_size": c.structure.s.properties.additionalProperties.size,
-        "methods": methods,
-        "constructor": {
-          "returnType": c.constructor.f.properties.additionalProperties.ret.typeName, 
-          "name": sanitize_name(c.constructor.name.split("::")[-1]), # split if necessary (mistake in export)
-          "parameters": [f"{param.typeName} {sanitize_name(param.name)}" for param in c.constructor.f.properties.additionalProperties.params if param.name != "this"],
-        } if c.constructor else None,
-      })
-
-      return ExportContents(path=f"{c.location(ctx=self.esci)}/{c.name}_.hpp", contents=contents)
   
   def export_class_body(self, c: Class):
     if self.template_path != DEFAULT_TEMPLATE_PATH:
@@ -215,53 +177,11 @@ class Exporter(object):
       })
 
       return ExportContents(path=f"{c.location(ctx=self.esci)}/{c.name}.cpp", contents=contents, no_touch=False)
-
-  def export_class_body_shim(self, c: Class):
-    if self.template_path != DEFAULT_TEMPLATE_PATH:
-      raise Exception()
-    anchor, *names = self.template_path.split(".")
-    with path(anchor, *names) as p:
-      env = Environment(loader=FileSystemLoader(str(p)))
-      template = env.get_template("ClassCPP_.j2")
-
-
-      if not c.structure:
-        raise Exception()
-      
-      includes = OrderedSet[str]()
-      for m in c.functions(self.esci):
-        includes += list(m.includes(self.esci))
-
-      methods = [{
-        "returnType": f.f.properties.additionalProperties.ret.typeName, 
-        "name": sanitize_name(f.name.split("::")[-1]), # split if necessary (mistake in export)
-        "parameters": [f"{param.typeName} {sanitize_name(param.name)}" for param in f.f.properties.additionalProperties.params if param.name != "this"],
-        "parameter_names": [f"{sanitize_name(param.name)}" for param in f.f.properties.additionalProperties.params if param.name != "this"],
-        "address": f.f.locations[0].physicalLocation.address.absoluteAddress,
-      } for f in c.functions(self.esci)]
-
-      contents = template.render({
-        "context": self.binary_context,
-        "include_paths": sorted(includes) + [
-           f"{c.location(ctx=self.esci)}/{c.name}_.hpp",
-           f"{c.location(ctx=self.esci)}/{c.name}.hpp",
-        ],
-        "using_paths": sorted(includes),
-        "namespace_path": c.namespace(ctx=self.esci),
-        "class_name": f"{c.name}",
-        "class_size": c.structure.s.properties.additionalProperties.size,
-        "methods": methods,
-        "singleton_address": c.singleton.defined_data.address() if c.singleton else 0,
-      })
-
-      return ExportContents(path=f"{c.location(ctx=self.esci)}/{c.name}_.cpp", contents=contents)
     
   def export_class(self, c: Class) -> List[ExportContents]:
     return [
       self.export_class_header(c),
-      self.export_class_header_shim(c),
       self.export_class_body(c),
-      self.export_class_body_shim(c),
     ]
     
   def export_struct(self, s: Struct):
@@ -455,6 +375,7 @@ class Exporter(object):
         "callingConvention": sanitize_calling_convention(f.f.properties.additionalProperties.callingConvention),
         "name": sanitize_name(f.name.split("::")[-1]), # split if necessary (mistake in export)
         "parameters": [f"{param.typeName} {sanitize_name(param.name)}" for param in f.f.properties.additionalProperties.params if param.name != "this"],
+        "parameter_names": [f"{sanitize_name(param.name)}" for param in f.f.properties.additionalProperties.params if param.name != "this"],
         "address": f.f.locations[0].physicalLocation.address.absoluteAddress,
       } for f in ns.functions]
 
@@ -470,45 +391,9 @@ class Exporter(object):
       # TODO: make Namespace fix location info just like classes
       return ExportContents(path=f"{ns.location(ctx=self.esci)}/{ns.name}.hpp", contents=contents)
 
-  def export_namespaced_functions_stubs(self, ns: Namespace):
-    if self.template_path != DEFAULT_TEMPLATE_PATH:
-      raise Exception()
-    anchor, *names = self.template_path.split(".")
-    with path(anchor, *names) as p:
-      env = Environment(loader=FileSystemLoader(str(p)))
-      template = env.get_template("NamespaceCPP.j2")
-
-      includes = OrderedSet[str]()
-      for f in ns.functions:
-        includes += list(f.includes(self.esci))
-
-      functions = [{
-        "returnType": f.f.properties.additionalProperties.ret.typeName, 
-        "callingConvention": sanitize_calling_convention(f.f.properties.additionalProperties.callingConvention),
-        "name": sanitize_name(f.name.split("::")[-1]), # split if necessary (mistake in export)
-        "parameters": [f"{param.typeName} {sanitize_name(param.name)}" for param in f.f.properties.additionalProperties.params if param.name != "this"],
-        "parameter_names": [f"{sanitize_name(param.name)}" for param in f.f.properties.additionalProperties.params if param.name != "this"],
-        "address": f.f.locations[0].physicalLocation.address.absoluteAddress,
-      } for f in ns.functions]
-
-      contents = template.render({
-        "use_pch": True,
-        "context": self.binary_context,
-        "include_paths": sorted(includes) + [
-          f"{ns.location(ctx=self.esci)}/{ns.name}.hpp"
-        ],
-        "using_paths": sorted(includes),
-        "namespace_path": ns.namespace(ctx=self.esci),
-        "functions": functions,
-      })
-
-      # TODO: make Namespace fix location info just like classes
-      return ExportContents(path=f"{ns.location(ctx=self.esci)}/{ns.name}.cpp", contents=contents)
-
   def export_namespace(self, ns: Namespace):
     return [
-      self.export_namespaced_functions_header(ns),
-      self.export_namespaced_functions_stubs(ns)
+      self.export_namespaced_functions_header(ns)
     ]
   
   def export_helpers(self, dst_folder: str = "util"):

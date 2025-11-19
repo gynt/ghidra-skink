@@ -34,18 +34,10 @@ class {{ class_name }}
 {#  private: #}
     {{ class_name }}();
     ~{{ class_name }}();
-  
-  {% if expose_original_methods %}
-  public:
-  {% endif %}
-    // Use these to call the original functions
-    {% for method in methods %}
-    {{ method.returnType }} _{{ method.name }}({{ method.parameters | join(', ') }});
-    {% endfor %}
-  
+   
   public:
     {% for method in methods %}
-    {{ method.returnType }} {{ method.name }}({{ method.parameters | join(', ') }});
+    __declspec(noinline) {{ method.returnType }} {{ method.name }}({{ method.parameters | join(', ') }});
     {% endfor %}
   
     {% if is_singleton %}
@@ -59,6 +51,21 @@ class {{ class_name }}
     #endif
     }
     {% endif %}
+
+  {% if expose_original_methods %}
+  public:
+  {% else %}
+  private:
+  {% endif %}
+    // Use these to call the original functions
+    {% for method in methods %}
+    __declspec(noinline) inline {{ method.returnType }} _{{ method.name }}({{ method.parameters | join(', ') }}) {
+      {% set addr = 'ADDRESS_' + context.abbreviation + '_' + context.hash + '_' + ('0x%08X' % method.address ) -%}
+      {%- set all_parameters = [class_name + " * _this"] + method.parameters -%}
+      {%- set all_parameter_names = ["this"] + method.parameter_names -%}
+      return (({{ method.returnType }} (__thiscall * const)({{ all_parameters | join(', ') }})) {{ addr }})({{ all_parameter_names | join(', ') }});
+    };
+    {% endfor %}
 };
 
 static_assert_cpp98_obj(sizeof({{ class_name }}) == {{ class_size }}, {{ class_name }});

@@ -15,6 +15,12 @@
 
 {% for function in functions %}
 {{ function.returnType }} {{ function.callingConvention }} {{ function.name }} ({{ function.parameters | join(', ') if function.parameters else '' }});
+
+__declspec(noinline) inline {{ function.returnType }} {{ function.callingConvention }} _{{ function.name }} ({{ function.parameters | join(', ') if function.parameters else '' }}) {
+  {% set addr = 'ADDRESS_' + context.abbreviation + '_' + context.hash + '_' + ('0x%08X' % function.address ) -%}
+  return (({{ function.returnType }} ({{ function.callingConvention }} * const)({{ function.parameters | join(', ') }})) {{ addr }})({{ function.parameter_names | join(', ') }});
+}
+
 {% endfor %}
 
 
