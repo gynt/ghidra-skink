@@ -38,4 +38,8 @@ public:
 
 static_assert_cpp98_obj(sizeof({{ name }}) == {{ size }}, {{ name }});
 
+{% for field in fields -%}
+const {{ name }} {{ name }}::{{ field.name }}( _{{ field.name }} ); // {{ '0x%08X' % field.value }}
+{% endfor %}
+
 {%- endcall -%}

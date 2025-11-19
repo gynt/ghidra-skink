@@ -262,7 +262,6 @@ class Exporter(object):
     with path(anchor, *names) as p:
       env = Environment(loader=FileSystemLoader(str(p)))
       template1 = env.get_template("SizedEnum_CPP03_H.j2")
-      template2 = env.get_template("SizedEnum_CPP03_CPP.j2")
 
       namespace_path = e.namespace(ctx=self.esci)
 
@@ -284,16 +283,7 @@ class Exporter(object):
         "size": size
       })
 
-      path2 = f"{e.location(ctx=self.esci)}/{e.name}.cpp"
-      contents2 = template2.render({
-        "include_paths": [path1],
-        "namespace_path": namespace_path,
-        "name": sanitize_name(name),
-        "type": type,
-        "fields": fields,
-      })
-
-      return [ExportContents(path=path1, contents=contents1), ExportContents(path=path2, contents=contents2)]
+      return [ExportContents(path=path1, contents=contents1)]
     
   def export_function_signature(self, fs: FunctionSignature):
     if self.template_path != DEFAULT_TEMPLATE_PATH:
