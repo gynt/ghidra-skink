@@ -3,7 +3,7 @@ from typing import Any, Generator, Iterable, List, Set
 import ijson, json
 
 from skink.sarif.BasicResult import BasicResult
-from skink.sarif.decode_results import decode_result
+from skink.sarif.decode_results import DECODE_RESULT_STATE, decode_result
 
 from ..project.databases.symboldatabase import SymbolDatabase
 from ...sarif.symbols.symbol import SymbolResult
@@ -115,18 +115,19 @@ class Project(object):
     if self.objects:
       yield from self.objects
     else:
-      if self.cache_objects:
-        if not self.objects:
-          self.objects = []
-        for obj in self.yield_raw_objects():
-          dobj = decode_result(obj)
-          self.objects.append(dobj)
-        yield from self.objects
-      else:
-        for obj in self.yield_raw_objects():
-          if debug:
-            log(logging.DEBUG, obj)
-          yield decode_result(obj)
+      with DECODE_RESULT_STATE as s:
+        if self.cache_objects:
+          if not self.objects:
+            self.objects = []
+          for obj in self.yield_raw_objects():
+            dobj = decode_result(obj)
+            self.objects.append(dobj)
+          yield from self.objects
+        else:
+          for obj in self.yield_raw_objects():
+            if debug:
+              log(logging.DEBUG, obj)
+            yield decode_result(obj)
 
   # def find_first_defined_data_for_class(self, dtr: DataTypeResult):
   #   loc = dtr.properties.additionalProperties.location

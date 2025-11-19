@@ -15,10 +15,12 @@ from .datatypes.FunctionSignatureResult import FunctionSignatureResult
 @dataclass
 class _State:
     warnings: List[str] = field(default_factory=list)
+    logs: List[str] = field(default_factory=list)
     sink: bool = False
 
     def clear(self):
         self.warnings = []
+        self.logs = []
 
     def warn(self, msg):
         if self.sink:
@@ -26,7 +28,22 @@ class _State:
         else:
             logging.log(logging.WARNING, msg)
 
-_STATE = _State()
+    def log(self, level, msg):
+        if level == logging.WARNING:
+            self.warnings.append(msg)
+        else:
+            self.logs.append(msg)
+
+    def __enter__(self):
+        self.sink = True
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.sink = False
+        if self.warnings:
+            logging.log(logging.WARNING, f"decode_result had {len(self.warnings)} warnings")
+        self.clear()
+
+DECODE_RESULT_STATE = _State()
 
 def decode_result(result: Dict) -> BasicResult:
     try:
@@ -52,16 +69,13 @@ def decode_result(result: Dict) -> BasicResult:
           return DefinedDataResult.from_dict(result) # type: ignore
     except Exception as e:
         raise Exception(f"{e}\nin parsing: {json.dumps(result, indent=2)}")
-    _STATE.warn(f"unused result: {result['message']['text']}")
+    DECODE_RESULT_STATE.warn(f"unused result: {result['message']['text']}")
     return UnusedResult.from_dict(result) # type: ignore
 
 
 def decode_results(results: Iterable[Dict]) -> Iterable[BasicResult]:
-    _STATE.sink = True
-    objs = []
-    for result in results:
-        objs.append(decode_result(result))
-    logging.log(logging.WARNING, f"decode_result had {len(_STATE.warnings)} warnings")
-    _STATE.clear()
-    _STATE.sink = False
-    return objs
+    with DECODE_RESULT_STATE as s:
+        objs = []
+        for result in results:
+            objs.append(decode_result(result))
+        return objs

@@ -3,7 +3,7 @@ import pathlib
 
 from skink.logger import fatal
 from skink.export.project.project import Project
-from skink.sarif.decode_results import decode_result
+from skink.sarif.decode_results import DECODE_RESULT_STATE, decode_result
 from skink.sarif.importing.filters.namespaces import belongs_in_namespace
 from ..logger import log, logging
 
@@ -22,13 +22,14 @@ def main_preprocess_filter(input_path, output_path, args):
     project = Project(path=input_path)
 
     l = list()
-    for a in project.yield_raw_objects():
-      if args.debug:
-        log(logging.DEBUG, a)
-      obj = decode_result(a)
-      if belongs_in_namespace(obj, nsf):
-        l.append(a)
-    output_path.write_text(json.dumps(l, indent=2))
+    with DECODE_RESULT_STATE as s:
+      for a in project.yield_raw_objects():
+        if args.debug:
+          log(logging.DEBUG, a)
+        obj = decode_result(a)
+        if belongs_in_namespace(obj, nsf):
+          l.append(a)
+      output_path.write_text(json.dumps(l, indent=2))
 
 def main_preprocess(args):
   path = pathlib.Path(args.file[0]).absolute()
