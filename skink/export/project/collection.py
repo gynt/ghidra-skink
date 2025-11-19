@@ -30,7 +30,7 @@ class ExportedContentCollection(object):
   def unresolved_stubs(self):
     return [path for path, stubbed in self.stubs.items() if stubbed]
   
-  def write_to_disk(self, base: pathlib.Path):
+  def write_to_disk(self, base: pathlib.Path, overwrite_all=False):
     stbs = self.unresolved_stubs()
     if len(stbs) > 0:
       logging.log(logging.WARNING, f"there are {len(stbs)} unresolved paths")
@@ -40,4 +40,6 @@ class ExportedContentCollection(object):
         logging.log(logging.WARNING, f"invalid path name, skipping: {str(p)}")
         continue
       p.parent.mkdir(parents=True, exist_ok=True)
-      p.write_text(contents.contents)
+      if not overwrite_all and (not contents.no_touch and p.exists()):
+        continue
+      p.write_text(str(contents))
