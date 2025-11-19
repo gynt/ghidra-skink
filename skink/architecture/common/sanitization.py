@@ -1,7 +1,7 @@
 import re
 NUMERIC = re.compile("[0-9]+")
 INSANE = re.compile("[^A-Za-z0-9_]")
-FORBIDDEN_WORDS = ["NULL", "char", "int", "short", "long", "void", "unsigned", "delete"]
+FORBIDDEN_WORDS = ["NULL", "char", "int", "short", "long", "void", "unsigned", "delete", "try", "catch", "finally"]
 
 def sanitize_name(name: str):
   if re.match(NUMERIC, name[0]):
