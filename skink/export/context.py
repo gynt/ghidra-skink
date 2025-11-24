@@ -107,7 +107,7 @@ class Context(AbstractContext):
     class_rules: ClassRules = field(default_factory=lambda: ClassRules())
     struct_rules: StructRules = field(default_factory=lambda: StructRules())
     location_rules: LocationRules = field(default_factory=lambda: LocationRules())
-    files_rules: FileRules = field(default_factory=lambda: FileRules())
+    file_rules: FileRules = field(default_factory=lambda: FileRules())
     
     def copy(self) -> "Context":
         return self.from_json(self.to_json())

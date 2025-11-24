@@ -16,7 +16,7 @@ from skink.architecture.typedefs import Typedef
 from skink.architecture.enums import Enum
 from skink.export.project.exportcontents import ExportContents
 from skink.utils.OrderedSet import OrderedSet
-from skink.export.context import DEFAULT, Context, TransformationRules
+from skink.export.context import DEFAULT, Context, FileRules, TransformationRules
 from skink.architecture.common.sanitization import sanitize_calling_convention, sanitize_name
 
 from typing import List, Iterable
@@ -53,7 +53,7 @@ DEFAULT_BINARY_CONTEXT: BinaryContext = BinaryContext()
 class Exporter(object):
   
   def __init__(self, template_path: str = DEFAULT_TEMPLATE_PATH, binary_context: BinaryContext = DEFAULT_BINARY_CONTEXT,
-               transformation_rules: TransformationRules = TransformationRules(),
+               transformation_rules: TransformationRules = TransformationRules(), file_rules = FileRules(),
                expose_original_methods: bool = False):
     self.template_path = template_path
     self.binary_context = binary_context
@@ -179,7 +179,7 @@ class Exporter(object):
 
       return ExportContents(path=f"{c.location(ctx=self.esci)}/{c.name}.cpp", contents=contents, no_touch=False)
   
-def export_class_body_method(self, c: Class, f: Function):
+  def export_class_body_method(self, c: Class, f: Function):
     if self.template_path != DEFAULT_TEMPLATE_PATH:
       raise Exception()
     anchor, *names = self.template_path.split(".")
@@ -212,11 +212,11 @@ def export_class_body_method(self, c: Class, f: Function):
         "methods": methods,
       })
 
-      return ExportContents(path=f"{c.location(ctx=self.esci)}/{c.name}_{sanitize_name(f.name)}.cpp", contents=contents, no_touch=False)
+      return ExportContents(path=f"{c.location(ctx=self.esci)}/{c.name}/{sanitize_name(f.name)}.cpp", contents=contents, no_touch=False)
   
 
   def export_class(self, c: Class) -> List[ExportContents]:
-    if self.esci.files_rules.one_file_per_method:
+    if self.esci.file_rules.one_file_per_method:
       return [
         self.export_class_header(c),
         *[self.export_class_body_method(c, f) for f in c.functions(self.esci)],
@@ -490,11 +490,11 @@ def export_class_body_method(self, c: Class, f: Function):
       })
 
       # TODO: make Namespace fix location info just like classes
-      return ExportContents(path=f"{ns.location(ctx=self.esci)}/{ns.name}_{sanitize_name(f.name)}.cpp", contents=contents, no_touch=False)
+      return ExportContents(path=f"{ns.location(ctx=self.esci)}/{ns.name}/{sanitize_name(f.name)}.cpp", contents=contents, no_touch=False)
 
 
   def export_namespace(self, ns: Namespace) -> List[ExportContents]:
-    if self.esci.files_rules.one_file_per_function:
+    if self.esci.file_rules.one_file_per_function:
       return [
         self.export_namespaced_functions_header(ns),
         *[self.export_namespaced_function_body(ns, f) for f in ns.functions],
