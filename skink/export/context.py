@@ -90,6 +90,14 @@ class StyleRules(AbstractContext):
         return self.from_json(self.to_json())
 
 @dataclass
+class FileRules(AbstractContext):
+    one_file_per_function: bool = True
+    one_file_per_method: bool = True
+
+    def copy(self) -> "FileRules":
+        return self.from_json(self.to_json())
+
+@dataclass
 class Context(AbstractContext):
     root: str = ""
     style: StyleRules = field(default_factory=lambda: StyleRules())
@@ -99,6 +107,7 @@ class Context(AbstractContext):
     class_rules: ClassRules = field(default_factory=lambda: ClassRules())
     struct_rules: StructRules = field(default_factory=lambda: StructRules())
     location_rules: LocationRules = field(default_factory=lambda: LocationRules())
+    files_rules: FileRules = field(default_factory=lambda: FileRules())
     
     def copy(self) -> "Context":
         return self.from_json(self.to_json())
