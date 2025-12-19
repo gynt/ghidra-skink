@@ -98,6 +98,13 @@ class FileRules(AbstractContext):
         return self.from_json(self.to_json())
 
 @dataclass
+class MacroRules(AbstractContext):
+    ifdef_expose_original: str = "BUILD_INJECTABLE_DLL"
+
+    def copy(self) -> "MacroRules":
+        return self.from_json(self.to_json())
+
+@dataclass
 class Context(AbstractContext):
     root: str = ""
     style: StyleRules = field(default_factory=lambda: StyleRules())
@@ -108,6 +115,7 @@ class Context(AbstractContext):
     struct_rules: StructRules = field(default_factory=lambda: StructRules())
     location_rules: LocationRules = field(default_factory=lambda: LocationRules())
     file_rules: FileRules = field(default_factory=lambda: FileRules())
+    macro_rules: MacroRules = field(default_factory=lambda: MacroRules())
     
     def copy(self) -> "Context":
         return self.from_json(self.to_json())

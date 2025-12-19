@@ -139,6 +139,7 @@ class Exporter(object):
         "singleton_name": f"DAT_{c.name}", # TODO: probably almost always correct?
         "singleton_address": c.singleton.defined_data.address() if c.singleton else 0,
         "context": self.binary_context,
+        "ifdef_expose_original": self.esci.macro_rules.ifdef_expose_original,
       })
 
       return ExportContents(path=f"{c.location(ctx=self.esci)}/{c.name}.hpp", contents=contents)
@@ -418,6 +419,7 @@ class Exporter(object):
         "using_paths": sorted(includes),
         "namespace_path": ns.namespace(ctx=self.esci),
         "functions": functions,
+        "ifdef_expose_original": self.esci.macro_rules.ifdef_expose_original,
       })
 
       # TODO: make Namespace fix location info just like classes

@@ -41,17 +41,25 @@ class {{ class_name }}
     {% endfor %}
   
     {% if is_singleton %}
+    #ifdef {{ ifdef_expose_original }}
+    static {{ class_name }} * const _getInstance() {
+      return (({{ class_name }} * const) ADDRESS_{{ context.abbreviation }}_{{ context.hash }}_{{ '0x%08X' % singleton_address }});
+    }
+    #endif
+
     #define {{ singleton_name }} ( * {{ namespace_path }}::{{ class_name }}::getInstance())
     static {{ class_name }} * const getInstance() {
     #ifdef DECLARE_SINGLETON_{{ (ns | join('_')) }}_{{ class_name }}
       static {{ class_name }} instance;
       return &instance;
     #else
-      return (({{ class_name }} * const) ADDRESS_{{ context.abbreviation }}_{{ context.hash }}_{{ '0x%08X' % singleton_address }});
+      return {{ class_name }}::_getInstance();
     #endif
     }
+    
     {% endif %}
 
+  #ifdef {{ ifdef_expose_original }}
   {% if expose_original_methods %}
   public:
   {% else %}
@@ -66,6 +74,7 @@ class {{ class_name }}
       return (({{ method.returnType }} (__thiscall * const)({{ all_parameters | join(', ') }})) {{ addr }})({{ all_parameter_names | join(', ') }});
     };
     {% endfor %}
+  #endif
 };
 
 static_assert_cpp98_obj(sizeof({{ class_name }}) == {{ class_size }}, {{ class_name }});
