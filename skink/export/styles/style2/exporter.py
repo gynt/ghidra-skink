@@ -251,6 +251,36 @@ class Exporter(object):
     
       return ExportContents(path=f"{s.location(ctx=self.esci)}/{s.name}.hpp", contents=contents)
 
+  def export_struct_singleton(self, s: Struct):
+    if self.template_path != DEFAULT_TEMPLATE_PATH:
+      raise Exception()
+    anchor, *names = self.template_path.split(".")
+    with path(anchor, *names) as p:
+      env = Environment(loader=FileSystemLoader(str(p)))
+      template = env.get_template("StructH.j2")
+
+      includes = OrderedSet(s.includes(self.esci))
+
+      fields =  list({"string": s, "offset": o, "length": l} for s, o, l in s.export_field_declarations_with_offsets_and_lengths(self.esci))
+      
+      contents = template.render({
+        "use_pch": True,
+        "include_paths": sorted(includes),
+        "using_paths": sorted(includes),
+        "namespace_path": s.namespace(ctx=self.esci),
+        "struct_name": sanitize_name(s.name),
+        "struct_size": s.s.properties.additionalProperties.size,
+        "fields": fields,
+        "is_singleton": True,
+        "singleton_name": f"DAT_{s.name}", # TODO: probably almost always correct?
+        "singleton_address": s.singleton.defined_data.address() if s.singleton else 0,
+        "context": self.binary_context,
+        "ifdef_expose_original": self.esci.macro_rules.ifdef_expose_original,
+      })
+    
+      return ExportContents(path=f"{s.location(ctx=self.esci)}/{s.name}.hpp", contents=contents)
+
+
   def export_union(self, u: Union):
     if self.template_path != DEFAULT_TEMPLATE_PATH:
       raise Exception()

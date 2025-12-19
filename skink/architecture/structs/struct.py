@@ -1,5 +1,6 @@
 from typing import List
 
+from skink.architecture.classes.cls import Singleton
 from skink.architecture.common.exclusion import filter_includes
 from skink.sarif.TypeInfo import TypeInfo
 from skink.utils.OrderedSet import OrderedSet
@@ -22,11 +23,12 @@ class StructExportPart:
 
 class Struct(object):
 
-    def __init__(self, s: DataTypeResult):
+    def __init__(self, s: DataTypeResult, singleton: Singleton | None = None):
         self.loc = s.properties.additionalProperties.location
         self.ns = "::".join(v for v in self.loc.split("/") if v)
         self.name = s.properties.additionalProperties.name
         self.s = s
+        self.singleton = singleton
 
     def namespace(self, ctx = DEFAULT):
         return transform_location(self.ns.replace("::", "/"), ctx).replace("/", "::")

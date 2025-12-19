@@ -24,6 +24,25 @@ typedef struct {{ struct_name }}
   {{ field.string }}; // {{ '0x%08X' % field.offset }} length: {{ field.length }}
   {% endfor %}
 
+  {% if is_singleton %}
+  #ifdef {{ ifdef_expose_original }}
+  static {{ struct_name }} * const _getInstance() {
+    return (({{ struct_name }} * const) ADDRESS_{{ context.abbreviation }}_{{ context.hash }}_{{ '0x%08X' % singleton_address }});
+  }
+  #endif
+
+  #define {{ singleton_name }} ( * {{ namespace_path }}::{{ struct_name }}::getInstance())
+  static {{ struct_name }} * const getInstance() {
+  #ifdef DECLARE_SINGLETON_{{ (ns | join('_')) }}_{{ struct_name }}
+    static {{ struct_name }} instance;
+    return &instance;
+  #else
+    return {{ struct_name }}::_getInstance();
+  #endif
+  }
+  
+  {% endif %}
+
 } {{ struct_name }};
 #pragma pack(pop)
 
