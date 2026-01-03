@@ -89,7 +89,7 @@ class Exporter(object):
                             contents=template.render({
                               "context": self.binary_context,
                               "addresses": addresses,
-                              "use_pch": True,
+                              "use_pch": False,
                             }),
                             no_touch=True)
 

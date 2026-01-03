@@ -1,6 +1,6 @@
 from typing import List
 
-from skink.architecture.classes.cls import Singleton
+from skink.architecture.common.singleton import Singleton
 from skink.architecture.common.exclusion import filter_includes
 from skink.sarif.TypeInfo import TypeInfo
 from skink.utils.OrderedSet import OrderedSet

@@ -1,3 +1,4 @@
+from skink.architecture.common.singleton import Singleton
 from skink.architecture.structs.struct import Struct
 from skink.architecture.defineddata import DefinedData
 from skink.sarif.symbols.symbol import SymbolResult
@@ -10,10 +11,7 @@ from dataclasses import dataclass
 
 from typing import List
 
-@dataclass
-class Singleton:
-  defined_data: DefinedData
-  sr: SymbolResult
+
 
 class Class(object):
 
