@@ -1,0 +1,53 @@
+{% from "macros/wrap_namespaces.j2" import wrap_namespaces with context %}
+{% from "macros/includes.j2" import includes %}
+{% from "macros/usings.j2" import usings %}
+{%- set ns = (namespace_path.split('::') if namespace_path is string else namespace_path)
+              | reject('equalto','') | list -%}
+
+#pragma once
+
+{{ '#include "pch.h"' if use_pch }}
+
+{{ includes(include_paths) }}
+
+{# Do NOT pass `caller` here—it's injected implicitly by `call` #}
+{%- call wrap_namespaces(ns) -%}
+
+{{ usings(using_paths) }}
+
+#pragma pack(push, 1)
+
+// SIZE: {{ "0x%08X" % class_size }}
+class {{ class_name }}
+{
+  public:
+    {% for field in fields -%}
+    {{ field.string }}; // {{ '0x%08X' % field.offset }} length: {{ field.length }}
+    {% endfor %}  
+  private:
+    {{ class_name }}({{ class_name }} const&);
+    void operator=({{ class_name }} const&);
+{# This only works in higher version of C++ #}
+{#  public: #}
+{#    {{ class_name }}({{ class_name }} const&) = delete; #}
+{#    void operator=({{ class_name }} const&) = delete; #}
+{#  private: #}
+    {{ class_name }}();
+    ~{{ class_name }}();
+   
+  public:
+    {% for method in methods %}
+    {{ method.returnType }} {{ method.name }}({{ method.parameters | join(', ') }});
+    {% endfor %}
+  
+};
+
+static_assert_cpp98_obj(sizeof({{ class_name }}) == {{ class_size }}, {{ class_name }});
+
+#pragma pack(pop)
+
+{% if is_singleton %}
+MACRO_STRUCT_RESOLVER({{ class_name }}, false, ADDRESS_{{ context.abbreviation }}_{{ context.hash }}_{{ '0x%08X' % singleton_address }}) p{{ singleton_name }};
+{% endif %}
+
+{%- endcall -%}

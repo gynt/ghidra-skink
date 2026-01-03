@@ -1,0 +1,24 @@
+{% from "macros/wrap_namespaces.j2" import wrap_namespaces with context %}
+{% from "macros/includes.j2" import includes %}
+{%- set ns = (namespace_path.split('::') if namespace_path is string else namespace_path)
+              | reject('equalto','') | list -%}
+{%- set nsf = ((namespace_path + '_Func').split('::') if namespace_path is string else namespace_path)
+              | reject('equalto','') | list -%}
+{%- set ns_ = (namespace_path.replace('::', "__")) -%}
+{%- set nsf_ = (namespace_path.replace('::', "__")) -%}
+
+#pragma once
+
+{{ '#include "pch.h"' if use_pch }}
+
+{{ includes(include_paths) }}
+
+{%- call wrap_namespaces(nsf) -%}
+
+{% for function in functions %}
+{% set addr = 'ADDRESS_' + context.abbreviation + '_' + context.hash + '_' + ('0x%08X' % function.address ) %}
+MACRO_FUNCTION_RESOLVER({{ function.returnType }} ({{ function.callingConvention }} *)({{ function.parameters | join(', ') }}), false, {{ addr }}, &{{ namespace_path }}::{{ function.name }}) {{ function.name }};
+{% endfor %}
+
+{% endcall %}
+

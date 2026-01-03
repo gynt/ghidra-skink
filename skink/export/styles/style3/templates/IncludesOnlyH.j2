@@ -1,0 +1,10 @@
+{% from "macros/wrap_namespaces.j2" import wrap_namespaces with context %}
+{% from "macros/includes.j2" import includes %}
+{%- set ns = (namespace_path.split('::') if namespace_path is string else namespace_path)
+              | reject('equalto','') | list -%}
+
+#pragma once
+
+{{ '#include "pch.h"' if use_pch }}
+
+{{ includes(include_paths) }}

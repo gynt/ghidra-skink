@@ -1,0 +1,11 @@
+{# Declare `caller` with a default so Jinja is happy #}
+{%- macro wrap_namespaces(names, caller=None) -%}
+{%- if names and names|length > 0 -%}
+namespace {{ names[0] }} {
+{{ wrap_namespaces(names[1:], caller)|indent(4, True) }}
+} // namespace {{ names[0] }}
+{%- else -%}
+{# Only call if a caller exists (supports zero-namespace case too) #}
+{%- if caller -%}{{ caller() }}{%- endif -%}
+{%- endif -%}
+{%- endmacro -%}
