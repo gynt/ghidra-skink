@@ -614,7 +614,7 @@ class Exporter(object):
       self.export_namespaced_functions_body(ns),
     ]
   
-  def export_helpers(self, dst_folder: str = "util"):
+  def export_helpers(self, dst_folder: str = "precomp"):
     if self.template_path != DEFAULT_TEMPLATE_PATH:
       raise Exception()
     anchor, *names = self.template_path.split(".")
@@ -622,5 +622,5 @@ class Exporter(object):
       env = Environment(loader=FileSystemLoader(str(p)))
       return [
         ExportContents(path=f"{dst_folder}/assertion.h", contents=env.get_template("Helpers_Assertion.j2").render()),
-        ExportContents(path=f"{dst_folder}/interfacing/common.hpp", contents=env.get_template("Helpers_Common.j2").render()),
+        ExportContents(path=f"{dst_folder}/common.hpp", contents=env.get_template("Helpers_Common.j2").render()),
       ]
