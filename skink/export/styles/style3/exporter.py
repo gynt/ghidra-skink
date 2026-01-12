@@ -85,7 +85,7 @@ class Exporter(object):
           for l in obj.locations:
             addresses.add(l.physicalLocation.address.absoluteAddress)
       
-      return ExportContents(path=f"Addresses/addresses-{self.binary_context.abbreviation}-{self.binary_context.hash}.hpp",
+      return ExportContents(path=f"src/precomp/addresses-{self.binary_context.abbreviation}-{self.binary_context.hash}.hpp",
                             contents=template.render({
                               "context": self.binary_context,
                               "addresses": addresses,
