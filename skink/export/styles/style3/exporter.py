@@ -195,9 +195,11 @@ class Exporter(object):
       includes = OrderedSet[str]()
       includes += list(f.includes(self.esci))
 
+      f_fixed_name = f.name.split("::")[-1]
+
       methods = [{
         "returnType": f.f.properties.additionalProperties.ret.typeName, 
-        "name": sanitize_name(f.name.split("::")[-1]), # split if necessary (mistake in export)
+        "name": sanitize_name(f_fixed_name), # split if necessary (mistake in export)
         "parameters": [f"{param.typeName} {sanitize_name(param.name)}" for param in f.f.properties.additionalProperties.params if param.name != "this"],
         "parameter_names": [f"{sanitize_name(param.name)}" for param in f.f.properties.additionalProperties.params if param.name != "this"],
         "address": f.f.locations[0].physicalLocation.address.absoluteAddress,
@@ -213,7 +215,7 @@ class Exporter(object):
         "methods": methods,
       })
 
-      return ExportContents(path=f"{c.location(ctx=self.esci)}/{c.name}/{sanitize_name(f.name)}.cpp", contents=contents, no_touch=False)
+      return ExportContents(path=f"{c.location(ctx=self.esci)}/{c.name}/{sanitize_name(f_fixed_name)}.cpp", contents=contents, no_touch=False)
    
   def export_class_header_funcfile(self, c: Class):
     if self.template_path != DEFAULT_TEMPLATE_PATH:
