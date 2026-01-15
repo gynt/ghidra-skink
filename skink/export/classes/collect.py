@@ -39,7 +39,7 @@ def collect_classes(results: Iterable[BasicResult]):
         addr = l.physicalLocation.address.absoluteAddress
         if not addr in symbol_db:
           symbol_db[addr] = []
-        symbol_db[addr] = sr
+        symbol_db[addr].append(sr)
     elif isinstance(result, DefinedDataResult):
       ddr: DefinedDataResult = result
       for l in ddr.locations:
@@ -82,8 +82,8 @@ def collect_classes(results: Iterable[BasicResult]):
         if ssr_loc == struct.s.properties.additionalProperties.location:
           if ssr_name == struct.s.properties.additionalProperties.name:  
             if addr in symbol_db:
-              sr = symbol_db[addr]
-              single = Singleton(defined_data = DefinedData(ddr), sr = sr)
+              sr = symbol_db[addr][0] # TODO: improve
+              single = Singleton(defined_data = DefinedData(ssr), sr = sr)
        
     yield Class(namespace=ns, functions=functions, structure=struct, singleton=single)
   
