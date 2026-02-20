@@ -45,7 +45,7 @@ def collect_classes(results: Iterable[BasicResult]):
       for l in ddr.locations:
         addr = l.physicalLocation.address.absoluteAddress
         if addr in ddr_db:
-          logging.log(logging.WARNING, f"skipping duplicate: {hex(addr)}")
+          logging.log(logging.DEBUG, f"skipping duplicate: {hex(addr)}")
           continue
         ddr_db[addr] = ddr
     elif isinstance(result, FunctionResult):

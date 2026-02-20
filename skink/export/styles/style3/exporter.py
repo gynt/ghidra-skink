@@ -4,6 +4,7 @@ from importlib.resources import path
 from skink.architecture.functionsignatures import FunctionSignature
 from skink.architecture.namespaces.namespace import Namespace
 from skink.architecture.functions.function import Function
+from skink.export.enums.enumfamilies import SUFFICES
 from skink.sarif.BasicResult import BasicResult
 from skink.sarif.datatypes.EnumResult import EnumResult
 from skink.sarif.defineddata.DefinedDataResult import DefinedDataResult
@@ -367,6 +368,45 @@ class Exporter(object):
       })
       return ExportContents(path=f"{e.location(ctx=self.esci)}/{e.name}.hpp", contents=contents)
 
+  def export_enum_typedef(self, e: Enum):
+    if self.template_path != DEFAULT_TEMPLATE_PATH:
+      raise Exception()
+    anchor, *names = self.template_path.split(".")
+    with path(anchor, *names) as p:
+      env = Environment(loader=FileSystemLoader(str(p)))
+      template1 = env.get_template("EnumTypedefH.j2")
+
+      namespace_path = e.namespace(ctx=self.esci)
+      loc = f"{e.location(ctx=self.esci)}/{e.name}"
+      refloc = loc
+      for ending in SUFFICES:
+        if loc.endswith(ending):
+          refloc = loc[:-len(ending)]
+          break
+      includes = [f"{refloc}.hpp"]
+
+      name = e.er.properties.additionalProperties.name
+      size = e.er.properties.additionalProperties.size
+      type_size = -1
+      type = "int"
+      if size == 4:
+        type = "int"
+        type_size = 4
+      elif size == 2:
+        type = "short"
+        type_size = 2
+      elif size == 1:
+        type = "byte"
+        type_size = 1
+      contents = template1.render({
+        "include_paths": includes,
+        "use_pch": False,
+        "namespace_path": namespace_path,
+        "name": sanitize_name(name),
+        "type": type,
+        "type_size": type_size,
+      })
+      return ExportContents(path=f"{e.location(ctx=self.esci)}/{e.name}.hpp", contents=contents)
 
   def export_sized_enum(self, e: Enum) -> List[ExportContents]:
     if self.template_path != DEFAULT_TEMPLATE_PATH:

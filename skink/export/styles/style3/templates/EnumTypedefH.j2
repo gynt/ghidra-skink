@@ -1,0 +1,19 @@
+{% from "macros/wrap_namespaces.j2" import wrap_namespaces with context %}
+{% from "macros/includes.j2" import includes %}
+{%- set ns = (namespace_path.split('::') if namespace_path is string else namespace_path)
+              | reject('equalto','') | list -%}
+
+#pragma once
+
+{{ '#include "pch.h"' if use_pch }}
+
+{{ includes(include_paths) }}
+
+{# Do NOT pass `caller` here—it's injected implicitly by `call` #}
+{%- call wrap_namespaces(ns) -%}
+
+typedef {{ type }} {{ name }};
+
+static_assert_cpp98_obj(sizeof({{ name }}) == {{ type_size }}, {{ name }});
+
+{%- endcall -%}
