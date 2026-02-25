@@ -40,6 +40,10 @@ class ExportedContentCollection(object):
         logging.log(logging.WARNING, f"invalid path name, skipping: {str(p)}")
         continue
       p.parent.mkdir(parents=True, exist_ok=True)
-      if not overwrite_all and (not contents.no_touch and p.exists()):
-        continue
-      p.write_text(str(contents))
+      #if not overwrite_all and (not contents.no_touch and p.exists()):
+        #continue
+      #p.write_text(str(contents))
+      # This is clearer:
+      if (overwrite_all or contents.no_touch) or not p.exists():
+        p.write_text(str(contents))
+      

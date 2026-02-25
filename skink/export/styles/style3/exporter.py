@@ -471,6 +471,25 @@ class Exporter(object):
       })
       return ExportContents(path=f"{fs.location(ctx=self.esci)}/{fs.name}.hpp", contents=contents)
 
+  def export_typedef_raw(self, location, name, type, namespace_path, include_paths = [], using_paths = [], use_pch = False):
+    if self.template_path != DEFAULT_TEMPLATE_PATH:
+      raise Exception()
+    anchor, *names = self.template_path.split(".")
+    with path(anchor, *names) as p:
+      env = Environment(loader=FileSystemLoader(str(p)))
+      template1 = env.get_template("TypedefH.j2")
+      contents = template1.render({
+        "include_paths": sorted(include_paths),
+        "using_paths": sorted(include_paths),
+        "use_pch": False,
+        "namespace_path": namespace_path,
+        "name": sanitize_name(name),
+        "type": type,
+        # "returnTypeLocation": typeLocation,
+        # "type": type,
+      })
+      return ExportContents(path=f"{location}/{name}.hpp", contents=contents)
+
   def export_typedef(self, td: Typedef):
     if self.template_path != DEFAULT_TEMPLATE_PATH:
       raise Exception()
