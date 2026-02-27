@@ -110,6 +110,10 @@ class Exporter(object):
       for m in c.functions(self.esci):
         includes += list(m.includes(self.esci))
 
+      dst = f"{c.location(ctx=self.esci)}/{c.name}.hpp"
+      while dst in includes:
+        includes.remove(dst)
+
       methods = [{
         "returnType": f.f.properties.additionalProperties.ret.typeName, 
         "name": sanitize_name(f.name.split("::")[-1]), # split if necessary (mistake in export)
@@ -143,7 +147,7 @@ class Exporter(object):
         "ifdef_expose_original": self.esci.macro_rules.ifdef_expose_original,
       })
 
-      return ExportContents(path=f"{c.location(ctx=self.esci)}/{c.name}.hpp", contents=contents)
+      return ExportContents(path=dst, contents=contents)
   
   def export_class_body(self, c: Class):
     if self.template_path != DEFAULT_TEMPLATE_PATH:
@@ -383,7 +387,7 @@ class Exporter(object):
         if loc.endswith(ending):
           refloc = loc[:-len(ending)]
           break
-      includes = [f"{refloc}.hpp"]
+      #includes = [f"{refloc}.hpp"] # not necessary!
 
       name = e.er.properties.additionalProperties.name
       size = e.er.properties.additionalProperties.size
@@ -399,7 +403,7 @@ class Exporter(object):
         type = "byte"
         type_size = 1
       contents = template1.render({
-        "include_paths": includes,
+        "include_paths": [],
         "use_pch": False,
         "namespace_path": namespace_path,
         "name": sanitize_name(name),
