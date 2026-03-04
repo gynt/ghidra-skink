@@ -259,7 +259,12 @@ class Exporter(object):
 
       return ExportContents(path=f"{c.location(ctx=self.esci)}/{c.name}.func.hpp", contents=contents, no_touch=False)
 
-  def export_class(self, c: Class) -> List[ExportContents]:
+  def export_class(self, c: Class, export_bodies: bool = True) -> List[ExportContents]:
+    if not export_bodies:
+      return [
+        self.export_class_header(c),
+        self.export_class_header_funcfile(c),
+      ] 
     if self.esci.file_rules.one_file_per_method:
       return [
         self.export_class_header(c),
@@ -664,7 +669,12 @@ class Exporter(object):
       return ExportContents(path=f"{ns.location(ctx=self.esci)}/{ns.name}/{sanitize_name(f.name)}.cpp", contents=contents, no_touch=False)
 
 
-  def export_namespace(self, ns: Namespace) -> List[ExportContents]:
+  def export_namespace(self, ns: Namespace, export_bodies: bool = True) -> List[ExportContents]:
+    if not export_bodies:
+      return [
+          self.export_namespaced_functions_header(ns),
+          self.export_namespaced_functions_funcfile(ns),
+      ]
     if self.esci.file_rules.one_file_per_function:
       return [
         self.export_namespaced_functions_header(ns),
