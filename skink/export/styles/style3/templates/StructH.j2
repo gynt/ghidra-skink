@@ -27,7 +27,7 @@ typedef struct {{ struct_name }}
   {% if is_singleton %}
   #ifdef {{ ifdef_expose_original }}
   static {{ struct_name }} * const _getInstance() {
-    return (({{ struct_name }} * const) ADDRESS_{{ context.abbreviation }}_{{ context.hash }}_{{ '0x%08X' % singleton_address }});
+    return (({{ struct_name }} * const) Address::{{ context.abbreviation }}_{{ context.hash }}_{{ '0x%08X' % singleton_address }});
   }
   #endif
 

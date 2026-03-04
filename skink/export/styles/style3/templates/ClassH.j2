@@ -47,7 +47,7 @@ static_assert_cpp98_obj(sizeof({{ class_name }}) == {{ class_size }}, {{ class_n
 #pragma pack(pop)
 
 {% if is_singleton %}
-MACRO_STRUCT_RESOLVER({{ class_name }}, false, ADDRESS_{{ context.abbreviation }}_{{ context.hash }}_{{ '0x%08X' % singleton_address }}) p{{ singleton_name }};
+MACRO_STRUCT_RESOLVER({{ class_name }}, false, Address::{{ context.abbreviation }}_{{ context.hash }}_{{ '0x%08X' % singleton_address }}) p{{ singleton_name }};
 {% endif %}
 
 {%- endcall -%}

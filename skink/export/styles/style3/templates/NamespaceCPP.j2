@@ -15,7 +15,7 @@
 {% for function in functions %}
 // FUNCTION: {{ context.reccmp_binary }} {{ '0x%08X' % function.address }}
 {{ function.returnType }} {{ function.callingConvention }} {{ function.name }}({{ function.parameters | join(', ') }}) {
-  {% set addr = 'ADDRESS_' + context.abbreviation + '_' + context.hash + '_' + ('0x%08X' % function.address ) -%}
+  {% set addr = 'Address::' + context.abbreviation + '_' + context.hash + '_' + ('0x%08X' % function.address ) -%}
   return (({{ function.returnType }} ({{ function.callingConvention }} * const)({{ function.parameters | join(', ') }})) {{ addr }})({{ function.parameter_names | join(', ') }});
 }
 {% endfor %}

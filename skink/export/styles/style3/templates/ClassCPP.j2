@@ -15,7 +15,7 @@
 {% for method in methods %}
 // FUNCTION: {{ context.reccmp_binary }} {{ '0x%08X' % method.address }}
 {{ method.returnType }} {{ class_name }}::{{ method.name }}({{ method.parameters | join(', ') }}) {
-  {% set addr = 'ADDRESS_' + context.abbreviation + '_' + context.hash + '_' + ('0x%08X' % method.address ) -%}
+  {% set addr = 'Address::' + context.abbreviation + '_' + context.hash + '_' + ('0x%08X' % method.address ) -%}
   {%- set all_parameters = [class_name + " * _this"] + method.parameters -%}
   {%- set all_parameter_names = ["this"] + method.parameter_names -%}
   return (({{ method.returnType }} (__thiscall * const)({{ all_parameters | join(', ') }})) {{ addr }})({{ all_parameter_names | join(', ') }});

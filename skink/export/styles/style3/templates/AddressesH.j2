@@ -2,8 +2,10 @@
 
 {{ '#include "pch.h"' if use_pch }}
 
-enum Addresses {
+namespac Address {
+enum {
   {% for address in addresses %}
-  ADDRESS_{{ context.abbreviation }}_{{ context.hash }}_{{ '0x%08X' % address }} = {{ '0x%08X' % address }},
+  {{ context.abbreviation }}_{{ context.hash }}_{{ '0x%08X' % address }} = {{ '0x%08X' % address }},
   {% endfor %}
 };
+}

@@ -13,7 +13,7 @@
 {{ usings(using_paths) }}
 
 {% for method in methods %}
-{% set addr = 'ADDRESS_' + context.abbreviation + '_' + context.hash + '_' + ('0x%08X' % method.address ) %}
+{% set addr = 'Address::' + context.abbreviation + '_' + context.hash + '_' + ('0x%08X' % method.address ) %}
 MACRO_FUNCTION_RESOLVER({{ method.returnType }} ({{ class_name }}::*)({{ method.parameter_types | join(', ') }}), false, {{ addr }}, &{{ class_name }}::{{ method.name }}) {{ method.name }};
 {% endfor %}
 
