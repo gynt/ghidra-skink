@@ -2,7 +2,7 @@
 
 {{ '#include "pch.h"' if use_pch }}
 
-namespac Address {
+namespace Address {
 enum {
   {% for address in addresses %}
   {{ context.abbreviation }}_{{ context.hash }}_{{ '0x%08X' % address }} = {{ '0x%08X' % address }},
