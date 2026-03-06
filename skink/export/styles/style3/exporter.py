@@ -561,7 +561,7 @@ class Exporter(object):
       })
 
       # TODO: make Namespace fix location info just like classes
-      return ExportContents(path=f"{ns.location(ctx=self.esci)}/{ns.name}.hpp", contents=contents)
+      return ExportContents(path=f"{ns.location(ctx=self.esci)}.hpp", contents=contents)
     
   def export_namespaced_functions_funcfile(self, ns: Namespace):
     if self.template_path != DEFAULT_TEMPLATE_PATH:
@@ -588,7 +588,7 @@ class Exporter(object):
         "use_pch": False,
         "context": self.binary_context,
         "include_paths": sorted(includes) + [
-          f"{ns.location(ctx=self.esci)}/{ns.name}.hpp"
+          f"{ns.location(ctx=self.esci)}.hpp"
         ],
         "using_paths": sorted(includes),
         "namespace_path": ns.namespace(ctx=self.esci),
@@ -597,7 +597,7 @@ class Exporter(object):
       })
 
       # TODO: make Namespace fix location info just like classes
-      return ExportContents(path=f"{ns.location(ctx=self.esci)}/{ns.name}.func.hpp", contents=contents)
+      return ExportContents(path=f"{ns.location(ctx=self.esci)}.func.hpp", contents=contents)
 
   def export_namespaced_functions_body(self, ns: Namespace):
     if self.template_path != DEFAULT_TEMPLATE_PATH:
@@ -624,7 +624,7 @@ class Exporter(object):
         "use_pch": False,
         "context": self.binary_context,
         "include_paths": sorted(includes) + [
-          f"{ns.location(ctx=self.esci)}/{ns.name}.hpp"
+          f"{ns.location(ctx=self.esci)}.hpp"
         ],
         "using_paths": sorted(includes),
         "namespace_path": ns.namespace(ctx=self.esci),
@@ -632,7 +632,7 @@ class Exporter(object):
       })
 
       # TODO: make Namespace fix location info just like classes
-      return ExportContents(path=f"{ns.location(ctx=self.esci)}/{ns.name}.cpp", contents=contents, no_touch=False)
+      return ExportContents(path=f"{ns.location(ctx=self.esci)}.cpp", contents=contents, no_touch=False)
 
   def export_namespaced_function_body(self, ns: Namespace, f: Function):
     if self.template_path != DEFAULT_TEMPLATE_PATH:
@@ -666,7 +666,7 @@ class Exporter(object):
       })
 
       # TODO: make Namespace fix location info just like classes
-      return ExportContents(path=f"{ns.location(ctx=self.esci)}/{ns.name}/{sanitize_name(f.name)}.cpp", contents=contents, no_touch=False)
+      return ExportContents(path=f"{ns.location(ctx=self.esci)}/{sanitize_name(f.name.split("::")[-1])}.cpp", contents=contents, no_touch=False)
 
 
   def export_namespace(self, ns: Namespace, export_bodies: bool = True) -> List[ExportContents]:
