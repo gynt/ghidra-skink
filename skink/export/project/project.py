@@ -246,6 +246,39 @@ class Project(object):
         if address in ddLocations:
           yield dd
   
+  def find_global_primary_symbol_defined_data_pairs_by_address(self):
+    raw_symbols_by_address: Dict[int, Any] = {}
+    raw_defined_datas_by_address: Dict[int, Any] = {}
+    for obj in self.yield_raw_objects():
+      ruleId = obj['ruleId']
+      if ruleId == "SYMBOLS":
+        kind = obj['properties']['additionalProperties']['kind']
+        primary = obj['properties']['additionalProperties']['primary']
+        if not primary or kind != "global":
+          continue
+        for faddr in obj['locations']:
+          addr = faddr['physicalLocation']['address']['absoluteAddress']
+          if addr > 0:
+            if addr not in raw_symbols_by_address:
+              raw_symbols_by_address[addr] = []
+            l = raw_symbols_by_address[addr]
+            if not obj in l:  
+              l.append(obj)
+      elif ruleId == "DEFINED_DATA":
+        for faddr in obj['locations']:
+          addr = faddr['physicalLocation']['address']['absoluteAddress']
+          if addr > 0:
+            if addr not in raw_defined_datas_by_address:
+              raw_defined_datas_by_address[addr] = []
+            l = raw_defined_datas_by_address[addr]
+            if not obj in l:
+              l.append(obj)
+    for address, symbol_list in raw_symbols_by_address.items():
+      if not address in raw_defined_datas_by_address:
+        continue
+      rdd_list = raw_defined_datas_by_address[address]
+      yield address, symbol_list[0]['properties']['additionalProperties']['name'], DefinedDataResult.from_dict(rdd_list[0])
+
   def namespace_to_location(self, namespace: str):
     return f"/{'/'.join(namespace.split('::'))}"
 

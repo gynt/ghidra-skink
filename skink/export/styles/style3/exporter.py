@@ -19,8 +19,9 @@ from skink.export.project.exportcontents import ExportContents
 from skink.utils.OrderedSet import OrderedSet
 from skink.export.context import DEFAULT, Context, FileRules, TransformationRules
 from skink.architecture.common.sanitization import sanitize_calling_convention, sanitize_name
+from skink.architecture.common.includes import includes_for_type_name_location
 
-from typing import List, Iterable
+from typing import List, Iterable, Tuple
 
 from dataclasses import dataclass
 from dataclasses_json import dataclass_json
@@ -697,3 +698,33 @@ class Exporter(object):
         ExportContents(path=f"{dst_folder}/assertion.h", contents=env.get_template("Helpers_Assertion.j2").render()),
         ExportContents(path=f"{dst_folder}/common.hpp", contents=env.get_template("Helpers_Common.j2").render()),
       ]
+  
+  def export_symbol(self, address: int, name: str, defined_data: DefinedDataResult, destination: str):
+    if self.template_path != DEFAULT_TEMPLATE_PATH:
+      raise Exception()
+    anchor, *names = self.template_path.split(".")
+    with path(anchor, *names) as p:
+      env = Environment(loader=FileSystemLoader(str(p)))
+      template = env.get_template("DefinedDataH.j2")
+
+      type_name = defined_data.properties.additionalProperties.typeName
+      includes = OrderedSet(includes_for_type_name_location(type_name,
+                                                      defined_data.properties.additionalProperties.typeLocation,
+                                                      ctx=self.esci))
+
+      contents = template.render({
+        "use_pch": False,
+        "include_paths": sorted(includes),
+        "using_paths": sorted(includes),
+        "namespace_path": destination.replace("/", "::"),
+        "name": name,
+        "type_name": type_name,
+        "address": address,
+        "context": self.binary_context,
+      })
+    
+      return ExportContents(path=f"{destination}/{sanitize_name(name)}.hpp", contents=contents)
+    
+  def export_symbols(self, i: Iterable[Tuple[int, str, DefinedDataResult]], destination: str):
+    return [self.export_symbol(address, name, defined_data, destination) for address, name, defined_data in i]
+      
