@@ -45,9 +45,14 @@ def generate_include_for_type_location(type_name: str, type_loc: str, ctx = DEFA
       yield result
     else:
       loc = transform_location(loc, ctx)
-
-      type_name = repair_asterisk(type_name)
-      type_name = repair_indexing(type_name)
+      tn = type_name
+      while True:
+        type_name = repair_asterisk(type_name)
+        type_name = repair_indexing(type_name)
+        if tn == type_name:
+          break
+        else:
+          tn = type_name
       result = f"{loc}/{type_name}{ctx.include.file_extension}"
       if ctx.include.prefix_include:
         result = f'#include "{result}"'
