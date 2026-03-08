@@ -4,8 +4,11 @@
 
 namespace Address {
 enum {
-  {% for address in addresses %}
-  {{ context.abbreviation }}_{{ context.hash }}_{{ '0x%08X' % address }} = {{ '0x%08X' % address }},
+  {% for entry in addresses -%}
+  {% for comment in entry.comments -%}
+  // {{ comment }}
+  {% endfor -%}
+  {{ context.abbreviation }}_{{ context.hash }}_{{ '0x%08X' % entry.address }} = {{ '0x%08X' % entry.address }},
   {% endfor %}
 };
 }

@@ -20,8 +20,9 @@ from skink.utils.OrderedSet import OrderedSet
 from skink.export.context import DEFAULT, Context, FileRules, TransformationRules
 from skink.architecture.common.sanitization import sanitize_calling_convention, sanitize_name
 from skink.architecture.common.includes import includes_for_type_name_location
+from skink.export.location import transform_location
 
-from typing import List, Iterable, Tuple
+from typing import List, Iterable, Tuple, Any
 
 from dataclasses import dataclass
 from dataclasses_json import dataclass_json
@@ -66,7 +67,7 @@ class Exporter(object):
     # self.escsf.location_rules.transformation_rules = transformation_rules.copy() # type: ignore
     self.expose_original_methods = expose_original_methods
 
-  def export_addresses(self, objects: Iterable[BasicResult]):
+  def export_addresses(self, objects: Iterable[Any], ignore_switch_data = True, filter_labelled = True):
     if self.template_path != DEFAULT_TEMPLATE_PATH:
       raise Exception()
     anchor, *names = self.template_path.split(".")
@@ -74,23 +75,65 @@ class Exporter(object):
       env = Environment(loader=FileSystemLoader(str(p)))
       template = env.get_template("AddressesH.j2")
 
-      addresses: OrderedSet[int] = OrderedSet()
-
+      addrs: Dict[int, List[str]] = {}
+      
       for obj in objects:
-        if isinstance(obj, DefinedDataResult):
-          for l in obj.locations:
-            addresses.add(l.physicalLocation.address.absoluteAddress)
-        elif isinstance(obj, SymbolResult):
-          for l in obj.locations:
-            addresses.add(l.physicalLocation.address.absoluteAddress)
-        elif isinstance(obj, FunctionResult):
-          for l in obj.locations:
-            addresses.add(l.physicalLocation.address.absoluteAddress)
+        ruleId = obj['ruleId']
+        if ruleId == "DEFINED_DATA":
+          for l in obj["locations"]:
+            addr = l["physicalLocation"]["address"]["absoluteAddress"]
+            if addr == 0:
+              continue
+            name = obj["properties"]["additionalProperties"]["name"]
+            location = transform_location(obj["properties"]["additionalProperties"]["location"].replace("::", "/"), self.esci)
+            if location.endswith("/"):
+              location = location[:-1]
+            if addr not in addrs:
+              addrs[addr] = []
+            comment = f"type: {location}/{name}"
+            if not comment in addrs[addr]:
+              addrs[addr].append(comment)
+        elif ruleId == "SYMBOLS":
+          for l in obj["locations"]:
+            addr = l["physicalLocation"]["address"]["absoluteAddress"]
+            if addr == 0:
+              continue
+            name = obj["properties"]["additionalProperties"]["name"]
+            location = transform_location(obj["properties"]["additionalProperties"]["location"].replace("::", "/"), self.esci)
+            if location.endswith("/"):
+              location = location[:-1]
+            if ignore_switch_data and (name.startswith("switch") or location.startswith("switch") or name.startswith("case_")):
+              continue
+            if addr not in addrs:
+              addrs[addr] = []
+            comment = f"label: {name}"
+            if not comment in addrs[addr]:
+              addrs[addr].append(comment)
+            comment = f"location: {location}"
+            if not comment in addrs[addr]:
+              addrs[addr].append(comment)
+        elif ruleId == "FUNCTIONS":
+          for l in obj["locations"]:
+            addr = l["physicalLocation"]["address"]["absoluteAddress"]
+            if addr == 0:
+              continue
+            name = obj["properties"]["additionalProperties"]["name"]
+            if ignore_switch_data and (name.startswith("switch")):
+              continue
+            if addr not in addrs:
+              addrs[addr] = []
+            comment = f"type: function"
+            if not comment in addrs[addr]:
+              addrs[addr].append(comment)
+
+      entries = [{"address": addr, "comments": sorted(comments)} for addr, comments in addrs.items() if len(comments) > 0]
+      entries = [entry for entry in entries if entry["comments"][0].startswith("label: ")]
+      entries = sorted(entries, key=lambda entry: entry["address"])
       
       return ExportContents(path=f"precomp/addresses-{self.binary_context.abbreviation}-{self.binary_context.hash}.hpp",
                             contents=template.render({
                               "context": self.binary_context,
-                              "addresses": addresses,
+                              "addresses": entries,
                               "use_pch": False,
                             }),
                             no_touch=True)
