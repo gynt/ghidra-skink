@@ -57,12 +57,13 @@ class Exporter(object):
   
   def __init__(self, template_path: str = DEFAULT_TEMPLATE_PATH, binary_context: BinaryContext = DEFAULT_BINARY_CONTEXT,
                transformation_rules: TransformationRules = TransformationRules(), file_rules = FileRules(),
-               expose_original_methods: bool = False):
+               expose_original_methods: bool = False, includes_remapping: List[Tuple[str, str]] = []):
     self.template_path = template_path
     self.binary_context = binary_context
     # self.transformation_rules = transformation_rules
     self.esci: Context = EXPORT_SETTINGS_CLASS_INCLUDE.copy() # type: ignore
     self.esci.location_rules.transformation_rules = transformation_rules.copy() # type: ignore
+    self.esci.include.remap = includes_remapping
     # self.escsf: Context = EXPORT_SETTINGS_CLASS_SHIM_FILENAME.copy() # type: ignore
     # self.escsf.location_rules.transformation_rules = transformation_rules.copy() # type: ignore
     self.expose_original_methods = expose_original_methods

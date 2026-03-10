@@ -26,6 +26,7 @@ class IncludeRules(AbstractContext):
     file_extension: str = ".hpp"
     exclude: list[str] = field(default_factory=lambda: list[str](["ntddk_32/.*"]))
     exclude_use_regex: bool = True
+    remap: list[tuple[str, str]] = field(default_factory=lambda: list())
 
     def copy(self) -> "IncludeRules":
         return self.from_json(self.to_json())
