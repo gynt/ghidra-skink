@@ -153,6 +153,8 @@ class Exporter(object):
       includes = OrderedSet[str](c.structure.includes(self.esci))
       for m in c.functions(self.esci):
         includes += list(m.includes(self.esci))
+      if c.constructor:
+        includes += list(c.constructor.includes(self.esci))
 
       dst = f"{c.location(ctx=self.esci)}/{c.name}.hpp"
       while dst in includes:

@@ -36,6 +36,11 @@ class {{ class_name }}
     ~{{ class_name }}();
    
   public:
+    {% if constructor %}
+    // Constructor
+    {{ constructor.returnType }} {{ constructor.name }}({{ constructor.parameters | join(', ') }});
+    {% endif %}
+
     {% for method in methods %}
     {{ method.returnType }} {{ method.name }}({{ method.parameters | join(', ') }});
     {% endfor %}
