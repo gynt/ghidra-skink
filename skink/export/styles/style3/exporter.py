@@ -22,7 +22,7 @@ from skink.architecture.common.sanitization import sanitize_calling_convention, 
 from skink.architecture.common.includes import includes_for_type_name_location
 from skink.export.location import transform_location
 
-from typing import List, Iterable, Tuple, Any
+from typing import Dict, List, Iterable, Tuple, Any
 
 from dataclasses import dataclass
 from dataclasses_json import dataclass_json
@@ -67,7 +67,7 @@ class Exporter(object):
     # self.escsf.location_rules.transformation_rules = transformation_rules.copy() # type: ignore
     self.expose_original_methods = expose_original_methods
 
-  def export_addresses(self, objects: Iterable[Any], ignore_switch_data = True, filter_labelled = True):
+  def export_addresses(self, objects: Iterable[Any], ignore_switch_data = True, filter_labelled = False):
     if self.template_path != DEFAULT_TEMPLATE_PATH:
       raise Exception()
     anchor, *names = self.template_path.split(".")
@@ -86,7 +86,7 @@ class Exporter(object):
               continue
             name = obj["properties"]["additionalProperties"]["name"]
             location = transform_location(obj["properties"]["additionalProperties"]["location"].replace("::", "/"), self.esci)
-            if location.endswith("/"):
+            if location != "/" and location.endswith("/"):
               location = location[:-1]
             if addr not in addrs:
               addrs[addr] = []
@@ -127,7 +127,8 @@ class Exporter(object):
               addrs[addr].append(comment)
 
       entries = [{"address": addr, "comments": sorted(comments)} for addr, comments in addrs.items() if len(comments) > 0]
-      entries = [entry for entry in entries if entry["comments"][0].startswith("label: ")]
+      if filter_labelled:
+        entries = [entry for entry in entries if entry["comments"][0].startswith("label: ")]
       entries = sorted(entries, key=lambda entry: entry["address"])
       
       return ExportContents(path=f"precomp/addresses-{self.binary_context.abbreviation}-{self.binary_context.hash}.hpp",
