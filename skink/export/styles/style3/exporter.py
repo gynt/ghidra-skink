@@ -57,13 +57,16 @@ class Exporter(object):
   
   def __init__(self, template_path: str = DEFAULT_TEMPLATE_PATH, binary_context: BinaryContext = DEFAULT_BINARY_CONTEXT,
                transformation_rules: TransformationRules = TransformationRules(), file_rules = FileRules(),
-               expose_original_methods: bool = False, includes_remapping: List[Tuple[str, str]] = []):
+               expose_original_methods: bool = False, includes_remapping: List[Tuple[str, str]] = [],
+               includes_exclude_regex: List[str] = []):
     self.template_path = template_path
     self.binary_context = binary_context
     # self.transformation_rules = transformation_rules
     self.esci: Context = EXPORT_SETTINGS_CLASS_INCLUDE.copy() # type: ignore
     self.esci.location_rules.transformation_rules = transformation_rules.copy() # type: ignore
-    self.esci.include.remap = includes_remapping
+    self.esci.include.remap += includes_remapping
+    self.esci.include.exclude += includes_exclude_regex
+    self.esci.include.exclude_use_regex = True
     # self.escsf: Context = EXPORT_SETTINGS_CLASS_SHIM_FILENAME.copy() # type: ignore
     # self.escsf.location_rules.transformation_rules = transformation_rules.copy() # type: ignore
     self.expose_original_methods = expose_original_methods
@@ -440,7 +443,7 @@ class Exporter(object):
         if loc.endswith(ending):
           refloc = loc[:-len(ending)]
           break
-      #includes = [f"{refloc}.hpp"] # not necessary!
+      includes = [f"{refloc}.hpp"] # not necessary!
 
       name = e.er.properties.additionalProperties.name
       size = e.er.properties.additionalProperties.size
@@ -456,7 +459,7 @@ class Exporter(object):
         type = "byte"
         type_size = 1
       contents = template1.render({
-        "include_paths": [],
+        "include_paths": includes,
         "use_pch": False,
         "namespace_path": namespace_path,
         "name": sanitize_name(name),
