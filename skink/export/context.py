@@ -104,7 +104,19 @@ class MacroRules(AbstractContext):
 
     def copy(self) -> "MacroRules":
         return self.from_json(self.to_json())
+    
+@dataclass
+class TypeRulesTypeInfo:
+    name: str
+    location: str = ""
 
+    def __hash__(self) -> int:
+        return hash(f"{self.location}@{self.name}")
+
+@dataclass
+class TypeRules(AbstractContext):
+    type_mapping: Dict[TypeRulesTypeInfo, TypeRulesTypeInfo] = field(default_factory=lambda: dict())
+    
 @dataclass
 class Context(AbstractContext):
     root: str = ""
@@ -117,6 +129,7 @@ class Context(AbstractContext):
     location_rules: LocationRules = field(default_factory=lambda: LocationRules())
     file_rules: FileRules = field(default_factory=lambda: FileRules())
     macro_rules: MacroRules = field(default_factory=lambda: MacroRules())
+    type_rules: TypeRules = field(default_factory=lambda: TypeRules())
     
     def copy(self) -> "Context":
         return self.from_json(self.to_json())

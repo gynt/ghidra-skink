@@ -9,7 +9,7 @@ from ..functions import Function
 from dataclasses import dataclass
 
 
-from typing import List
+from typing import Generator, List
 
 
 
@@ -42,7 +42,7 @@ class Class(object):
     self.fs.append(f)
     self.find_constructor()
 
-  def functions(self, ctx = DEFAULT):
+  def functions(self, ctx = DEFAULT) -> Generator[Function]:
     for f in self.fs:
       if not ctx.class_rules.export_constructor:
         if f.namespace() == self.ns:

@@ -19,12 +19,12 @@ class Function(object):
                 if not include_this:
                     continue
                 
-                yield from generate_include_for_class(param.formalTypeName, param.formalType, ctx=ctx)
+                yield from generate_include_for_class(param.formalTypeName, param.formalTypeLocation, ctx=ctx)
             else:
-                yield from generate_include_for_type(param.formalTypeName, param.formalType, ctx=ctx)
+                yield from generate_include_for_type(param.formalTypeName, param.formalTypeLocation, ctx=ctx)
         
         param = self.f.properties.additionalProperties.ret
-        yield from generate_include_for_type(param.formalTypeName, param, ctx=ctx) # pyright: ignore[reportArgumentType]
+        yield from generate_include_for_type(param.formalTypeName, param.formalTypeLocation, ctx=ctx) # pyright: ignore[reportArgumentType]
 
     def includes(self, ctx = DEFAULT):
         return filter_includes(self._collect_includes(ctx), ctx)

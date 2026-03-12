@@ -20,7 +20,7 @@ class Typedef():
     if self.tr.properties.additionalProperties.typeName or self.tr.properties.additionalProperties.typeLocation:
       yield from generate_include_for_type_location(self.tr.properties.additionalProperties.typeName, self.tr.properties.additionalProperties.typeLocation, ctx=ctx)
     else:
-      yield from generate_include_for_type(self.tr.properties.additionalProperties.name, self.tr.properties.additionalProperties.type, ctx=ctx)
+      yield from generate_include_for_type(self.tr.properties.additionalProperties.name, self.tr.properties.additionalProperties.type.location, ctx=ctx)
 
   def includes(self, ctx = DEFAULT):
     return filter_includes(self._collect_includes(ctx), ctx)
