@@ -1,9 +1,11 @@
 
 
+from typing import Generator, Tuple
+
 from skink.architecture.common.exclusion import filter_includes
 from skink.export.context import DEFAULT, Context
 from skink.export.location import transform_location
-from skink.export.types import generate_include_for_class, generate_include_for_type
+from skink.export.types import generate_include_for_class, generate_include_for_type, remap_type
 from skink.sarif.datatypes.FunctionSignatureResult import FunctionSignatureResult
 
 
@@ -14,14 +16,21 @@ class FunctionSignature():
     self.name = fsr.properties.additionalProperties.name
     self.fsr = fsr
 
+  def return_type(self, ctx = DEFAULT) -> Tuple[str, str]:
+    param = self.fsr.properties.additionalProperties.retType
+    return remap_type(param.name, param.location, ctx=ctx)
+
+  def parameter_types(self, ctx = DEFAULT) -> Generator[Tuple[str, str]]:
+    for param in self.fsr.properties.additionalProperties.params:
+      yield remap_type(param.name, param.location, ctx=ctx)
 
   # Note: includes return type sometimes
   def _collect_includes(self, ctx = DEFAULT):
-    for param in self.fsr.properties.additionalProperties.params:  
-        yield from generate_include_for_type(param.name, param, ctx=ctx) # pyright: ignore[reportArgumentType]
+    for type_name, type_loc in self.parameter_types(ctx=ctx):  
+        yield from generate_include_for_type(type_name, type_loc, ctx=ctx) # pyright: ignore[reportArgumentType]
     
-    param = self.fsr.properties.additionalProperties.retType
-    yield from generate_include_for_type(param.name, param, ctx=ctx) # pyright: ignore[reportArgumentType]
+    type_name, type_loc = self.return_type(ctx=ctx)
+    yield from generate_include_for_type(type_name, type_loc, ctx=ctx) # pyright: ignore[reportArgumentType]
 
   def includes(self, ctx = DEFAULT):
     return filter_includes(self._collect_includes(ctx), ctx)

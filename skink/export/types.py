@@ -1,3 +1,5 @@
+from typing import Tuple
+
 from skink.architecture.common.exclusion import filter_includes
 from .context import DEFAULT
 from .location import ROOT, transform_location
@@ -16,6 +18,15 @@ def repair_indexing(type_name: str):
     type_name = type_name[:s] + type_name[(f+1):]
   return type_name
 
+def remap_type(type_name: str, type_loc: str, ctx = DEFAULT) -> Tuple[str, str]:
+  """
+    Returns name, loc
+  """
+  key = (type_loc, type_name)
+  if key in ctx.type_rules.type_mapping:
+    loc, name = ctx.type_rules.type_mapping[key]
+    return name, loc
+  return type_name, type_loc
 
 def generate_include_for_type_location(type_name: str, type_loc: str, ctx = DEFAULT):
   loc = type_loc
@@ -58,19 +69,18 @@ def generate_include_for_type_location(type_name: str, type_loc: str, ctx = DEFA
         result = f'#include "{result}"'
       yield result
 
-def generate_include_for_type(type_name: str, type_info: TypeInfo, ctx = DEFAULT):
-  loc = type_info.location
-  if not loc:
+def generate_include_for_type(type_name: str, type_loc: str, ctx = DEFAULT):
+  if not type_loc:
     raise Exception(f"no location for type: {type_name}")
   
-  yield from generate_include_for_type_location(type_name=type_name, type_loc=loc, ctx=ctx)
+  yield from generate_include_for_type_location(type_name=type_name, type_loc=type_loc, ctx=ctx)
 
 
-def generate_include_for_class(type_name: str, type_info: TypeInfo, ctx = DEFAULT):
+def generate_include_for_class(type_name: str, type_loc: str, ctx = DEFAULT):
   name = type_name.replace(" *", "")
-  ti: TypeInfo = TypeInfo.from_json(type_info.to_json()) # pyright: ignore[reportAttributeAccessIssue]
+  # ti: TypeInfo = TypeInfo.from_json(type_info.to_json()) # pyright: ignore[reportAttributeAccessIssue]
   # TODO: is this the right place to do this?
   if ctx.promote_to_class:
-    ti.location += f"/{name}"
-    return filter_includes(generate_include_for_type(f"{ctx.class_rules.prefix}{name}{ctx.class_rules.suffix}", type_info=ti, ctx=ctx), ctx=ctx)
-  return filter_includes(generate_include_for_type(f"{name}", type_info=ti, ctx=ctx), ctx=ctx)
+    type_loc += f"/{name}"
+    return filter_includes(generate_include_for_type(f"{ctx.class_rules.prefix}{name}{ctx.class_rules.suffix}", type_loc=type_loc, ctx=ctx), ctx=ctx)
+  return filter_includes(generate_include_for_type(f"{name}", type_loc=type_loc, ctx=ctx), ctx=ctx)
