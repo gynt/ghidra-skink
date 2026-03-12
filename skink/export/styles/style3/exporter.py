@@ -60,7 +60,8 @@ class Exporter(object):
                transformation_rules: TransformationRules = TransformationRules(), file_rules = FileRules(),
                expose_original_methods: bool = False, includes_remapping: List[Tuple[str, str]] = [],
                includes_exclude_regex: List[str] = [],
-               type_mapping: Dict[Tuple[str, str], Tuple[str, str]] = {}):
+               type_mapping: Dict[Tuple[str, str], Tuple[str, str]] = {},
+               inject_forwards_in_files: Dict[str, List[Tuple[str, str]]] = {}):
     self.template_path = template_path
     self.binary_context = binary_context
     # self.transformation_rules = transformation_rules
@@ -74,6 +75,7 @@ class Exporter(object):
     # self.escsf: Context = EXPORT_SETTINGS_CLASS_SHIM_FILENAME.copy() # type: ignore
     # self.escsf.location_rules.transformation_rules = transformation_rules.copy() # type: ignore
     self.expose_original_methods = expose_original_methods
+    self.inject_forwards_in_files = inject_forwards_in_files
 
   def export_addresses(self, objects: Iterable[Any], ignore_switch_data = True, filter_labelled = False):
     if self.template_path != DEFAULT_TEMPLATE_PATH:
@@ -158,16 +160,28 @@ class Exporter(object):
 
       if not c.structure:
         raise Exception()
+      
+      dstfolder = f"{c.location(ctx=self.esci)}"      
+      dst = f"{dstfolder}/{c.name}.hpp"      
+      namespace = c.namespace(ctx=self.esci)
 
-      includes = OrderedSet[str](c.structure.includes(self.esci))
+      includes = OrderedSet[str]()
+      if dst in self.inject_forwards_in_files:
+        for forwards, _ in self.inject_forwards_in_files[dst]:
+          includes.append(forwards)
+      includes += c.structure.includes(self.esci)
       for m in c.functions(self.esci):
         includes += list(m.includes(self.esci))
       if c.constructor:
         includes += list(c.constructor.includes(self.esci))
 
-      dst = f"{c.location(ctx=self.esci)}/{c.name}.hpp"
       while dst in includes:
         includes.remove(dst)
+
+      usings = includes.copy()
+      if dst in self.inject_forwards_in_files:
+        for forwards, _ in self.inject_forwards_in_files[dst]:
+          usings.remove(forwards)
 
       methods = [{
         "returnType": f.return_type(ctx=self.esci)[0], 
@@ -182,8 +196,8 @@ class Exporter(object):
       contents = template.render({
         "use_pch": False,
         "include_paths": sorted(includes),
-        "using_paths": sorted(includes),
-        "namespace_path": c.namespace(ctx=self.esci),
+        "using_paths": usings,
+        "namespace_path": namespace,
         "class_name": f"{c.name}",
         "struct_name": f"{c.name}",
         "fields": fields,
@@ -315,22 +329,27 @@ class Exporter(object):
       return ExportContents(path=f"{c.location(ctx=self.esci)}/{c.name}.func.hpp", contents=contents, no_touch=False)
 
   def export_class(self, c: Class, export_bodies: bool = True) -> List[ExportContents]:
+    dst = f"{c.location(ctx=self.esci)}/{c.name}.hpp"
+    forwards = []
+    if dst in self.inject_forwards_in_files:
+      for forward_path, contents in self.inject_forwards_in_files[dst]:
+        forwards.append(ExportContents(path=forward_path, contents = contents, no_touch = True))
     if not export_bodies:
       return [
         self.export_class_header(c),
         self.export_class_header_funcfile(c),
-      ] 
+      ] + forwards
     if self.esci.file_rules.one_file_per_method:
       return [
         self.export_class_header(c),
         self.export_class_header_funcfile(c),
         *[self.export_class_body_method(c, f) for f in c.functions(self.esci)],
-      ]  
+      ] + forwards
     return [
       self.export_class_header(c),
       self.export_class_header_funcfile(c),
       self.export_class_body(c),
-    ]
+    ] + forwards
     
   def export_struct(self, s: Struct):
     if self.template_path != DEFAULT_TEMPLATE_PATH:
