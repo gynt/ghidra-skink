@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Dict, List
+from typing import Dict, List, Tuple
 from warnings import deprecated
 
 from dataclasses_json import dataclass_json, DataClassJsonMixin
@@ -115,7 +115,7 @@ class TypeRulesTypeInfo:
 
 @dataclass
 class TypeRules(AbstractContext):
-    type_mapping: Dict[TypeRulesTypeInfo, TypeRulesTypeInfo] = field(default_factory=lambda: dict())
+    type_mapping: Dict[Tuple[str, str], Tuple[str, str]] = field(default_factory=lambda: dict())
     
 @dataclass
 class Context(AbstractContext):

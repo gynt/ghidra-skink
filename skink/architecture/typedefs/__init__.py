@@ -3,7 +3,7 @@
 from skink.architecture.common.exclusion import filter_includes
 from skink.export.context import DEFAULT, Context
 from skink.export.location import transform_location
-from skink.export.types import generate_include_for_class, generate_include_for_type, generate_include_for_type_location
+from skink.export.types import generate_include_for_class, generate_include_for_type, generate_include_for_type_location, remap_type
 from skink.sarif.datatypes.TypedefResult import TypedefResult
 
 
@@ -14,13 +14,16 @@ class Typedef():
     self.name = tr.properties.additionalProperties.name
     self.tr = tr
 
+  def type(self, ctx=DEFAULT):
+    if self.tr.properties.additionalProperties.typeName or self.tr.properties.additionalProperties.typeLocation:
+      return remap_type(self.tr.properties.additionalProperties.typeName, self.tr.properties.additionalProperties.typeLocation, ctx=ctx)
+    else:
+      return remap_type(self.tr.properties.additionalProperties.name, self.tr.properties.additionalProperties.type.location, ctx=ctx)
 
   # Note: includes return type sometimes
   def _collect_includes(self, ctx = DEFAULT):
-    if self.tr.properties.additionalProperties.typeName or self.tr.properties.additionalProperties.typeLocation:
-      yield from generate_include_for_type_location(self.tr.properties.additionalProperties.typeName, self.tr.properties.additionalProperties.typeLocation, ctx=ctx)
-    else:
-      yield from generate_include_for_type(self.tr.properties.additionalProperties.name, self.tr.properties.additionalProperties.type.location, ctx=ctx)
+    type_name, type_loc = self.type(ctx=ctx)
+    yield from generate_include_for_type(type_name, type_loc, ctx=ctx)
 
   def includes(self, ctx = DEFAULT):
     return filter_includes(self._collect_includes(ctx), ctx)

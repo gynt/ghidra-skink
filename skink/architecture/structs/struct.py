@@ -1,4 +1,4 @@
-from typing import List
+from typing import Generator, List, Tuple
 
 from skink.architecture.common.singleton import Singleton
 from skink.architecture.common.exclusion import filter_includes
@@ -7,7 +7,7 @@ from skink.utils.OrderedSet import OrderedSet
 
 from ...export.context import DEFAULT
 from ...export.location import normalize_location, transform_location
-from ...export.types import generate_include_for_type
+from ...export.types import generate_include_for_type, remap_type
 from ...sarif.datatypes.DataTypeResult import DataTypeResult
 from ...sarif.datatypes.StructField import StructField
 from ...architecture.common.Field import Field
@@ -42,9 +42,13 @@ class Struct(object):
     def include(self, ctx = DEFAULT):
         return f'#include "{self.path(ctx)}"'
     
-    def _collect_includes(self, ctx = DEFAULT):
+    def field_types(self, ctx = DEFAULT) -> Generator[Tuple[str, str]]:
         for name, field in self.s.properties.additionalProperties.fields.items():
-            yield from generate_include_for_type(field.name, field.type.location, ctx=ctx)
+            yield remap_type(field.name, field.type.location, ctx=ctx)
+    
+    def _collect_includes(self, ctx = DEFAULT):
+        for type_name, type_loc in self.field_types(ctx=ctx):
+            yield from generate_include_for_type(type_name, type_loc, ctx=ctx)
 
     def includes(self, ctx = DEFAULT):
         return filter_includes(self._collect_includes(ctx), ctx)

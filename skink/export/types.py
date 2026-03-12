@@ -1,3 +1,5 @@
+from typing import Tuple
+
 from skink.architecture.common.exclusion import filter_includes
 from .context import DEFAULT
 from .location import ROOT, transform_location
@@ -16,6 +18,15 @@ def repair_indexing(type_name: str):
     type_name = type_name[:s] + type_name[(f+1):]
   return type_name
 
+def remap_type(type_name: str, type_loc: str, ctx = DEFAULT) -> Tuple[str, str]:
+  """
+    Returns name, loc
+  """
+  key = (type_loc, type_name)
+  if key in ctx.type_rules.type_mapping:
+    loc, name = ctx.type_rules.type_mapping[key]
+    return name, loc
+  return type_name, type_loc
 
 def generate_include_for_type_location(type_name: str, type_loc: str, ctx = DEFAULT):
   loc = type_loc
