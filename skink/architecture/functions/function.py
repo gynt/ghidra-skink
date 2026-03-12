@@ -14,7 +14,7 @@ class Function(object):
 
     def this_parameter_type(self, ctx = DEFAULT) -> Tuple[str, str] | None:
         for param in self.f.properties.additionalProperties.params:
-            is_class_parameter = param.isAutoParameter and param.name == "this"
+            is_class_parameter = param.name == "this"
             if is_class_parameter:
                 return remap_type(param.formalTypeName, param.formalTypeLocation, ctx=ctx)
 
@@ -24,7 +24,7 @@ class Function(object):
 
     def parameter_types(self, ctx = DEFAULT) -> Generator[Tuple[str, str]]:
         for param in self.f.properties.additionalProperties.params:
-            is_class_parameter = param.isAutoParameter and param.name == "this"
+            is_class_parameter = param.name == "this"
             if is_class_parameter:
                 continue
             else:
@@ -32,7 +32,7 @@ class Function(object):
 
     def parameters(self, ctx = DEFAULT) -> Generator[Tuple[str, str]]:
         for param in self.f.properties.additionalProperties.params:
-            is_class_parameter = param.isAutoParameter and param.name == "this"
+            is_class_parameter = param.name == "this"
             if is_class_parameter:
                 continue
             else:

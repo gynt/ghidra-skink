@@ -18,7 +18,7 @@ class Typedef():
     if self.tr.properties.additionalProperties.typeName or self.tr.properties.additionalProperties.typeLocation:
       return remap_type(self.tr.properties.additionalProperties.typeName, self.tr.properties.additionalProperties.typeLocation, ctx=ctx)
     else:
-      return remap_type(self.tr.properties.additionalProperties.name, self.tr.properties.additionalProperties.type.location, ctx=ctx)
+      return remap_type(self.tr.properties.additionalProperties.type.name, self.tr.properties.additionalProperties.type.location, ctx=ctx)
 
   # Note: includes return type sometimes
   def _collect_includes(self, ctx = DEFAULT):
