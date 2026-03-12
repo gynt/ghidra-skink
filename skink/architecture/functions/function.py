@@ -30,6 +30,15 @@ class Function(object):
             else:
                 yield remap_type(param.formalTypeName, param.formalTypeLocation, ctx=ctx)
 
+    def parameters(self, ctx = DEFAULT) -> Generator[Tuple[str, str]]:
+        for param in self.f.properties.additionalProperties.params:
+            is_class_parameter = param.isAutoParameter and param.name == "this"
+            if is_class_parameter:
+                continue
+            else:
+                type_name, type_loc = remap_type(param.formalTypeName, param.formalTypeLocation, ctx=ctx)
+                yield type_name, param.name
+
     # Note: includes return type sometimes
     def _collect_includes(self, ctx = DEFAULT):
         include_this = ctx.include.functions_this_parameter_type

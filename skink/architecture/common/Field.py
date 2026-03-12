@@ -2,6 +2,7 @@
 
 from skink.architecture.utils import extract_array_part
 from skink.export.context import DEFAULT
+from skink.export.types import remap_type
 from skink.sarif.datatypes.StructField import StructField
 from skink.sarif.datatypes.UnionResult import UnionField
 from .sanitization import sanitize_name
@@ -25,14 +26,17 @@ class Field(object):
             c = self.f.type.count
             array_part = extract_array_part(self.f.type.name)
             tname = self.f.type.name.replace(array_part, "", 1)
+            type_name, type_loc = remap_type(type_name=tname, type_loc=self.f.type.location, ctx=ctx)
             fname = name + array_part
-            return f"{tname} {fname}{eol}"
+            return f"{type_name} {fname}{eol}"
         if self.f.name.endswith("]"):
             array_part = extract_array_part(self.f.name)
             tname = self.f.name.replace(array_part, "", 1)
+            type_name, type_loc = remap_type(type_name=tname, type_loc=self.f.type.location, ctx=ctx)
             fname = name + array_part
-            return f"{tname} {fname}{eol}"
+            return f"{type_name} {fname}{eol}"
         tname = self.f.type.name
+        type_name, type_loc = remap_type(type_name=tname, type_loc=self.f.type.location, ctx=ctx)
         if self.f.type.kind == 'pointer' and "*" not in tname:
-            tname += " *"
-        return f"{tname} {name}{eol}"
+            type_name += " *"
+        return f"{type_name} {name}{eol}"

@@ -5,6 +5,7 @@ from skink.architecture.functionsignatures import FunctionSignature
 from skink.architecture.namespaces.namespace import Namespace
 from skink.architecture.functions.function import Function
 from skink.export.enums.enumfamilies import SUFFICES
+from skink.export.types import remap_type
 from skink.sarif.BasicResult import BasicResult
 from skink.sarif.datatypes.EnumResult import EnumResult
 from skink.sarif.defineddata.DefinedDataResult import DefinedDataResult
@@ -166,10 +167,10 @@ class Exporter(object):
         includes.remove(dst)
 
       methods = [{
-        "returnType": f.f.properties.additionalProperties.ret.typeName, 
+        "returnType": f.return_type(ctx=self.esci)[0], 
         "name": sanitize_name(f.name.split("::")[-1]), # split if necessary (mistake in export)
-        "parameters": [f"{param.typeName} {sanitize_name(param.name)}" for param in f.f.properties.additionalProperties.params if param.name != "this"],
-        "parameter_names": [f"{sanitize_name(param.name)}" for param in f.f.properties.additionalProperties.params if param.name != "this"],
+        "parameters": [f"{type_name} {sanitize_name(name)}" for type_name, name in f.parameters(ctx=self.esci)],
+        "parameter_names": [f"{sanitize_name(name)}" for type_name, name in f.parameters(ctx=self.esci)],
         "address": f.f.locations[0].physicalLocation.address.absoluteAddress,
       } for f in c.functions(self.esci)]
 
@@ -217,10 +218,10 @@ class Exporter(object):
         includes += list(m.includes(self.esci))
 
       methods = [{
-        "returnType": f.f.properties.additionalProperties.ret.typeName, 
+        "returnType": f.return_type(ctx=self.esci)[0], 
         "name": sanitize_name(f.name.split("::")[-1]), # split if necessary (mistake in export)
-        "parameters": [f"{param.typeName} {sanitize_name(param.name)}" for param in f.f.properties.additionalProperties.params if param.name != "this"],
-        "parameter_names": [f"{sanitize_name(param.name)}" for param in f.f.properties.additionalProperties.params if param.name != "this"],
+        "parameters": [f"{type_name} {sanitize_name(name)}" for type_name, name in f.parameters(ctx=self.esci)],
+        "parameter_names": [f"{sanitize_name(name)}" for type_name, name in f.parameters(ctx=self.esci)],
         "address": f.f.locations[0].physicalLocation.address.absoluteAddress,
       } for f in c.functions(self.esci)]
 
@@ -254,10 +255,10 @@ class Exporter(object):
       f_fixed_name = f.name.split("::")[-1]
 
       methods = [{
-        "returnType": f.f.properties.additionalProperties.ret.typeName, 
-        "name": sanitize_name(f_fixed_name), # split if necessary (mistake in export)
-        "parameters": [f"{param.typeName} {sanitize_name(param.name)}" for param in f.f.properties.additionalProperties.params if param.name != "this"],
-        "parameter_names": [f"{sanitize_name(param.name)}" for param in f.f.properties.additionalProperties.params if param.name != "this"],
+        "returnType": f.return_type(ctx=self.esci)[0], 
+        "name": sanitize_name(f.name.split("::")[-1]), # split if necessary (mistake in export)
+        "parameters": [f"{type_name} {sanitize_name(name)}" for type_name, name in f.parameters(ctx=self.esci)],
+        "parameter_names": [f"{sanitize_name(name)}" for type_name, name in f.parameters(ctx=self.esci)],
         "address": f.f.locations[0].physicalLocation.address.absoluteAddress,
       }]
 
@@ -290,11 +291,11 @@ class Exporter(object):
         includes += list(m.includes(self.esci))
 
       methods = [{
-        "returnType": f.f.properties.additionalProperties.ret.typeName, 
+        "returnType": f.return_type(ctx=self.esci)[0], 
         "name": sanitize_name(f.name.split("::")[-1]), # split if necessary (mistake in export)
-        "parameters": [f"{param.typeName} {sanitize_name(param.name)}" for param in f.f.properties.additionalProperties.params if param.name != "this"],
-        "parameter_names": [f"{sanitize_name(param.name)}" for param in f.f.properties.additionalProperties.params if param.name != "this"],
-        "parameter_types": [f"{param.typeName}" for param in f.f.properties.additionalProperties.params if param.name != "this"],
+        "parameters": [f"{type_name} {sanitize_name(name)}" for type_name, name in f.parameters(ctx=self.esci)],
+        "parameter_names": [f"{sanitize_name(name)}" for type_name, name in f.parameters(ctx=self.esci)],
+        "parameter_types": [f"{type_name}" for type_name, name in f.parameters(ctx=self.esci)],
         "address": f.f.locations[0].physicalLocation.address.absoluteAddress,
       } for f in c.functions(self.esci)]
 
@@ -510,12 +511,11 @@ class Exporter(object):
       include_paths: OrderedSet[str] = OrderedSet[str]()
       include_paths += fs.includes(ctx=self.esci)
       
-      returnTypeName = fs.fsr.properties.additionalProperties.retType.name
-      returnTypeLocation = fs.fsr.properties.additionalProperties.retType.location
+      returnTypeName, returnTypeLocation = fs.return_type(ctx=self.esci)
       callingConvention = sanitize_calling_convention(fs.fsr.properties.additionalProperties.callingConventionName)
 
       # Function signature parameter names are the types...
-      parameters = [f"{param.name} " for param in fs.fsr.properties.additionalProperties.params if param.name != "this"]
+      parameters = [f"{type_name} " for type_name, type_loc in fs.parameter_types(ctx=self.esci)]
       name = fs.fsr.properties.additionalProperties.name
       contents = template1.render({
         "include_paths": sorted(include_paths),
@@ -562,10 +562,7 @@ class Exporter(object):
       include_paths: OrderedSet[str] = OrderedSet[str]()
       include_paths += td.includes(ctx=self.esci)
       
-      typeName = td.tr.properties.additionalProperties.type.name
-      if not typeName:
-        typeName = td.tr.properties.additionalProperties.typeName
-      # typeLocation = td.tr.properties.additionalProperties.type.location
+      typeName, typeLocation = td.type(ctx=self.esci)
 
       name = td.tr.properties.additionalProperties.name
       contents = template1.render({
@@ -593,11 +590,11 @@ class Exporter(object):
         includes += list(f.includes(self.esci))
 
       functions = [{
-        "returnType": f.f.properties.additionalProperties.ret.typeName, 
-        "callingConvention": sanitize_calling_convention(f.f.properties.additionalProperties.callingConvention),
+        "returnType": f.return_type(ctx=self.esci)[0], 
         "name": sanitize_name(f.name.split("::")[-1]), # split if necessary (mistake in export)
-        "parameters": [f"{param.typeName} {sanitize_name(param.name)}" for param in f.f.properties.additionalProperties.params if param.name != "this"],
-        "parameter_names": [f"{sanitize_name(param.name)}" for param in f.f.properties.additionalProperties.params if param.name != "this"],
+        "parameters": [f"{type_name} {sanitize_name(name)}" for type_name, name in f.parameters(ctx=self.esci)],
+        "parameter_names": [f"{sanitize_name(name)}" for type_name, name in f.parameters(ctx=self.esci)],
+        "callingConvention": sanitize_calling_convention(f.f.properties.additionalProperties.callingConvention),
         "address": f.f.locations[0].physicalLocation.address.absoluteAddress,
       } for f in ns.functions]
 
@@ -627,11 +624,11 @@ class Exporter(object):
         includes += list(f.includes(self.esci))
 
       functions = [{
-        "returnType": f.f.properties.additionalProperties.ret.typeName, 
-        "callingConvention": sanitize_calling_convention(f.f.properties.additionalProperties.callingConvention),
+        "returnType": f.return_type(ctx=self.esci)[0], 
         "name": sanitize_name(f.name.split("::")[-1]), # split if necessary (mistake in export)
-        "parameters": [f"{param.typeName} {sanitize_name(param.name)}" for param in f.f.properties.additionalProperties.params if param.name != "this"],
-        "parameter_names": [f"{sanitize_name(param.name)}" for param in f.f.properties.additionalProperties.params if param.name != "this"],
+        "parameters": [f"{type_name} {sanitize_name(name)}" for type_name, name in f.parameters(ctx=self.esci)],
+        "parameter_names": [f"{sanitize_name(name)}" for type_name, name in f.parameters(ctx=self.esci)],
+        "callingConvention": sanitize_calling_convention(f.f.properties.additionalProperties.callingConvention),
         "address": f.f.locations[0].physicalLocation.address.absoluteAddress,
       } for f in ns.functions]
 
@@ -663,11 +660,11 @@ class Exporter(object):
         includes += list(f.includes(self.esci))
 
       functions = [{
-        "returnType": f.f.properties.additionalProperties.ret.typeName, 
-        "callingConvention": sanitize_calling_convention(f.f.properties.additionalProperties.callingConvention),
+        "returnType": f.return_type(ctx=self.esci)[0], 
         "name": sanitize_name(f.name.split("::")[-1]), # split if necessary (mistake in export)
-        "parameters": [f"{param.typeName} {sanitize_name(param.name)}" for param in f.f.properties.additionalProperties.params if param.name != "this"],
-        "parameter_names": [f"{sanitize_name(param.name)}" for param in f.f.properties.additionalProperties.params if param.name != "this"],
+        "parameters": [f"{type_name} {sanitize_name(name)}" for type_name, name in f.parameters(ctx=self.esci)],
+        "parameter_names": [f"{sanitize_name(name)}" for type_name, name in f.parameters(ctx=self.esci)],
+        "callingConvention": sanitize_calling_convention(f.f.properties.additionalProperties.callingConvention),
         "address": f.f.locations[0].physicalLocation.address.absoluteAddress,
       } for f in ns.functions]
 
@@ -697,11 +694,11 @@ class Exporter(object):
       includes += list(f.includes(self.esci))
 
       functions = [{
-        "returnType": f.f.properties.additionalProperties.ret.typeName, 
-        "callingConvention": sanitize_calling_convention(f.f.properties.additionalProperties.callingConvention),
+        "returnType": f.return_type(ctx=self.esci)[0], 
         "name": sanitize_name(f.name.split("::")[-1]), # split if necessary (mistake in export)
-        "parameters": [f"{param.typeName} {sanitize_name(param.name)}" for param in f.f.properties.additionalProperties.params if param.name != "this"],
-        "parameter_names": [f"{sanitize_name(param.name)}" for param in f.f.properties.additionalProperties.params if param.name != "this"],
+        "parameters": [f"{type_name} {sanitize_name(name)}" for type_name, name in f.parameters(ctx=self.esci)],
+        "parameter_names": [f"{sanitize_name(name)}" for type_name, name in f.parameters(ctx=self.esci)],
+        "callingConvention": sanitize_calling_convention(f.f.properties.additionalProperties.callingConvention),
         "address": f.f.locations[0].physicalLocation.address.absoluteAddress,
       }]
 
@@ -757,9 +754,9 @@ class Exporter(object):
       env = Environment(loader=FileSystemLoader(str(p)))
       template = env.get_template("DefinedDataH.j2")
 
-      type_name = defined_data.properties.additionalProperties.typeName
+      type_name, type_loc = remap_type(type_name = defined_data.properties.additionalProperties.typeName, type_loc = defined_data.properties.additionalProperties.typeLocation, ctx=self.esci)
       includes = OrderedSet(includes_for_type_name_location(type_name,
-                                                      defined_data.properties.additionalProperties.typeLocation,
+                                                      type_loc,
                                                       ctx=self.esci))
 
       contents = template.render({

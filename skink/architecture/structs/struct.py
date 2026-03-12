@@ -45,6 +45,10 @@ class Struct(object):
     def field_types(self, ctx = DEFAULT) -> Generator[Tuple[str, str]]:
         for name, field in self.s.properties.additionalProperties.fields.items():
             yield remap_type(field.name, field.type.location, ctx=ctx)
+
+    def fields(self, ctx = DEFAULT) -> Generator[Tuple[str, str]]:
+        for name, field in self.s.properties.additionalProperties.fields.items():
+            yield remap_type(field.name, field.type.location, ctx=ctx)[0], name
     
     def _collect_includes(self, ctx = DEFAULT):
         for type_name, type_loc in self.field_types(ctx=ctx):
