@@ -768,7 +768,7 @@ class Exporter(object):
         ExportContents(path=f"{dst_folder}/common.hpp", contents=env.get_template("Helpers_Common.j2").render()),
       ]
   
-  def export_symbol(self, address: int, name: str, defined_data: DefinedDataResult, destination: str):
+  def export_symbol(self, address: int, name: str, defined_data: DefinedDataResult, destination: str, namespace: str):
     if self.template_path != DEFAULT_TEMPLATE_PATH:
       raise Exception()
     anchor, *names = self.template_path.split(".")
@@ -785,7 +785,7 @@ class Exporter(object):
         "use_pch": False,
         "include_paths": sorted(includes),
         "using_paths": sorted(includes),
-        "namespace_path": destination.replace("/", "::"),
+        "namespace_path": namespace,
         "name": name,
         "type_name": type_name,
         "address": address,
@@ -794,6 +794,6 @@ class Exporter(object):
     
       return ExportContents(path=f"{destination}/{sanitize_name(name)}.hpp", contents=contents)
     
-  def export_symbols(self, i: Iterable[Tuple[int, str, DefinedDataResult]], destination: str):
-    return [self.export_symbol(address, name, defined_data, destination) for address, name, defined_data in i]
+  def export_symbols(self, i: Iterable[Tuple[int, str, DefinedDataResult]], destination: str, namespace:str):
+    return [self.export_symbol(address, name, defined_data, destination, namespace) for address, name, defined_data in i]
       

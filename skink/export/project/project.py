@@ -247,8 +247,8 @@ class Project(object):
           yield dd
   
   def find_global_primary_symbol_defined_data_pairs_by_address(self):
-    raw_symbols_by_address: Dict[int, Any] = {}
-    raw_defined_datas_by_address: Dict[int, Any] = {}
+    raw_symbols_by_address: Dict[int, List[str]] = {}
+    raw_defined_datas_by_address: Dict[int, List[Any]] = {}
     for obj in self.yield_raw_objects():
       ruleId = obj['ruleId']
       if ruleId == "SYMBOLS":
@@ -262,8 +262,9 @@ class Project(object):
             if addr not in raw_symbols_by_address:
               raw_symbols_by_address[addr] = []
             l = raw_symbols_by_address[addr]
-            if not obj in l:  
-              l.append(obj)
+            s = obj['properties']['additionalProperties']['name']
+            if not s in l:  
+              l.append(s)
       elif ruleId == "DEFINED_DATA":
         for faddr in obj['locations']:
           addr = faddr['physicalLocation']['address']['absoluteAddress']
@@ -273,11 +274,39 @@ class Project(object):
             l = raw_defined_datas_by_address[addr]
             if not obj in l:
               l.append(obj)
+    for address, dd_list in raw_defined_datas_by_address.items():
+      if not dd_list:
+        continue
+      if not address in raw_symbols_by_address:
+        # come up with a ghidra-compatible symbol
+        dd = dd_list[0]
+        tn = dd['properties']['additionalProperties']['typeName']
+        s_addr_part = f"{address:0{8}x}"
+        prefix = "DAT_"
+        if tn.lower().startswith("undefined"):
+          pass
+        elif tn.lower().startswith("int"):
+          prefix = "INT_"
+        elif tn.lower().startswith("short"):
+          prefix = "SHORT_"
+        elif tn.lower().startswith("byte"):
+          prefix = "BYTE_"
+        elif tn.lower().startswith("dword"):
+          prefix = "DWORD_"
+        elif tn.lower().startswith("char"):
+          prefix = "CHAR_"
+        elif tn.lower().startswith("string"):
+          prefix = "CHAR_" # doesn't actually appear often in decompiled output...
+        if "[" in tn:
+          prefix = prefix + "ARRAY_"
+        sym = f"{prefix}{s_addr_part}"
+        raw_symbols_by_address[address] = [sym]
     for address, symbol_list in raw_symbols_by_address.items():
       if not address in raw_defined_datas_by_address:
+        # undefined data is uncompilable...
         continue
       rdd_list = raw_defined_datas_by_address[address]
-      yield address, symbol_list[0]['properties']['additionalProperties']['name'], DefinedDataResult.from_dict(rdd_list[0])
+      yield address, symbol_list[0], DefinedDataResult.from_dict(rdd_list[0])
 
   def namespace_to_location(self, namespace: str):
     return f"/{'/'.join(namespace.split('::'))}"
