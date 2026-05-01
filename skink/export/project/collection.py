@@ -45,5 +45,5 @@ class ExportedContentCollection(object):
       #p.write_text(str(contents))
       # This is clearer:
       if (overwrite_all or contents.no_touch) or not p.exists():
-        p.write_text(str(contents))
+        p.write_bytes(str(contents).replace("\r\n", "\n").encode('utf-8'))
       
