@@ -285,6 +285,10 @@ class Project(object):
         prefix = "DAT_"
         if tn.lower().startswith("undefined"):
           pass
+        elif tn.lower().startswith("float"):
+          prefix = "FLOAT_"
+        elif tn.lower().startswith("double"):
+          prefix = "DOUBLE_"
         elif tn.lower().startswith("int"):
           prefix = "INT_"
         elif tn.lower().startswith("short"):
