@@ -9,5 +9,5 @@ class ExportContents:
 
   def __repr__(self) -> str:
     if self.no_touch:
-      return f"/**\n  AUTO_GENERATED: DO NOT TOUCH THIS FILE\n  path: '{self.path}'\n*/\n\n{self.contents}"
-    return f"/**\n  path: '{self.path}'\n*/\n\n{self.contents}"
+      return f"/**\n  AUTO_GENERATED: DO NOT TOUCH THIS FILE\n  path: '{self.path}'\n*/\n\n{self.contents}".replace("\r\n", "\n")
+    return f"/**\n  path: '{self.path}'\n*/\n\n{self.contents}".replace("\r\n", "\n")
