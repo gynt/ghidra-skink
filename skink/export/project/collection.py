@@ -30,7 +30,7 @@ class ExportedContentCollection(object):
   def unresolved_stubs(self):
     return [path for path, stubbed in self.stubs.items() if stubbed]
   
-  def write_to_disk(self, base: pathlib.Path, overwrite_all=False):
+  def write_to_disk(self, base: pathlib.Path, overwrite_all=False, no_touch_warning: str = "AUTO_GENERATED: DO NOT TOUCH THIS FILE"):
     stbs = self.unresolved_stubs()
     if len(stbs) > 0:
       logging.log(logging.WARNING, f"there are {len(stbs)} unresolved paths")
@@ -45,5 +45,5 @@ class ExportedContentCollection(object):
       #p.write_text(str(contents))
       # This is clearer:
       if (overwrite_all or contents.no_touch) or not p.exists():
-        p.write_bytes(str(contents).replace("\r\n", "\n").encode('utf-8'))
+        p.write_bytes(contents.serialize(no_touch_warning=no_touch_warning).replace("\r\n", "\n").encode('utf-8'))
       
