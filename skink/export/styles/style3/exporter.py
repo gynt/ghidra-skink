@@ -159,7 +159,7 @@ class Exporter(object):
       template = env.get_template("ClassH.j2")
 
       if not c.structure:
-        raise Exception()
+        raise Exception(f"no structure for class {c.namespace()}, which could mean struct and class are in a different namespace")
       
       dstfolder = f"{c.location(ctx=self.esci)}"      
       dst = f"{dstfolder}/{c.name}.hpp"      
