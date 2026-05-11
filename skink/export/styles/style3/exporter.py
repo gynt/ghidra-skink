@@ -27,6 +27,7 @@ from typing import Dict, List, Iterable, Tuple, Any
 
 from dataclasses import dataclass
 from dataclasses_json import dataclass_json
+import re
 
 DEFAULT_TEMPLATE_PATH = "skink.export.styles.style3.templates"
 EXPORT_SETTINGS_CLASS_INCLUDE: Context = DEFAULT.copy() # type: ignore
@@ -61,7 +62,8 @@ class Exporter(object):
                expose_original_methods: bool = False, includes_remapping: List[Tuple[str, str]] = [],
                includes_exclude_regex: List[str] = [],
                type_mapping: Dict[Tuple[str, str], Tuple[str, str]] = {},
-               inject_forwards_in_files: Dict[str, List[Tuple[str, str]]] = {}):
+               inject_forwards_in_files: Dict[str, List[Tuple[str, str]]] = {},
+               exclude_files_regex: List[str] = []):
     self.template_path = template_path
     self.binary_context = binary_context
     # self.transformation_rules = transformation_rules
@@ -76,6 +78,7 @@ class Exporter(object):
     # self.escsf.location_rules.transformation_rules = transformation_rules.copy() # type: ignore
     self.expose_original_methods = expose_original_methods
     self.inject_forwards_in_files = inject_forwards_in_files
+    self.exclude_files_regex: List[re.Pattern] = [re.compile(excl) for excl in exclude_files_regex]
 
   def export_addresses(self, objects: Iterable[Any], ignore_switch_data = True, filter_labelled = False, include_address = lambda addr: True):
     if self.template_path != DEFAULT_TEMPLATE_PATH:
@@ -328,8 +331,16 @@ class Exporter(object):
 
       return ExportContents(path=f"{c.location(ctx=self.esci)}/{c.name}.func.hpp", contents=contents, no_touch=False)
 
+  def is_excluded_file(self, path: str):
+    for excl in self.exclude_files_regex:
+      if excl.search(path):
+        return True
+    return False
+
   def export_class(self, c: Class, export_bodies: bool = True) -> List[ExportContents]:
     dst = f"{c.location(ctx=self.esci)}/{c.name}.hpp"
+    if self.is_excluded_file(dst):
+      return []
     forwards = []
     if dst in self.inject_forwards_in_files:
       for forward_path, contents in self.inject_forwards_in_files[dst]:
@@ -354,6 +365,9 @@ class Exporter(object):
   def export_struct(self, s: Struct):
     if self.template_path != DEFAULT_TEMPLATE_PATH:
       raise Exception()
+    dst = f"{s.location(ctx=self.esci)}/{s.name}.hpp"
+    if self.is_excluded_file(dst):
+      return None
     anchor, *names = self.template_path.split(".")
     with path(anchor, *names) as p:
       env = Environment(loader=FileSystemLoader(str(p)))
@@ -373,7 +387,7 @@ class Exporter(object):
         "fields": fields,
       })
     
-      return ExportContents(path=f"{s.location(ctx=self.esci)}/{s.name}.hpp", contents=contents)
+      return ExportContents(path=dst, contents=contents)
 
   def export_struct_singleton(self, s: Struct):
     if self.template_path != DEFAULT_TEMPLATE_PATH:
@@ -408,6 +422,9 @@ class Exporter(object):
   def export_union(self, u: Union):
     if self.template_path != DEFAULT_TEMPLATE_PATH:
       raise Exception()
+    dst = f"{u.location(ctx=self.esci)}/{u.name}.hpp"
+    if self.is_excluded_file(dst):
+      return
     anchor, *names = self.template_path.split(".")
     with path(anchor, *names) as p:
       env = Environment(loader=FileSystemLoader(str(p)))
@@ -427,11 +444,14 @@ class Exporter(object):
         "fields": fields,
       })
     
-      return ExportContents(path=f"{u.location(ctx=self.esci)}/{u.name}.hpp", contents=contents)
+      return ExportContents(path=dst, contents=contents)
 
   def export_enum(self, e: Enum):
     if self.template_path != DEFAULT_TEMPLATE_PATH:
       raise Exception()
+    dst = f"{e.location(ctx=self.esci)}/{e.name}.hpp"
+    if self.is_excluded_file(dst):
+      return
     anchor, *names = self.template_path.split(".")
     with path(anchor, *names) as p:
       env = Environment(loader=FileSystemLoader(str(p)))
@@ -449,11 +469,14 @@ class Exporter(object):
         "type": type,
         "fields": fields,
       })
-      return ExportContents(path=f"{e.location(ctx=self.esci)}/{e.name}.hpp", contents=contents)
+      return ExportContents(path=dst, contents=contents)
 
   def export_enum_typedef(self, e: Enum):
     if self.template_path != DEFAULT_TEMPLATE_PATH:
       raise Exception()
+    dst = f"{e.location(ctx=self.esci)}/{e.name}.hpp"
+    if self.is_excluded_file(dst):
+      return
     anchor, *names = self.template_path.split(".")
     with path(anchor, *names) as p:
       env = Environment(loader=FileSystemLoader(str(p)))
@@ -489,7 +512,7 @@ class Exporter(object):
         "type": type,
         "type_size": type_size,
       })
-      return ExportContents(path=f"{e.location(ctx=self.esci)}/{e.name}.hpp", contents=contents)
+      return ExportContents(path=dst, contents=contents)
 
   def export_sized_enum(self, e: Enum) -> List[ExportContents]:
     if self.template_path != DEFAULT_TEMPLATE_PATH:
@@ -524,6 +547,9 @@ class Exporter(object):
   def export_function_signature(self, fs: FunctionSignature):
     if self.template_path != DEFAULT_TEMPLATE_PATH:
       raise Exception()
+    dst = f"{fs.location(ctx=self.esci)}/{fs.name}.hpp"
+    if self.is_excluded_file(dst):
+      return
     anchor, *names = self.template_path.split(".")
     with path(anchor, *names) as p:
       env = Environment(loader=FileSystemLoader(str(p)))
@@ -551,11 +577,14 @@ class Exporter(object):
         "callingConvention": callingConvention,
         # "type": type,
       })
-      return ExportContents(path=f"{fs.location(ctx=self.esci)}/{fs.name}.hpp", contents=contents)
+      return ExportContents(path=dst, contents=contents)
 
   def export_typedef_raw(self, location, name, type, namespace_path, include_paths = [], using_paths = [], use_pch = False):
     if self.template_path != DEFAULT_TEMPLATE_PATH:
       raise Exception()
+    dst = f"{location}/{name}.hpp"
+    if self.is_excluded_file(dst):
+      return
     anchor, *names = self.template_path.split(".")
     with path(anchor, *names) as p:
       env = Environment(loader=FileSystemLoader(str(p)))
@@ -570,11 +599,14 @@ class Exporter(object):
         # "returnTypeLocation": typeLocation,
         # "type": type,
       })
-      return ExportContents(path=f"{location}/{name}.hpp", contents=contents)
+      return ExportContents(path=dst, contents=contents)
 
   def export_typedef(self, td: Typedef):
     if self.template_path != DEFAULT_TEMPLATE_PATH:
       raise Exception()
+    dst = f"{td.location(ctx=self.esci)}/{td.name}.hpp"
+    if self.is_excluded_file(dst):
+      return
     anchor, *names = self.template_path.split(".")
     with path(anchor, *names) as p:
       env = Environment(loader=FileSystemLoader(str(p)))
@@ -597,7 +629,7 @@ class Exporter(object):
         # "returnTypeLocation": typeLocation,
         # "type": type,
       })
-      return ExportContents(path=f"{td.location(ctx=self.esci)}/{td.name}.hpp", contents=contents)
+      return ExportContents(path=dst, contents=contents)
   
   def export_namespaced_functions_header(self, ns: Namespace):
     if self.template_path != DEFAULT_TEMPLATE_PATH:
@@ -633,7 +665,7 @@ class Exporter(object):
       # TODO: make Namespace fix location info just like classes
       return ExportContents(path=f"{ns.location(ctx=self.esci)}.hpp", contents=contents)
     
-  def export_namespaced_functions_funcfile(self, ns: Namespace):
+  def export_namespaced_functions_funcfile(self, ns: Namespace, reimplementation_unifier: str | None = None):
     if self.template_path != DEFAULT_TEMPLATE_PATH:
       raise Exception()
     anchor, *names = self.template_path.split(".")
@@ -652,6 +684,7 @@ class Exporter(object):
         "parameter_names": [f"{sanitize_name(name)}" for type_name, name in f.parameters(ctx=self.esci)],
         "callingConvention": sanitize_calling_convention(f.f.properties.additionalProperties.callingConvention),
         "address": f.f.locations[0].physicalLocation.address.absoluteAddress,
+        "reimplemented": reimplementation_unifier if reimplementation_unifier else "false",
       } for f in ns.functions]
 
       contents = template.render({
@@ -739,21 +772,24 @@ class Exporter(object):
       return ExportContents(path=f"{ns.location(ctx=self.esci)}/{sanitize_name(f.name.split("::")[-1])}.cpp", contents=contents, no_touch=False)
 
 
-  def export_namespace(self, ns: Namespace, export_bodies: bool = True) -> List[ExportContents]:
+  def export_namespace(self, ns: Namespace, export_bodies: bool = True, reimplementation_unifier: str | None = None) -> List[ExportContents]:
+    dst = f"{ns.location(ctx=self.esci)}.hpp"
+    if self.is_excluded_file(dst):
+      return []
     if not export_bodies:
       return [
           self.export_namespaced_functions_header(ns),
-          self.export_namespaced_functions_funcfile(ns),
+          self.export_namespaced_functions_funcfile(ns, reimplementation_unifier),
       ]
     if self.esci.file_rules.one_file_per_function:
       return [
         self.export_namespaced_functions_header(ns),
-        self.export_namespaced_functions_funcfile(ns),
+        self.export_namespaced_functions_funcfile(ns, reimplementation_unifier),
         *[self.export_namespaced_function_body(ns, f) for f in ns.functions],
       ]  
     return [
       self.export_namespaced_functions_header(ns),
-      self.export_namespaced_functions_funcfile(ns),
+      self.export_namespaced_functions_funcfile(ns, reimplementation_unifier),
       self.export_namespaced_functions_body(ns),
     ]
   

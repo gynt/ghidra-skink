@@ -11,8 +11,10 @@ class ExportedContentCollection(object):
     self.stubs: Dict[str, bool] = {}
     self.ignore_duplicates: bool = ignore_duplicates
 
-  def add(self, *contents: ExportContents):
+  def add(self, *contents: ExportContents | None):
     for content in contents:
+      if not content:
+        continue
       if content.path in self.db:
         if content.contents != self.db[content.path].contents:
           if not self.ignore_duplicates:
