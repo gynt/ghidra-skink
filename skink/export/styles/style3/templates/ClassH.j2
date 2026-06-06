@@ -32,10 +32,12 @@ class {{ class_name }}
 {#    {{ class_name }}({{ class_name }} const&) = delete; #}
 {#    void operator=({{ class_name }} const&) = delete; #}
 {#  private: #}
+
+  public:
     {{ class_name }}();
     ~{{ class_name }}();
    
-  public:
+
     {% if constructor %}
     // Constructor
     {{ constructor.returnType }} {{ constructor.name }}({{ constructor.parameters | join(', ') }});
@@ -51,8 +53,8 @@ static_assert_cpp98_obj(sizeof({{ class_name }}) == {{ class_size }}, {{ class_n
 
 #pragma pack(pop)
 
-{% if is_singleton %}
-MACRO_STRUCT_RESOLVER({{ class_name }}, false, Address::{{ context.abbreviation }}_{{ context.hash }}_{{ '0x%08X' % singleton_address }}) p{{ singleton_name }};
-{% endif %}
+{# {% if is_singleton %} #}
+{# MACRO_STRUCT_RESOLVER({{ class_name }}, false, Address::{{ context.abbreviation }}_{{ context.hash }}_{{ '0x%08X' % singleton_address }}) p{{ singleton_name }}; #}
+{# {% endif %} #}
 
 {%- endcall -%}
