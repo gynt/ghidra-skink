@@ -22,6 +22,7 @@ class AdditionalFunctionProperties:
     ret: Param
     params: List[Param]
     extra: CatchAll
+    hasVarArgs: bool = False
     namespace: str = ""
     value: str = ""
     type: str = ""

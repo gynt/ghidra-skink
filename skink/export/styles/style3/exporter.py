@@ -189,8 +189,7 @@ class Exporter(object):
       methods = [{
         "returnType": f.return_type(ctx=self.esci)[0], 
         "name": sanitize_name(f.name.split("::")[-1]), # split if necessary (mistake in export)
-        "parameters": [f"{type_name} {sanitize_name(name)}" for type_name, name in f.parameters(ctx=self.esci)],
-        "parameter_names": [f"{sanitize_name(name)}" for type_name, name in f.parameters(ctx=self.esci)],
+        "parameters": [f"{type_name} {sanitize_name(name)}" for type_name, name in f.parameters(ctx=self.esci)] + (["..."] * f.has_varargs()),
         "address": f.f.locations[0].physicalLocation.address.absoluteAddress,
       } for f in c.functions(self.esci)]
 
@@ -240,8 +239,8 @@ class Exporter(object):
       methods = [{
         "returnType": f.return_type(ctx=self.esci)[0], 
         "name": sanitize_name(f.name.split("::")[-1]), # split if necessary (mistake in export)
-        "parameters": [f"{type_name} {sanitize_name(name)}" for type_name, name in f.parameters(ctx=self.esci)],
-        "parameter_names": [f"{sanitize_name(name)}" for type_name, name in f.parameters(ctx=self.esci)],
+        "parameters": [f"{type_name} {sanitize_name(name)}" for type_name, name in f.parameters(ctx=self.esci)] + (["..."] * f.has_varargs()),
+        "parameter_names": [f"{sanitize_name(name)}" for type_name, name in f.parameters(ctx=self.esci)] + (["..."] * f.has_varargs()),
         "address": f.f.locations[0].physicalLocation.address.absoluteAddress,
       } for f in c.functions(self.esci)]
 
@@ -313,9 +312,9 @@ class Exporter(object):
       methods = [{
         "returnType": f.return_type(ctx=self.esci)[0], 
         "name": sanitize_name(f.name.split("::")[-1]), # split if necessary (mistake in export)
-        "parameters": [f"{type_name} {sanitize_name(name)}" for type_name, name in f.parameters(ctx=self.esci)],
+        "parameters": [f"{type_name} {sanitize_name(name)}" for type_name, name in f.parameters(ctx=self.esci)] + (["..."] * f.has_varargs()),
         "parameter_names": [f"{sanitize_name(name)}" for type_name, name in f.parameters(ctx=self.esci)],
-        "parameter_types": [f"{type_name}" for type_name, name in f.parameters(ctx=self.esci)],
+        "parameter_types": [f"{type_name}" for type_name, name in f.parameters(ctx=self.esci)] + (["..."] * f.has_varargs()),
         "address": f.f.locations[0].physicalLocation.address.absoluteAddress,
       } for f in c.functions(self.esci)]
 
@@ -646,8 +645,7 @@ class Exporter(object):
       functions = [{
         "returnType": f.return_type(ctx=self.esci)[0], 
         "name": sanitize_name(f.name.split("::")[-1]), # split if necessary (mistake in export)
-        "parameters": [f"{type_name} {sanitize_name(name)}" for type_name, name in f.parameters(ctx=self.esci)],
-        "parameter_names": [f"{sanitize_name(name)}" for type_name, name in f.parameters(ctx=self.esci)],
+        "parameters": [f"{type_name} {sanitize_name(name)}" for type_name, name in f.parameters(ctx=self.esci)] + (["..."] * f.has_varargs()),
         "callingConvention": sanitize_calling_convention(f.f.properties.additionalProperties.callingConvention),
         "address": f.f.locations[0].physicalLocation.address.absoluteAddress,
       } for f in ns.functions]
@@ -680,8 +678,7 @@ class Exporter(object):
       functions = [{
         "returnType": f.return_type(ctx=self.esci)[0], 
         "name": sanitize_name(f.name.split("::")[-1]), # split if necessary (mistake in export)
-        "parameters": [f"{type_name} {sanitize_name(name)}" for type_name, name in f.parameters(ctx=self.esci)],
-        "parameter_names": [f"{sanitize_name(name)}" for type_name, name in f.parameters(ctx=self.esci)],
+        "parameters": [f"{type_name} {sanitize_name(name)}" for type_name, name in f.parameters(ctx=self.esci)] + (["..."] * f.has_varargs()),
         "callingConvention": sanitize_calling_convention(f.f.properties.additionalProperties.callingConvention),
         "address": f.f.locations[0].physicalLocation.address.absoluteAddress,
         "reimplemented": reimplementation_unifier if reimplementation_unifier else "false",

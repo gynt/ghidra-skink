@@ -22,6 +22,9 @@ class Function(object):
         param = self.f.properties.additionalProperties.ret
         return remap_type(param.formalTypeName, param.formalTypeLocation, ctx=ctx)
 
+    def has_varargs(self) -> bool:
+        return self.f.properties.additionalProperties.hasVarArgs
+
     def parameter_types(self, ctx = DEFAULT) -> Generator[Tuple[str, str]]:
         for param in self.f.properties.additionalProperties.params:
             is_class_parameter = param.name == "this"
