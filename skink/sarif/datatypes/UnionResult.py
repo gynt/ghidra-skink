@@ -12,12 +12,13 @@ from skink.sarif.message import Message
 class UnionField:
     name: str
     location: str
-    field_name: str
     length: int
     ordinal: int
     offset: int
     type: TypeInfo
     extra: CatchAll
+    field_name: str | None = None
+    noFieldName: bool = False
 
 @dataclass_json(undefined=Undefined.INCLUDE, letter_case=LetterCase.CAMEL) # pyright: ignore[reportArgumentType]
 @dataclass
