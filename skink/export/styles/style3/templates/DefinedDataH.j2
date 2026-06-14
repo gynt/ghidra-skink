@@ -7,7 +7,11 @@
 #pragma once
 {{ '#include "pch.h"' if use_pch }}
 {{ includes(include_paths) }}
-{%- call wrap_namespaces(ns) -%}
+
+// GLOBAL: {{ context.reccmp_binary }} {{ '0x%08X' % address }}
+// StructResolver::Instance<{{ full_type_name }},{{ address }}>::instance
+
+{% call wrap_namespaces(ns) -%}
 {{ usings(using_paths) }}
 MACRO_STRUCT_RESOLVER({{ type_name }}, false, Address::{{ context.abbreviation }}_{{ context.hash }}_{{ '0x%08X' % address }}) {{ name }};
 {%- endcall -%}

@@ -813,6 +813,13 @@ class Exporter(object):
       includes = OrderedSet(includes_for_type_name_location(type_name,
                                                       type_loc,
                                                       ctx=self.esci))
+      full_type_name = type_name
+      if type_loc and type_loc != "/":
+        if not type_loc.endswith(".hpp") and not type_loc.endswith(".h"):
+          type_loc = transform_location(type_loc, self.esci)
+          if type_loc and type_loc != "/":        
+            if not type_loc.endswith(".hpp") and not type_loc.endswith(".h"):
+              full_type_name = f"{type_loc.replace('/', "::")}::{type_name}"
 
       contents = template.render({
         "use_pch": False,
@@ -821,6 +828,8 @@ class Exporter(object):
         "namespace_path": namespace,
         "name": name,
         "type_name": type_name,
+        "full_type_name": full_type_name,
+        "create_global_annotation_helper": len(includes) > 0,
         "address": address,
         "context": self.binary_context,
       })
