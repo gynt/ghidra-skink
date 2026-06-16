@@ -14,4 +14,6 @@
 {% call wrap_namespaces(ns) -%}
 {{ usings(using_paths) }}
 MACRO_STRUCT_RESOLVER({{ type_name }}, false, Address::{{ context.abbreviation }}_{{ context.hash }}_{{ '0x%08X' % address }}) {{ name }};
-{%- endcall -%}
+{%- endcall %}
+
+MACRO_STRUCT_INSTANCE(Address::{{ context.abbreviation }}_{{ context.hash }}_{{ '0x%08X' % address }});
