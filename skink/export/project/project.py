@@ -297,10 +297,16 @@ class Project(object):
           prefix = "BYTE_"
         elif tn.lower().startswith("dword"):
           prefix = "DWORD_"
+        elif tn.lower().startswith("boolenum"):
+          prefix = "BOOLEnum_"
+        elif tn.lower().startswith("bool"):
+          prefix = "BOOL_"
         elif tn.lower().startswith("char"):
           prefix = "CHAR_"
         elif tn.lower().startswith("string"):
           prefix = "CHAR_" # doesn't actually appear often in decompiled output...
+        elif tn.lower().startswith("pointer"):
+          prefix = "PTR_"
         if "[" in tn:
           prefix = prefix + "ARRAY_"
         sym = f"{prefix}{s_addr_part}"
