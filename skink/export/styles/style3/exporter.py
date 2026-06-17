@@ -22,6 +22,7 @@ from skink.export.context import DEFAULT, Context, FileRules, TransformationRule
 from skink.architecture.common.sanitization import sanitize_calling_convention, sanitize_name
 from skink.architecture.common.includes import includes_for_type_name_location
 from skink.export.location import transform_location
+from skink.export.mangler import *
 
 from typing import Dict, List, Iterable, Tuple, Any
 
@@ -838,4 +839,42 @@ class Exporter(object):
     
   def export_symbols(self, i: Iterable[Tuple[int, str, DefinedDataResult]], destination: str, namespace:str):
     return [self.export_symbol(address, name, defined_data, destination, namespace) for address, name, defined_data in i]
+  
+  def export_symbols_as_assembly(self, i: Iterable[Tuple[int, str, DefinedDataResult, str]], destination: str, namespace:str):
+    if self.template_path != DEFAULT_TEMPLATE_PATH:
+      raise Exception()
+    anchor, *names = self.template_path.split(".")
+    with path(anchor, *names) as p:
+      env = Environment(loader=FileSystemLoader(str(p)))
+      template = env.get_template("DefinedDataH.j2")
+
+      type_symbols = []
+      for address, name, defined_data, typing in i:
+        type_name, type_loc = remap_type(type_name = defined_data.properties.additionalProperties.typeName, type_loc = defined_data.properties.additionalProperties.typeLocation, ctx=self.esci)
+        full_type_name = type_name
+        primitive = True
+        ns = []
+        if type_loc and type_loc != "/":
+          if not type_loc.endswith(".hpp") and not type_loc.endswith(".h"):
+            primitive = False
+            type_loc = transform_location(type_loc, self.esci)
+            if type_loc and type_loc != "/":        
+              if not type_loc.endswith(".hpp") and not type_loc.endswith(".h"):
+                full_type_name = f"{type_loc.replace('/', "::")}::{type_name}"
+                ns = type_loc.replace('/', "::").split("::")
+
+        if primitive:
+          type_symbols.append((encode_extern_instance(PrimitiveType.from_name(type_name), address), address))
+        else:
+          if typing == "class":
+            type_symbols.append((encode_extern_instance(ClassType(ns = ns, name=type_name), address), address))
+          elif typing == "struct":
+            type_symbols.append((encode_extern_instance(StructType(ns = ns, name=type_name), address), address))
+          else:
+            raise Exception(f"{hex(address)} {defined_data}")
+
+      contents = template.render({
+        "type_symbols": type_symbols,
+      })
+    return ExportContents(path=f"{destination}/symbols.asm", contents=contents)
       

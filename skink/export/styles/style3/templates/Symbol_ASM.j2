@@ -1,0 +1,18 @@
+.386
+.model flat
+
+{# PUBLIC ?instance@?$Extern@USoundEffectsHelperData1@Audio@OpenSHC@@$0NPDHPA@@StructResolver@@2USoundEffectsHelperData1@Audio@OpenSHC@@A #}
+{% for type_symbol, address in type_symbols %}
+PUBLIC {{ type_symbol }}
+{% endfor %}
+
+_TEXT SEGMENT
+
+{# ?instance@?$Extern@USoundEffectsHelperData1@Audio@OpenSHC@@$0NPDHPA@@StructResolver@@2USoundEffectsHelperData1@Audio@OpenSHC@@A EQU 00DF37F0h #}
+{% for type_symbol, address in type_symbols %}
+{{ type_symbol }} EQU {{ '%08X' % address }}h
+{% endfor %}
+
+_TEXT ENDS
+
+END
