@@ -2,6 +2,9 @@ from dataclasses import dataclass, field
 from collections.abc import Callable
 
 from skink.sarif.BasicResult import BasicResult
+from skink.sarif.defineddata.DefinedDataResult import DefinedDataResult
+from skink.sarif.symbols.symbol import SymbolResult
+from skink.sarif.datatypes.DataTypeResult import DataTypeResult
 
 @dataclass
 class DatabasePlan:
@@ -14,6 +17,22 @@ class SymbolsDatabasePlan(DatabasePlan):
   permit_overwrite: bool = False
   drop_submembers: bool = True
   store_symbol_result: bool = False
+  filter: Callable[[SymbolResult], bool] = lambda _: True
   
   def __post_init__(self):
       object.__setattr__(self, 'ruleId', "SYMBOLS")
+
+@dataclass
+class DatatypeDatabasePlan(DatabasePlan):
+  location_rewriter: Callable[[str], str] = lambda x: x
+  filter: Callable[[DataTypeResult], bool] = lambda _: True
+  
+  def __post_init__(self):
+      object.__setattr__(self, 'ruleId', "DATATYPE")
+
+@dataclass
+class DefineddataDatabasePlan(DatabasePlan):
+  filter: Callable[[DefinedDataResult], bool] = lambda _: True
+
+  def __post_init__(self):
+      object.__setattr__(self, 'ruleId', "DEFINED_DATA")
