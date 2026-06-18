@@ -313,39 +313,35 @@ class Project(object):
   # Used
   def find_global_primary_symbol_defined_data_pairs_by_address(self):
     raw_symbols_by_address: Dict[int, List[str]] = {}
-    raw_defined_datas_by_address: Dict[int, List[Any]] = {}
-    for obj in self.yield_raw_objects():
-      ruleId = obj['ruleId']
-      if ruleId == "SYMBOLS":
-        kind = obj['properties']['additionalProperties']['kind']
-        primary = obj['properties']['additionalProperties']['primary']
+    raw_defined_datas_by_address: Dict[int, List[DefinedDataResult]] = {}
+    for addr, entries in self.db_sym.address_db.items():
+      for entry in entries:
+        symbol = entry.extra
+        kind = symbol.properties.additionalProperties.kind
+        primary = symbol.properties.additionalProperties.primary
         if not primary or kind != "global":
           continue
-        for faddr in obj['locations']:
-          addr = faddr['physicalLocation']['address']['absoluteAddress']
-          if addr > 0:
-            if addr not in raw_symbols_by_address:
-              raw_symbols_by_address[addr] = []
-            l = raw_symbols_by_address[addr]
-            s = obj['properties']['additionalProperties']['name']
-            if not s in l:  
-              l.append(s)
-      elif ruleId == "DEFINED_DATA":
-        for faddr in obj['locations']:
-          addr = faddr['physicalLocation']['address']['absoluteAddress']
-          if addr > 0:
-            if addr not in raw_defined_datas_by_address:
-              raw_defined_datas_by_address[addr] = []
-            l = raw_defined_datas_by_address[addr]
-            if not obj in l:
-              l.append(obj)
+        if addr > 0:
+          if addr not in raw_symbols_by_address:
+            raw_symbols_by_address[addr] = []
+          l = raw_symbols_by_address[addr]
+          s = symbol.properties.additionalProperties.name
+          if not s in l:  
+            l.append(s)
+    for addr, dd in self.db_defineddata.items():
+      if addr > 0:
+        if addr not in raw_defined_datas_by_address:
+          raw_defined_datas_by_address[addr] = []
+        l = raw_defined_datas_by_address[addr]
+        if not dd in l:
+          l.append(dd)
     for address, dd_list in raw_defined_datas_by_address.items():
       if not dd_list:
         continue
       if not address in raw_symbols_by_address:
         # come up with a ghidra-compatible symbol
         dd = dd_list[0]
-        tn = dd['properties']['additionalProperties']['typeName']
+        tn = dd.properties.additionalProperties.typeName
         s_addr_part = f"{address:0{8}x}"
         prefix = "DAT_"
         if tn.lower().startswith("undefined"):
@@ -381,7 +377,14 @@ class Project(object):
         # undefined data is uncompilable...
         continue
       rdd_list = raw_defined_datas_by_address[address]
-      yield address, symbol_list[0], DefinedDataResult.from_dict(rdd_list[0])
+      dd = rdd_list[0]
+      sym = symbol_list[0]
+      dd_loc = dd.properties.additionalProperties.location + "/" + dd.properties.additionalProperties.name
+      ns = self.location_to_namespace(dd_loc)
+      meta = None
+      if ns in self.db_meta:
+        meta = self.db_meta[ns]
+      yield address, sym, dd, meta
 
   # Used
   def namespace_to_location(self, namespace: str):
