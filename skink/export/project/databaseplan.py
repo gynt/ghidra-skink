@@ -5,6 +5,7 @@ from skink.sarif.BasicResult import BasicResult
 from skink.sarif.defineddata.DefinedDataResult import DefinedDataResult
 from skink.sarif.symbols.symbol import SymbolResult
 from skink.sarif.datatypes.DataTypeResult import DataTypeResult
+from skink.sarif.functions.FunctionResult import FunctionResult
 
 @dataclass
 class DatabasePlan:
@@ -18,6 +19,8 @@ class SymbolsDatabasePlan(DatabasePlan):
   drop_submembers: bool = True
   store_symbol_result: bool = False
   filter: Callable[[SymbolResult], bool] = lambda _: True
+  include_zero_address: bool = False
+  meta: DatabasePlan = field(default_factory=DatabasePlan)
   
   def __post_init__(self):
       object.__setattr__(self, 'ruleId', "SYMBOLS")
@@ -36,3 +39,10 @@ class DefineddataDatabasePlan(DatabasePlan):
 
   def __post_init__(self):
       object.__setattr__(self, 'ruleId', "DEFINED_DATA")
+
+@dataclass
+class FunctionDatabasePlan(DatabasePlan):
+  filter: Callable[[FunctionResult], bool] = lambda _: True
+
+  def __post_init__(self):
+      object.__setattr__(self, 'ruleId', "FUNCTIONS")

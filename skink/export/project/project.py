@@ -15,7 +15,7 @@ from ...sarif.datatypes.UnionResult import UnionResult
 from ...sarif.datatypes.FunctionSignatureResult import FunctionSignatureResult
 from skink.sarif.datatypes.TypedefResult import TypedefResult
 from skink.sarif.datatypes.BasicDataTypeResult import BasicDataTypeResult
-from skink.export.project.databaseplan import DatabasePlan, SymbolsDatabasePlan, DatatypeDatabasePlan, DefineddataDatabasePlan
+from skink.export.project.databaseplan import DatabasePlan, SymbolsDatabasePlan, DatatypeDatabasePlan, DefineddataDatabasePlan, FunctionDatabasePlan
 
 import pathlib
 import pickle
@@ -137,11 +137,25 @@ class Project(object):
               log(logging.DEBUG, obj)
             yield decode_result(obj)
 
+  def _build_database_symbols_meta(self, obj, plan: DatabasePlan):
+    sr: SymbolResult = SymbolResult.from_dict(obj) # type: ignore
+    if not plan.filter(sr):
+      return
+    n = sr.properties.additionalProperties.name
+    l = sr.properties.additionalProperties.location
+    a = sr.locations[0].physicalLocation.address.absoluteAddress
+    if a == 0:
+      if not l:
+        self.db_meta[f"{n}"] = sr
+      else:
+        self.db_meta[f"{l}{n}"] = sr
+
   def _build_database_symbols(self, obj, plan: SymbolsDatabasePlan):
     prefix = plan.prefix
     drop_submembers = plan.drop_submembers
     permit_overwrite = plan.permit_overwrite
     store_symbol_result = plan.store_symbol_result
+    include_zero_address = plan.include_zero_address
 
     sr: SymbolResult = SymbolResult.from_dict(obj) # type: ignore
     if not plan.filter(sr):
@@ -149,18 +163,14 @@ class Project(object):
 #         log(logging.DEBUG, sr)
     n = sr.properties.additionalProperties.name
     l = sr.properties.additionalProperties.location
-    g = not l
     if prefix:
       if not l.startswith(f"{prefix}::"):
         if l != '' or n != prefix:
           return
     a = sr.locations[0].physicalLocation.address.absoluteAddress
-    if a == 0:
-      # TODO: return here early and keep those out of sym_db?
-      if g:
-        self.db_meta[f"{n}"] = sr
-      else:
-        self.db_meta[f"{l}{n}"] = sr
+    addrs = [loc.physicalLocation.address.absoluteAddress for loc in sr.locations]
+    if all(addr == 0 for addr in addrs) and not include_zero_address:
+      return
     e = sr.properties.additionalProperties.kind == 'external'
     k = sr.properties.additionalProperties.type
     if not k and sr.properties.additionalProperties.namespaceIsClass:
@@ -190,28 +200,19 @@ class Project(object):
         self.counts['unknown'] += 1
 
   def _build_database_datatype(self, obj, plan: DatatypeDatabasePlan):
-    x: BasicDataTypeResult = BasicDataTypeResult.from_dict(obj)
-    if obj['message']['text'] == "DT.Enum":
-      x: EnumResult = EnumResult.from_dict(obj) # type: ignore
-    elif obj['message']['text'] == "DT.Struct":
-      x: DataTypeResult = DataTypeResult.from_dict(obj) # type: ignore
-    elif obj['message']['text'] == "DT.Function":
-      x: FunctionSignatureResult = FunctionSignatureResult.from_dict(obj) # type: ignore
-    elif obj['message']['text'] == "DT.Union":
-      x: UnionResult = UnionResult.from_dict(obj) # type: ignore
-    elif obj['message']['text'] == "DT.Typedef":
-      x: TypedefResult = TypedefResult.from_dict(obj) # type: ignore
-    else:
-      return
-    if not plan.filter(x):
-      return
-    loc = x.properties.additionalProperties.location
-    name = x.properties.additionalProperties.name
-    full_loc = f"{loc}/{name}"
-    self.db_datatype[full_loc] = x
-    rewritten_loc = plan.location_rewriter(full_loc)
-    if rewritten_loc != full_loc:
-      self.db_datatype[rewritten_loc] = x
+    subtype = obj['message']['text']
+    if subtype in self.DATATYPE_MAPPING:
+      x: BasicDataTypeResult = self.DATATYPE_MAPPING[subtype].from_dict(obj)
+
+      if not plan.filter(x):
+        return
+      loc = x.properties.additionalProperties.location
+      name = x.properties.additionalProperties.name
+      full_loc = f"{loc}/{name}"
+      self.db_datatype[full_loc] = x
+      rewritten_loc = plan.location_rewriter(full_loc)
+      if rewritten_loc != full_loc:
+        self.db_datatype[rewritten_loc] = x
 
   def _build_database_defineddata(self, obj, plan: DefineddataDatabasePlan):
     ddr: DefinedDataResult = DefinedDataResult.from_dict(obj) # type: ignore
@@ -238,8 +239,9 @@ class Project(object):
 
   def build_database(self,
                      plan_symbols: SymbolsDatabasePlan = None,
-                     plan_defineddata: DatabasePlan = None,
-                     plan_datatype: DatabasePlan = None,
+                     plan_defineddata: DefineddataDatabasePlan = None,
+                     plan_datatype: DatatypeDatabasePlan = None,
+                     plan_function: FunctionDatabasePlan = None,
                      log_progress=0, clear_cache=False):
     if clear_cache:
       (self.cache_path / 'db_sym.bin').unlink(missing_ok=True)
@@ -261,15 +263,18 @@ class Project(object):
           self.db_datatype = pickle.load(file=f)
       if (self.cache_path / 'db_function.bin').exists():
         with (self.cache_path / 'db_function.bin').open('rb') as f:
-          self.db_datatype = pickle.load(file=f)
+          self.db_function = pickle.load(file=f)
       if (self.cache_path / 'db_meta.bin').exists():
         with (self.cache_path / 'db_meta.bin').open('rb') as f:
-          self.db_datatype = pickle.load(file=f)
+          self.db_meta = pickle.load(file=f)
       return
     log(logging.INFO, f"building database, caching in: {self.cache_path}")
     progress_i = 0
     self.reset_counts()
-    plan_ruleId_index: Dict[str, DatabasePlan] = {plan.ruleId: plan for plan in [plan_symbols, plan_defineddata, plan_datatype] if plan}
+    plan_ruleId_index: Dict[str, DatabasePlan] = {plan.ruleId: plan for plan in [plan_symbols,
+                                                                                 plan_defineddata,
+                                                                                 plan_datatype,
+                                                                                 plan_function] if plan}
     ruleIds = plan_ruleId_index.keys()
     for obj in self.yield_raw_objects():
       progress_i += 1
@@ -283,12 +288,14 @@ class Project(object):
       
       if ruleId == "SYMBOLS":
         self._build_database_symbols(obj, plan_symbols)
+        if plan_symbols.meta:
+          self._build_database_symbols_meta(obj, plan_symbols.meta)
       elif ruleId == "DATATYPE":
         self._build_database_datatype(obj, plan_datatype)
       elif ruleId == "DEFINED_DATA":
-        self._build_database_defineddata(obj, plan_datatype)
+        self._build_database_defineddata(obj, plan_defineddata)
       elif ruleId == "FUNCTIONS":
-        self._build_database_function(obj, plan_datatype)
+        self._build_database_function(obj, plan_function)
     if self.cache_path:
       self.cache_path.mkdir(parents=True, exist_ok=True)
       logging.log(logging.INFO, f"caching symbols to: {self.cache_path}")
@@ -303,28 +310,6 @@ class Project(object):
       with (self.cache_path / 'db_meta.bin').open('wb') as f:
         pickle.dump(obj=self.db_meta, file=f)
 
-  # Unused
-  def find_all_by_address(self, address: int) -> Generator[BasicResult]:
-    """Function is meant to find symbols, functions, defined_data by address. Especially useful for defined_data,
-    because the DAT_ symbol name is detached from the data type (defined data). """
-    for obj in self.yield_raw_objects():
-      ruleId = obj['ruleId']
-      if ruleId == 'SYMBOLS':
-        sr: SymbolResult = SymbolResult.from_dict(obj) # type: ignore
-        srLocations = [loc.physicalLocation.address.absoluteAddress for loc in sr.locations]
-        if address in srLocations:
-          yield sr
-      elif ruleId == "FUNCTIONS":
-        fr: FunctionResult = FunctionResult.from_dict(obj)
-        frLocations = [loc.physicalLocation.address.absoluteAddress for loc in fr.locations]
-        if address in frLocations:
-          yield fr
-      elif ruleId == "DEFINED_DATA":
-        dd: DefinedDataResult = DefinedDataResult.from_dict(obj)
-        ddLocations = [loc.physicalLocation.address.absoluteAddress for loc in dd.locations]
-        if address in ddLocations:
-          yield dd
-  
   # Used
   def find_global_primary_symbol_defined_data_pairs_by_address(self):
     raw_symbols_by_address: Dict[int, List[str]] = {}
@@ -401,9 +386,77 @@ class Project(object):
   # Used
   def namespace_to_location(self, namespace: str):
     return f"/{'/'.join(namespace.split('::'))}"
+  
+  def location_to_namespace(self, location: str):
+    while location[0] == "/":
+      location = location[1:]
+    return location.replace("/", "::")
 
-  # Used
   def find_all_by_location(self, location: str, name: str = None, recursive: bool = False, lookup_lsymbols: bool = False) -> Generator[BasicResult]:
+    if location[0] != "/":
+      raise Exception("location should start with '/'")
+    
+    target = location
+    if name:
+      target = f"{location}/{name}"
+    target_namespace = self.location_to_namespace(target)
+    
+    for key, value in self.db_datatype.items():
+      if recursive and key.startswith(target):
+        yield value
+      elif key == target:
+        yield value
+
+    for key, value in self.db_meta.items():
+      if recursive and key.startswith(target_namespace):
+        yield value
+      elif key == target_namespace:
+        yield value
+
+    for key, value in self.db_sym.db.items():
+      if recursive and key.startswith(target_namespace):
+        yield value.extra
+      elif key == target_namespace:
+        yield value.extra
+
+    for key, value in self.db_function.items():
+      if isinstance(key, str):
+        if recursive and key.startswith(target_namespace):
+          yield value
+        elif key == target_namespace:
+          yield value
+
+    for addr, value in self.db_defineddata.items():
+      locations = [
+        value.properties.additionalProperties.location,
+        value.properties.additionalProperties.typeLocation,
+        f"{value.properties.additionalProperties.location}/{value.properties.additionalProperties.name}",
+        f"{value.properties.additionalProperties.typeLocation}/{value.properties.additionalProperties.typeName}",
+      ]
+      hit = False
+      for loc in locations:
+        if recursive and loc.startswith(target):
+          hit = True
+          yield value
+        elif loc == target:
+          hit = True
+          yield value
+    
+      if lookup_lsymbols:
+        if hit:
+          addresses = [loc.physicalLocation.address.absoluteAddress for loc in value.locations]
+          for addr in addresses:
+            if addr in self.db_sym.address_db:
+              for entry in self.db_sym.address_db[addr]:
+                yield entry.extra
+
+  DATATYPE_MAPPING = {"DT.Struct": DataTypeResult,
+                      "DT.Enum": EnumResult,
+                      "DT.Union": UnionResult,
+                      "DT.Function": FunctionSignatureResult,
+                      "DT.Typedef": TypedefResult}
+
+  def find_all_by_location__deprecated(self, location: str, name: str = None, recursive: bool = False, lookup_lsymbols: bool = False) -> Generator[BasicResult]:
     looked_up_lsymbols = {}
 
     def find_symbols(addresses):
@@ -419,7 +472,7 @@ class Project(object):
         ruleId = obj['ruleId']
         if ruleId == 'SYMBOLS':
           sr: SymbolResult = SymbolResult.from_dict(obj) # type: ignore
-          addresses = [loc.physicalLocation.address.absoluteAddress for loc in dd.locations]
+          addresses = [loc.physicalLocation.address.absoluteAddress for loc in sr.locations]
           addresses = [addr for addr in addresses if not addr in looked_up_lsymbols]
           visited = False
           for address in addresses:
@@ -436,7 +489,7 @@ class Project(object):
             elif recursive and sr.properties.additionalProperties.location.startswith(location):
               yield sr
         elif ruleId == "FUNCTIONS":
-          fr: FunctionResult = FunctionResult.from_dict(obj)
+          fr: FunctionResult = FunctionResult.from_dict(obj) # type: ignore
           loc = self.namespace_to_location(fr.properties.additionalProperties.namespace)
           if loc == location:
             if name:
@@ -448,8 +501,8 @@ class Project(object):
             yield fr
         elif ruleId == "DATATYPE":
           subtype = obj["message"]["text"]
-          if subtype in ["DT.Struct", "DT.Enum", "DT.Union", "DT.Function", "DT.Typedef"]:
-            dtr: BasicDataTypeResult = BasicDataTypeResult.from_dict(obj)
+          if subtype in self.DATATYPE_MAPPING:
+            dtr: BasicDataTypeResult = self.DATATYPE_MAPPING[subtype].from_dict(obj)
             locations: List[str] = [
               dtr.properties.additionalProperties.location,
               f"{dtr.properties.additionalProperties.location}/{dtr.properties.additionalProperties.name}",
@@ -468,7 +521,7 @@ class Project(object):
               if hit:
                 yield dtr
         elif ruleId == "DEFINED_DATA":
-          dd: DefinedDataResult = DefinedDataResult.from_dict(obj)
+          dd: DefinedDataResult = DefinedDataResult.from_dict(obj) # type: ignore
           locations = [
             dd.properties.additionalProperties.location,
             dd.properties.additionalProperties.typeLocation,
