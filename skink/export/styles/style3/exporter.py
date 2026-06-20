@@ -1,6 +1,7 @@
 from jinja2 import Environment, FileSystemLoader
 from importlib.resources import path
 
+from collections.abc import Callable
 from skink.architecture.functionsignatures import FunctionSignature
 from skink.architecture.namespaces.namespace import Namespace
 from skink.architecture.functions.function import Function
@@ -8,6 +9,7 @@ from skink.export.enums.enumfamilies import SUFFICES
 from skink.export.types import remap_type
 from skink.sarif.BasicResult import BasicResult
 from skink.sarif.datatypes.EnumResult import EnumResult
+from skink.sarif.datatypes.BasicDataTypeResult import BasicDataTypeResult
 from skink.sarif.defineddata.DefinedDataResult import DefinedDataResult
 from skink.sarif.symbols.symbol import SymbolResult
 from skink.sarif.functions.FunctionResult import FunctionResult
@@ -22,7 +24,10 @@ from skink.export.context import DEFAULT, Context, FileRules, TransformationRule
 from skink.architecture.common.sanitization import sanitize_calling_convention, sanitize_name
 from skink.architecture.common.includes import includes_for_type_name_location
 from skink.export.location import transform_location
-from skink.export.mangler import *
+from skink.export.mangler.v3 import *
+from skink.export.mangler.v3 import _parse_type
+from skink.export.util import *
+from skink.export.mangler.typedefs import COMMON as TYPEDEFS_COMMON
 
 from typing import Dict, List, Iterable, Tuple, Any
 
@@ -836,45 +841,123 @@ class Exporter(object):
       })
     
       return ExportContents(path=f"{destination}/{sanitize_name(name)}.hpp", contents=contents)
-    
+
   def export_symbols(self, i: Iterable[Tuple[int, str, DefinedDataResult]], destination: str, namespace:str):
     return [self.export_symbol(address, name, defined_data, destination, namespace) for address, name, defined_data in i]
-  
-  def export_symbols_as_assembly(self, i: Iterable[Tuple[int, str, DefinedDataResult, str]], destination: str, namespace:str):
+
+  def export_symbols_as_assembly(self, 
+                                 i: Iterable[Tuple[int, str, DefinedDataResult, BasicDataTypeResult | None, bool]], 
+                                 destination: str, 
+                                 typedefs: Dict[Tuple[str, str], Tuple[str, str, str]] = {}, 
+                                 typedef_func: Callable[[str, str, str], Tuple[str, str, str]] = (lambda x, y, z: (x, y, z))):
     if self.template_path != DEFAULT_TEMPLATE_PATH:
       raise Exception()
     anchor, *names = self.template_path.split(".")
     with path(anchor, *names) as p:
       env = Environment(loader=FileSystemLoader(str(p)))
-      template = env.get_template("DefinedDataH.j2")
+      template = env.get_template("Symbol_ASM.j2")
 
       type_symbols = []
-      for address, name, defined_data, typing in i:
-        type_name, type_loc = remap_type(type_name = defined_data.properties.additionalProperties.typeName, type_loc = defined_data.properties.additionalProperties.typeLocation, ctx=self.esci)
-        full_type_name = type_name
-        primitive = True
-        ns = []
-        if type_loc and type_loc != "/":
-          if not type_loc.endswith(".hpp") and not type_loc.endswith(".h"):
-            primitive = False
-            type_loc = transform_location(type_loc, self.esci)
-            if type_loc and type_loc != "/":        
-              if not type_loc.endswith(".hpp") and not type_loc.endswith(".h"):
-                full_type_name = f"{type_loc.replace('/', "::")}::{type_name}"
-                ns = type_loc.replace('/', "::").split("::")
+      for address, name, ddr, dtr, isClass in i:
+        #if address != 14630172: #TODO: debug line, remove!
+        #  continue
+        prefix = ""
+        prop = ddr.properties.additionalProperties
+        type_name, type_loc = remap_type(type_name = prop.typeName, type_loc = prop.typeLocation, ctx=self.esci)
+        type_loc, type_name = loc_name_to_loc_name(transform_location(type_loc, ctx=self.esci), type_name)
+        if (type_loc, type_name) in typedefs:
+          type_loc, type_name, prefix = typedefs[(type_loc, type_name)]
+        type_loc, type_name, prefix = typedef_func(type_loc, type_name, prefix)
+        primitive = prefix == ""
+        if dtr:
+          if dtr.message.text == "DT.Union":
+            prefix = "union "
+          elif dtr.message.text == "DT.Struct":
+            prefix = "struct " if not isClass else "class "            
+        if type_loc in ["/"]:
+          primitive = True
 
+        m_base_type = re.match("^([A-Za-z_0-9]+)(.*)$", type_name)
+        assert m_base_type
+        base_type = m_base_type.group(1)
+        if base_type in TYPEDEFS_COMMON:
+          type_name = TYPEDEFS_COMMON[base_type] + m_base_type.group(2)
+          primitive = True
+          type_loc = "/"
+          prefix = ""
+
+        if type_name == "GUID":
+          primitive = True
+          type_name = "_GUID"
+          type_loc = "/"
+          prefix = "struct "          
+
+        if prefix:
+          primitive = False
         if primitive:
-          type_symbols.append((encode_extern_instance(PrimitiveType.from_name(type_name), address), address))
+          t = _parse_type(f"{prefix}{type_name}")
         else:
-          if typing == "class":
-            type_symbols.append((encode_extern_instance(ClassType(ns = ns, name=type_name), address), address))
-          elif typing == "struct":
-            type_symbols.append((encode_extern_instance(StructType(ns = ns, name=type_name), address), address))
-          else:
-            raise Exception(f"{hex(address)} {defined_data}")
+          t = _parse_type(f"{prefix}{'::'.join(loc_name_to_parts(type_loc, type_name))}")
+        
+        type_symbols.append((build_extern_symbol(t, address), address))
 
       contents = template.render({
         "type_symbols": type_symbols,
       })
-    return ExportContents(path=f"{destination}/symbols.asm", contents=contents)
+    return ExportContents(path=f"{destination}", contents=contents, include_preamble=False)
+
+  # def export_symbols_as_assembly(self, i: Iterable[Tuple[int, str, DefinedDataResult, BasicDataTypeResult | None, bool]], destination: str, namespace:str):
+  #   if self.template_path != DEFAULT_TEMPLATE_PATH:
+  #     raise Exception()
+  #   anchor, *names = self.template_path.split(".")
+  #   with path(anchor, *names) as p:
+  #     env = Environment(loader=FileSystemLoader(str(p)))
+  #     template = env.get_template("Symbol_ASM.j2")
+
+  #     type_symbols = []
+  #     for address, name, defined_data, dtr, isClass in i:
+  #       type_name, type_loc = remap_type(type_name = defined_data.properties.additionalProperties.typeName, type_loc = defined_data.properties.additionalProperties.typeLocation, ctx=self.esci)
+  #       full_type_name = type_name
+  #       primitive = dtr is None
+  #       ns = []
+  #       if type_loc and type_loc != "/":
+  #         if not type_loc.endswith(".hpp") and not type_loc.endswith(".h"):
+  #           primitive = False
+  #           type_loc = transform_location(type_loc, self.esci)
+  #           if type_loc and type_loc != "/":        
+  #             if not type_loc.endswith(".hpp") and not type_loc.endswith(".h"):
+  #               full_type_name = f"{type_loc.replace('/', "::")}::{type_name}"
+  #               ns = type_loc.replace('/', "::").split("::")
+
+  #       if primitive:
+  #         if type_name in PRIMITIVES:
+  #           type_symbols.append((encode_extern_instance(PrimitiveType.from_name(type_name), address), address))
+  #         elif type_name == "GUID":
+  #           type_symbols.append((encode_extern_instance(StructType(ns = [], name=f"_{type_name}"), address), address))
+  #         elif type_name == "void*":
+  #           type_symbols.append((encode_extern_instance(PointerType(typ=PrimitiveType.from_name("void")), address), address))
+  #         elif type_name.count("[") == 1:
+  #           m = re.match("([A-Za-z]+)\\[([0-9]+)\\]", type_name)
+  #           base_type = m.group(1)
+  #           dim1_size = int(m.group(2))
+  #           type_symbols.append((encode_extern_instance(ArrayType(element=PrimitiveType.from_name(base_type), count=dim1_size), address), address))
+  #         else:
+  #           raise Exception(f"type not in primitives list: {full_type_name}; {name}")
+          
+  #       else:
+  #         if isClass:
+  #           type_symbols.append((encode_extern_instance(ClassType(ns = ns, name=type_name), address), address))
+  #         else:
+  #           typ = dtr.message.text if dtr else ""
+  #           if typ == "DT.Struct":
+  #             type_symbols.append((encode_extern_instance(StructType(ns = ns, name=type_name), address), address))
+  #           elif typ == "DT.Union":
+  #             raise Exception("Union not yet implemented")
+  #           else:
+  #             raise Exception(f"unknown type {typ}: {hex(address)} {defined_data} {dtr}")
+
+  #     contents = template.render({
+  #       "type_symbols": type_symbols,
+  #     })
+  #   return ExportContents(path=f"{destination}/symbols.asm", contents=contents)
       

@@ -24,4 +24,5 @@ class TypeInfo:
     subtype: Optional['TypeInfo'] = None
     size: int = -1
     count: int = -1
+    isVariableLength: bool = False
     

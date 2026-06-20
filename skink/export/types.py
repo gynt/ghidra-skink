@@ -22,6 +22,10 @@ def remap_type(type_name: str, type_loc: str, ctx = DEFAULT) -> Tuple[str, str]:
   """
     Returns name, loc
   """
+  while type_name.startswith("/"):
+    type_name = type_name[1:]
+  if not type_loc:
+    type_loc = "/"
   key = (type_loc, type_name)
   if key in ctx.type_rules.type_mapping:
     loc, name = ctx.type_rules.type_mapping[key]

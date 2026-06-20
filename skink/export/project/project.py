@@ -14,8 +14,11 @@ from ...sarif.datatypes.EnumResult import EnumResult
 from ...sarif.datatypes.UnionResult import UnionResult
 from ...sarif.datatypes.FunctionSignatureResult import FunctionSignatureResult
 from skink.sarif.datatypes.TypedefResult import TypedefResult
+from skink.sarif.datatypes.TypedObject import TypedObjectResult
 from skink.sarif.datatypes.BasicDataTypeResult import BasicDataTypeResult
 from skink.export.project.databaseplan import DatabasePlan, SymbolsDatabasePlan, DatatypeDatabasePlan, DefineddataDatabasePlan, FunctionDatabasePlan
+
+from skink.export.util import *
 
 import pathlib
 import pickle
@@ -61,13 +64,9 @@ class Project(object):
     self.db_sym = SymbolDatabase()
     self.db_meta: Dict[str, SymbolResult] = {}
     self.db_defineddata: Dict[int, DefinedDataResult] = {}
-    self.db_datatype: Dict[str, DataTypeResult] = {}
+    self.db_datatype: Dict[str, BasicDataTypeResult] = {}
     self.db_function: Dict[str | int, FunctionResult] = {}
-    self.cache_path: pathlib.Path = None
-    if cache_path:
-      self.cache_path = pathlib.Path(cache_path)
-      if not self.cache_path.exists():
-        self.cache_path.mkdir(parents=True)
+    self.cache_path: pathlib.Path = pathlib.Path(cache_path)
     self.counts = {'total': 0, 'member': 0, 'class': 0, 'namespace': 0, 'unknown': 0}
     self.cache_raw_objects = cache_objects
 
@@ -208,7 +207,8 @@ class Project(object):
         return
       loc = x.properties.additionalProperties.location
       name = x.properties.additionalProperties.name
-      full_loc = f"{loc}/{name}"
+      full_loc = loc_name_to_location(loc, name)
+      assert full_loc[0] == "/"
       self.db_datatype[full_loc] = x
       rewritten_loc = plan.location_rewriter(full_loc)
       if rewritten_loc != full_loc:
@@ -243,31 +243,26 @@ class Project(object):
                      plan_datatype: DatatypeDatabasePlan = None,
                      plan_function: FunctionDatabasePlan = None,
                      log_progress=0, clear_cache=False):
-    if clear_cache:
+    if clear_cache and self.cache_path:
       (self.cache_path / 'db_sym.bin').unlink(missing_ok=True)
       (self.cache_path / 'db_defineddata.bin').unlink(missing_ok=True)
       (self.cache_path / 'db_datatype.bin').unlink(missing_ok=True)
       (self.cache_path / 'db_function.bin').unlink(missing_ok=True)
       (self.cache_path / 'db_meta.bin').unlink(missing_ok=True)
-      self.cache_path.rmdir()
     if self.cache_path and pathlib.Path(self.cache_path).exists():
       log(logging.INFO, f"using cached symbols: {self.cache_path}")
       if (self.cache_path / 'db_sym.bin').exists():
         with (self.cache_path / 'db_sym.bin').open('rb') as f:
           self.db_sym = pickle.load(file=f)
-      if (self.cache_path / 'db_defineddata.bin').exists():
         with (self.cache_path / 'db_defineddata.bin').open('rb') as f:
           self.db_defineddata = pickle.load(file=f)
-      if (self.cache_path / 'db_datatype.bin').exists():
         with (self.cache_path / 'db_datatype.bin').open('rb') as f:
           self.db_datatype = pickle.load(file=f)
-      if (self.cache_path / 'db_function.bin').exists():
         with (self.cache_path / 'db_function.bin').open('rb') as f:
           self.db_function = pickle.load(file=f)
-      if (self.cache_path / 'db_meta.bin').exists():
         with (self.cache_path / 'db_meta.bin').open('rb') as f:
           self.db_meta = pickle.load(file=f)
-      return
+        return
     log(logging.INFO, f"building database, caching in: {self.cache_path}")
     progress_i = 0
     self.reset_counts()
@@ -376,24 +371,39 @@ class Project(object):
       if not address in raw_defined_datas_by_address:
         # undefined data is uncompilable...
         continue
+      isClass = False
       rdd_list = raw_defined_datas_by_address[address]
       dd = rdd_list[0]
       sym = symbol_list[0]
-      dd_loc = dd.properties.additionalProperties.location + "/" + dd.properties.additionalProperties.name
-      ns = self.location_to_namespace(dd_loc)
-      meta = None
-      if ns in self.db_meta:
-        meta = self.db_meta[ns]
-      yield address, sym, dd, meta
+      dd_typename = dd.properties.additionalProperties.typeName
+      dd_loc = loc_name_to_location(dd.properties.additionalProperties.typeLocation, dd_typename)
+      dt = self.db_datatype[dd_loc] if dd_loc in self.db_datatype else None
+      if not dt:
+        if dd_typename.endswith("]"):
+          ob = dd_typename.find("[")
+          dd_typename_root = dd_typename[:ob]
+          dd_loc = loc_name_to_location(dd.properties.additionalProperties.typeLocation, dd_typename_root)
+          dt = self.db_datatype[dd_loc] if dd_loc in self.db_datatype else None
+      if not dt:
+        if dd_loc.startswith("/_HoldStrong"):
+          logging.log(logging.WARN, f"could not find DataTypeResult for: {dd_loc}")
+          dd_loc = loc_name_to_location(dd.properties.additionalProperties.typeLocation, dd.properties.additionalProperties.typeName)
+      if isinstance(dt, TypedObjectResult):
+        tor: TypedObjectResult = dt
+        if tor.properties.additionalProperties.kind == "pointer":
+          tor_name = tor.properties.additionalProperties.type.name
+          tor_loc = tor.properties.additionalProperties.type.location
+          tor_dt_loc = loc_name_to_location(tor_loc, tor_name)
+          dt = self.db_datatype[tor_dt_loc] if tor_dt_loc in self.db_datatype else None
+          dd_loc = loc_name_to_location(tor_loc, tor_name)
+          if dt:
+            logging.log(logging.INFO, f"found pointer DataTypeResult for: {dd_loc}")
 
-  # Used
-  def namespace_to_location(self, namespace: str):
-    return f"/{'/'.join(namespace.split('::'))}"
-  
-  def location_to_namespace(self, location: str):
-    while location[0] == "/":
-      location = location[1:]
-    return location.replace("/", "::")
+      ns = location_to_namespace(dd_loc)
+      
+      if ns in self.db_meta:
+        isClass = self.db_meta[ns].properties.additionalProperties.type == "class"
+      yield address, sym, dd, dt, isClass
 
   def find_all_by_location(self, location: str, name: str = None, recursive: bool = False, lookup_lsymbols: bool = False) -> Generator[BasicResult]:
     if location[0] != "/":
@@ -402,7 +412,7 @@ class Project(object):
     target = location
     if name:
       target = f"{location}/{name}"
-    target_namespace = self.location_to_namespace(target)
+    target_namespace = location_to_namespace(target)
     
     for key, value in self.db_datatype.items():
       if recursive and key.startswith(target):
@@ -457,7 +467,8 @@ class Project(object):
                       "DT.Enum": EnumResult,
                       "DT.Union": UnionResult,
                       "DT.Function": FunctionSignatureResult,
-                      "DT.Typedef": TypedefResult}
+                      "DT.Typedef": TypedefResult,
+                      "DT.TypedObject": TypedObjectResult}
 
   def find_all_by_location__deprecated(self, location: str, name: str = None, recursive: bool = False, lookup_lsymbols: bool = False) -> Generator[BasicResult]:
     looked_up_lsymbols = {}
