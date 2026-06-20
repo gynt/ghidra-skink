@@ -24,8 +24,8 @@ from skink.export.context import DEFAULT, Context, FileRules, TransformationRule
 from skink.architecture.common.sanitization import sanitize_calling_convention, sanitize_name
 from skink.architecture.common.includes import includes_for_type_name_location
 from skink.export.location import transform_location
-from skink.export.mangler.v3 import *
-from skink.export.mangler.v3 import _parse_type
+from skink.export.mangler import *
+from skink.export.mangler import _parse_type
 from skink.export.util import *
 from skink.export.mangler.typedefs import COMMON as TYPEDEFS_COMMON
 
