@@ -89,7 +89,7 @@ class Exporter(object):
     self.exclude_files_regex: List[re.Pattern] = [re.compile(excl) for excl in exclude_files_regex]
     self.inject_includes_in_files = inject_includes_in_files
 
-  def export_addresses(self, objects: Iterable[Any], ignore_switch_data = True, filter_labelled = False, include_address = lambda addr: True):
+  def export_addresses(self, objects: Iterable[BasicResult], ignore_switch_data = True, filter_labelled = False, include_address = lambda addr: True):
     if self.template_path != DEFAULT_TEMPLATE_PATH:
       raise Exception()
     anchor, *names = self.template_path.split(".")
@@ -100,14 +100,14 @@ class Exporter(object):
       addrs: Dict[int, List[str]] = {}
       
       for obj in objects:
-        ruleId = obj['ruleId']
+        ruleId = obj.ruleId
         if ruleId == "DEFINED_DATA":
-          for l in obj["locations"]:
-            addr = l["physicalLocation"]["address"]["absoluteAddress"]
+          for l in obj.locations:
+            addr = l.physicalLocation.address.absoluteAddress
             if addr == 0 or (include_address and not include_address(addr)):
               continue
-            name = obj["properties"]["additionalProperties"]["name"]
-            location = transform_location(obj["properties"]["additionalProperties"]["location"].replace("::", "/"), self.esci)
+            name = obj.properties.additionalProperties.name
+            location = transform_location(obj.properties.additionalProperties.location.replace("::", "/"), self.esci)
             if location != "/" and location.endswith("/"):
               location = location[:-1]
             if addr not in addrs:
@@ -116,12 +116,12 @@ class Exporter(object):
             if not comment in addrs[addr]:
               addrs[addr].append(comment)
         elif ruleId == "SYMBOLS":
-          for l in obj["locations"]:
-            addr = l["physicalLocation"]["address"]["absoluteAddress"]
+          for l in obj.locations:
+            addr = l.physicalLocation.address.absoluteAddress
             if addr == 0 or (include_address and not include_address(addr)):
               continue
-            name = obj["properties"]["additionalProperties"]["name"]
-            location = transform_location(obj["properties"]["additionalProperties"]["location"].replace("::", "/"), self.esci)
+            name = obj.properties.additionalProperties.name
+            location = transform_location(obj.properties.additionalProperties.location.replace("::", "/"), self.esci)
             if location.endswith("/"):
               location = location[:-1]
             if ignore_switch_data and (name.startswith("switch") or location.startswith("switch") or name.startswith("case_")):
@@ -135,13 +135,13 @@ class Exporter(object):
             if not comment in addrs[addr]:
               addrs[addr].append(comment)
         elif ruleId == "FUNCTIONS":
-          for l in obj["locations"]:
-            addr = l["physicalLocation"]["address"]["absoluteAddress"]
+          for l in obj.locations:
+            addr = l.physicalLocation.address.absoluteAddress
             if addr == 0 or (include_address and not include_address(addr)):
               continue
-            name = obj["properties"]["additionalProperties"]["name"]
-            if ignore_switch_data and (name.startswith("switch")):
-              continue
+            name = obj.properties.additionalProperties.name
+            #if ignore_switch_data and (name.startswith("switch")):
+              #continue
             if addr not in addrs:
               addrs[addr] = []
             comment = f"type: function"
