@@ -2,6 +2,7 @@ from jinja2 import Environment, FileSystemLoader
 from importlib.resources import path
 
 from collections.abc import Callable
+from typing import Collection
 from skink.architecture.functionsignatures import FunctionSignature
 from skink.architecture.namespaces.namespace import Namespace
 from skink.architecture.functions.function import Function
@@ -69,7 +70,8 @@ class Exporter(object):
                includes_exclude_regex: List[str] = [],
                type_mapping: Dict[Tuple[str, str], Tuple[str, str]] = {},
                inject_forwards_in_files: Dict[str, List[Tuple[str, str]]] = {},
-               exclude_files_regex: List[str] = []):
+               exclude_files_regex: List[str] = [],
+               inject_includes_in_files: Dict[str, List[str]] = {}):
     self.template_path = template_path
     self.binary_context = binary_context
     # self.transformation_rules = transformation_rules
@@ -85,6 +87,7 @@ class Exporter(object):
     self.expose_original_methods = expose_original_methods
     self.inject_forwards_in_files = inject_forwards_in_files
     self.exclude_files_regex: List[re.Pattern] = [re.compile(excl) for excl in exclude_files_regex]
+    self.inject_includes_in_files = inject_includes_in_files
 
   def export_addresses(self, objects: Iterable[Any], ignore_switch_data = True, filter_labelled = False, include_address = lambda addr: True):
     if self.template_path != DEFAULT_TEMPLATE_PATH:
@@ -158,6 +161,13 @@ class Exporter(object):
                             }),
                             no_touch=True)
 
+  def _inject_includes(self, includes: Collection[str], path: str):
+    if path in self.inject_includes_in_files:
+      for include in self.inject_includes_in_files[path]:
+        if include:
+          if include not in includes:
+            yield include
+
 
   def export_class_header(self, c: Class):
     if self.template_path != DEFAULT_TEMPLATE_PATH:
@@ -178,6 +188,7 @@ class Exporter(object):
       if dst in self.inject_forwards_in_files:
         for forwards, _ in self.inject_forwards_in_files[dst]:
           includes.append(forwards)
+      includes += self._inject_includes(includes, dst)
       includes += c.structure.includes(self.esci)
       for m in c.functions(self.esci):
         includes += list(m.includes(self.esci))
@@ -241,6 +252,8 @@ class Exporter(object):
       includes = OrderedSet[str]()
       for m in c.functions(self.esci):
         includes += list(m.includes(self.esci))
+      dst = f"{c.location(ctx=self.esci)}/{c.name}.cpp"
+      includes += self._inject_includes(includes, dst)
 
       methods = [{
         "returnType": f.return_type(ctx=self.esci)[0], 
@@ -260,7 +273,7 @@ class Exporter(object):
         "methods": methods,
       })
 
-      return ExportContents(path=f"{c.location(ctx=self.esci)}/{c.name}.cpp", contents=contents, no_touch=False)
+      return ExportContents(path=dst, contents=contents, no_touch=False)
   
   def export_class_body_method(self, c: Class, f: Function):
     if self.template_path != DEFAULT_TEMPLATE_PATH:
@@ -276,6 +289,9 @@ class Exporter(object):
       
       includes = OrderedSet[str]()
       includes += list(f.includes(self.esci))
+
+      dst = f"{c.location(ctx=self.esci)}/{c.name}/{sanitize_name(f_fixed_name)}.cpp"
+      includes += self._inject_includes(includes, dst)
 
       f_fixed_name = f.name.split("::")[-1]
 
@@ -297,7 +313,7 @@ class Exporter(object):
         "methods": methods,
       })
 
-      return ExportContents(path=f"{c.location(ctx=self.esci)}/{c.name}/{sanitize_name(f_fixed_name)}.cpp", contents=contents, no_touch=False)
+      return ExportContents(path=dst, contents=contents, no_touch=False)
    
   def export_class_header_funcfile(self, c: Class):
     if self.template_path != DEFAULT_TEMPLATE_PATH:
@@ -314,6 +330,10 @@ class Exporter(object):
       includes = OrderedSet[str]()
       for m in c.functions(self.esci):
         includes += list(m.includes(self.esci))
+
+      dst = f"{c.location(ctx=self.esci)}/{c.name}.func.hpp"
+      includes += self._inject_includes(includes, dst)
+      
 
       methods = [{
         "returnType": f.return_type(ctx=self.esci)[0], 
@@ -334,7 +354,7 @@ class Exporter(object):
         "methods": methods,
       })
 
-      return ExportContents(path=f"{c.location(ctx=self.esci)}/{c.name}.func.hpp", contents=contents, no_touch=False)
+      return ExportContents(path=dst, contents=contents, no_touch=False)
 
   def is_excluded_file(self, path: str):
     for excl in self.exclude_files_regex:
@@ -350,6 +370,7 @@ class Exporter(object):
     if dst in self.inject_forwards_in_files:
       for forward_path, contents in self.inject_forwards_in_files[dst]:
         forwards.append(ExportContents(path=forward_path, contents = contents, no_touch = True))
+
     if not export_bodies:
       return [
         self.export_class_header(c),
@@ -379,6 +400,7 @@ class Exporter(object):
       template = env.get_template("StructH.j2")
 
       includes = OrderedSet(s.includes(self.esci))
+      includes += self._inject_includes(includes, dst)
 
       fields =  list({"string": s, "offset": o, "length": l} for s, o, l in s.export_field_declarations_with_offsets_and_lengths(self.esci))
       
@@ -404,6 +426,9 @@ class Exporter(object):
 
       includes = OrderedSet(s.includes(self.esci))
 
+      dst = f"{s.location(ctx=self.esci)}/{s.name}.hpp"
+      includes += self._inject_includes(includes, dst)
+
       fields =  list({"string": s, "offset": o, "length": l} for s, o, l in s.export_field_declarations_with_offsets_and_lengths(self.esci))
       
       contents = template.render({
@@ -421,7 +446,7 @@ class Exporter(object):
         "ifdef_expose_original": self.esci.macro_rules.ifdef_expose_original,
       })
     
-      return ExportContents(path=f"{s.location(ctx=self.esci)}/{s.name}.hpp", contents=contents)
+      return ExportContents(path=dst, contents=contents)
 
 
   def export_union(self, u: Union):
@@ -436,6 +461,8 @@ class Exporter(object):
       template = env.get_template("UnionH.j2")
 
       includes = OrderedSet(u.includes(self.esci))
+
+      includes += self._inject_includes(includes, dst)
 
       fields =  list({"string": s, "offset": o, "length": l} for s, o, l in u.export_field_declarations_with_offsets_and_lengths(self.esci))
       
@@ -495,6 +522,7 @@ class Exporter(object):
           refloc = loc[:-len(ending)]
           break
       includes = [f"{refloc}.hpp"] # not necessary!
+      includes += self._inject_includes(includes, dst)
 
       name = e.er.properties.additionalProperties.name
       size = e.er.properties.additionalProperties.size
@@ -563,6 +591,8 @@ class Exporter(object):
       namespace_path = fs.namespace(ctx=self.esci)
       include_paths: OrderedSet[str] = OrderedSet[str]()
       include_paths += fs.includes(ctx=self.esci)
+
+      include_paths += self._inject_includes(include_paths, dst)
       
       returnTypeName, returnTypeLocation = fs.return_type(ctx=self.esci)
       callingConvention = sanitize_calling_convention(fs.fsr.properties.additionalProperties.callingConventionName)
@@ -620,6 +650,8 @@ class Exporter(object):
       namespace_path = td.namespace(ctx=self.esci)
       include_paths: OrderedSet[str] = OrderedSet[str]()
       include_paths += td.includes(ctx=self.esci)
+
+      include_paths += self._inject_includes(include_paths, dst)
       
       typeName, typeLocation = td.type(ctx=self.esci)
 
@@ -644,9 +676,13 @@ class Exporter(object):
       env = Environment(loader=FileSystemLoader(str(p)))
       template = env.get_template("NamespaceH.j2")
 
+      dst = f"{ns.location(ctx=self.esci)}.hpp"
+
       includes = OrderedSet[str]()
       for f in ns.functions:
         includes += list(f.includes(self.esci))
+      
+      includes += self._inject_includes(includes, dst)
 
       functions = [{
         "returnType": f.return_type(ctx=self.esci)[0], 
@@ -667,7 +703,7 @@ class Exporter(object):
       })
 
       # TODO: make Namespace fix location info just like classes
-      return ExportContents(path=f"{ns.location(ctx=self.esci)}.hpp", contents=contents)
+      return ExportContents(path=dst, contents=contents)
     
   def export_namespaced_functions_funcfile(self, ns: Namespace, reimplementation_unifier: str | None = None):
     if self.template_path != DEFAULT_TEMPLATE_PATH:
@@ -680,6 +716,9 @@ class Exporter(object):
       includes = OrderedSet[str]()
       for f in ns.functions:
         includes += list(f.includes(self.esci))
+
+      dst = f"{ns.location(ctx=self.esci)}.func.hpp"
+      includes += self._inject_includes(includes, dst)
 
       functions = [{
         "returnType": f.return_type(ctx=self.esci)[0], 
@@ -703,7 +742,7 @@ class Exporter(object):
       })
 
       # TODO: make Namespace fix location info just like classes
-      return ExportContents(path=f"{ns.location(ctx=self.esci)}.func.hpp", contents=contents)
+      return ExportContents(path=dst, contents=contents)
 
   def export_namespaced_functions_body(self, ns: Namespace):
     if self.template_path != DEFAULT_TEMPLATE_PATH:
@@ -716,6 +755,9 @@ class Exporter(object):
       includes = OrderedSet[str]()
       for f in ns.functions:
         includes += list(f.includes(self.esci))
+      
+      dst = f"{ns.location(ctx=self.esci)}.cpp"
+      includes += self._inject_includes(includes, dst)
 
       functions = [{
         "returnType": f.return_type(ctx=self.esci)[0], 
@@ -751,6 +793,9 @@ class Exporter(object):
       includes = OrderedSet[str]()
       includes += list(f.includes(self.esci))
 
+      dst = f"{ns.location(ctx=self.esci)}/{sanitize_name(f.name.split("::")[-1])}.cpp"
+      includes += self._inject_includes(includes, dst)
+
       functions = [{
         "returnType": f.return_type(ctx=self.esci)[0], 
         "name": sanitize_name(f.name.split("::")[-1]), # split if necessary (mistake in export)
@@ -772,7 +817,7 @@ class Exporter(object):
       })
 
       # TODO: make Namespace fix location info just like classes
-      return ExportContents(path=f"{ns.location(ctx=self.esci)}/{sanitize_name(f.name.split("::")[-1])}.cpp", contents=contents, no_touch=False)
+      return ExportContents(path=dst, contents=contents, no_touch=False)
 
 
   def export_namespace(self, ns: Namespace, export_bodies: bool = True, reimplementation_unifier: str | None = None) -> List[ExportContents]:
@@ -815,10 +860,14 @@ class Exporter(object):
       env = Environment(loader=FileSystemLoader(str(p)))
       template = env.get_template("DefinedDataH.j2")
 
+      dst = f"{destination}/{sanitize_name(name)}.hpp"
+
       type_name, type_loc = remap_type(type_name = defined_data.properties.additionalProperties.typeName, type_loc = defined_data.properties.additionalProperties.typeLocation, ctx=self.esci)
       includes = OrderedSet(includes_for_type_name_location(type_name,
                                                       type_loc,
                                                       ctx=self.esci))
+      includes += self._inject_includes(includes, dst)
+
       full_type_name = type_name
       if type_loc and type_loc != "/":
         if not type_loc.endswith(".hpp") and not type_loc.endswith(".h"):
@@ -840,7 +889,7 @@ class Exporter(object):
         "context": self.binary_context,
       })
     
-      return ExportContents(path=f"{destination}/{sanitize_name(name)}.hpp", contents=contents)
+      return ExportContents(path=dst, contents=contents)
 
   def export_symbols(self, i: Iterable[Tuple[int, str, DefinedDataResult]], destination: str, namespace:str):
     return [self.export_symbol(address, name, defined_data, destination, namespace) for address, name, defined_data in i]
