@@ -14,7 +14,7 @@ typedef enum {{ name }}
 {
 
     {% for field in fields -%}
-    {{ field.name }} = {{ field.value }}{{ ',' if not loop.last }} // {{ '0x%08X' % field.value }}
+    {{ field.name }} = {{ field.value if not hexvalue else ('0x%08X' % field.value) }}{{ ',' if not loop.last }} // {{ '0x%08X' % field.value }}
     {% endfor %}
 
 } {{ name }};

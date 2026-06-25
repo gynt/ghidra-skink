@@ -478,7 +478,7 @@ class Exporter(object):
     
       return ExportContents(path=dst, contents=contents)
 
-  def export_enum(self, e: Enum):
+  def export_enum(self, e: Enum, hexvalue: bool = False):
     if self.template_path != DEFAULT_TEMPLATE_PATH:
       raise Exception()
     dst = f"{e.location(ctx=self.esci)}/{e.name}.hpp"
@@ -500,6 +500,7 @@ class Exporter(object):
         "name": sanitize_name(name),
         "type": type,
         "fields": fields,
+        "hexvalue": hexvalue,
       })
       return ExportContents(path=dst, contents=contents)
 
