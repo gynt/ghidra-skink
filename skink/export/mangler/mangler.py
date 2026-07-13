@@ -35,20 +35,22 @@ _SMALL_TABLE = ["A", "0", "1", "2", "3", "4", "5", "6", "7", "8",
                 "9", "L", "M", "N", "O", "P"]
 
 PRIMITIVES = {
-    "void":          "X",
-    "char":          "D",
-    "signed char":   "C",
-    "unsigned char": "E",
-    "short":         "F",
+    "void":           "X",
+    "char":           "D",
+    "signed char":    "C",
+    "unsigned char":  "E",
+    "short":          "F",
     "unsigned short": "G",
-    "int":           "H",
-    "unsigned int":  "I",
-    "long":          "J",
-    "unsigned long": "K",
-    "float":         "M",
-    "double":        "N",
+    "int":            "H",
+    "BOOL":           "H",
+    "unsigned int":   "I",
+    "long":           "J",
+    "unsigned long":  "K",
+    "float":          "M",
+    "double":         "N",
     "bool":          "_N",
     "wchar_t":       "_W",
+    "WCHAR":         "_W",
 }
 
 # ---------------------------------------------------------------------------
