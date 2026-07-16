@@ -80,6 +80,7 @@ class Exporter(object):
     self.esci.include.remap += includes_remapping
     self.esci.include.exclude += includes_exclude_regex
     self.esci.include.exclude_use_regex = True
+    # self.esci.class_rules.export_constructor = True # we handle this ourselves...
     for old, new in type_mapping.items():
       self.esci.type_rules.type_mapping[old] = new
     # self.escsf: Context = EXPORT_SETTINGS_CLASS_SHIM_FILENAME.copy() # type: ignore
@@ -101,7 +102,7 @@ class Exporter(object):
       
       for obj in objects:
         ruleId = obj.ruleId
-        if ruleId == "DEFINED_DATA":
+        if ruleId == "DEFINED_DATA" and isinstance(obj, DefinedDataResult):
           for l in obj.locations:
             addr = l.physicalLocation.address.absoluteAddress
             if addr == 0 or (include_address and not include_address(addr)):
@@ -115,7 +116,7 @@ class Exporter(object):
             comment = f"type: {location}/{name}"
             if not comment in addrs[addr]:
               addrs[addr].append(comment)
-        elif ruleId == "SYMBOLS":
+        elif ruleId == "SYMBOLS" and isinstance(obj, SymbolResult):
           for l in obj.locations:
             addr = l.physicalLocation.address.absoluteAddress
             if addr == 0 or (include_address and not include_address(addr)):
@@ -134,7 +135,7 @@ class Exporter(object):
             comment = f"location: {location}"
             if not comment in addrs[addr]:
               addrs[addr].append(comment)
-        elif ruleId == "FUNCTIONS":
+        elif ruleId == "FUNCTIONS" and isinstance(obj, FunctionResult):
           for l in obj.locations:
             addr = l.physicalLocation.address.absoluteAddress
             if addr == 0 or (include_address and not include_address(addr)):
@@ -290,10 +291,9 @@ class Exporter(object):
       includes = OrderedSet[str]()
       includes += list(f.includes(self.esci))
 
+      f_fixed_name = f.name.split("::")[-1]
       dst = f"{c.location(ctx=self.esci)}/{c.name}/{sanitize_name(f_fixed_name)}.cpp"
       includes += self._inject_includes(includes, dst)
-
-      f_fixed_name = f.name.split("::")[-1]
 
       methods = [{
         "returnType": f.return_type(ctx=self.esci)[0], 
@@ -334,6 +334,9 @@ class Exporter(object):
       dst = f"{c.location(ctx=self.esci)}/{c.name}.func.hpp"
       includes += self._inject_includes(includes, dst)
       
+      funcs = list(c.functions(self.esci))
+      if c.constructor and self.esci.class_rules.export_constructor:
+        funcs.append(c.constructor)
 
       methods = [{
         "returnType": f.return_type(ctx=self.esci)[0], 
@@ -342,7 +345,7 @@ class Exporter(object):
         "parameter_names": [f"{sanitize_name(name)}" for type_name, name in f.parameters(ctx=self.esci)],
         "parameter_types": [f"{type_name}" for type_name, name in f.parameters(ctx=self.esci)] + (["..."] * f.has_varargs()),
         "address": f.f.locations[0].physicalLocation.address.absoluteAddress,
-      } for f in c.functions(self.esci)]
+      } for f in funcs]
 
       contents = template.render({
         "context": self.binary_context,
@@ -352,6 +355,14 @@ class Exporter(object):
         "class_name": f"{c.name}",
         "class_size": c.structure.s.properties.additionalProperties.size,
         "methods": methods,
+        "constructor": {
+          "returnType": c.constructor.f.properties.additionalProperties.ret.typeName, 
+          "name": sanitize_name(c.constructor.name.split("::")[-1]), # split if necessary (mistake in export)
+          "parameters": [f"{param.typeName} {sanitize_name(param.name)}" for param in c.constructor.f.properties.additionalProperties.params if param.name != "this"],
+          "parameter_names": [f"{sanitize_name(name)}" for type_name, name in c.constructor.parameters(ctx=self.esci)],
+          "parameter_types": [f"{type_name}" for type_name, name in c.constructor.parameters(ctx=self.esci)] + (["..."] * c.constructor.has_varargs()),
+          "address": c.constructor.f.locations[0].physicalLocation.address.absoluteAddress,
+        } if c.constructor else None,
       })
 
       return ExportContents(path=dst, contents=contents, no_touch=False)

@@ -12,6 +12,13 @@
 
 {{ usings(using_paths) }}
 
+
+{% if constructor %}
+// Constructor
+{% set addr = 'Address::' + context.abbreviation + '_' + context.hash + '_' + ('0x%08X' % constructor.address ) %}
+MACRO_FUNCTION_RESOLVER({{ constructor.returnType }} ({{ class_name }}::*)({{ constructor.parameter_types | join(', ') }}), false, {{ addr }}, &{{ class_name }}::{{ constructor.name }}) {{ constructor.name }};
+{% endif %}
+
 {% for method in methods %}
 {% set addr = 'Address::' + context.abbreviation + '_' + context.hash + '_' + ('0x%08X' % method.address ) %}
 MACRO_FUNCTION_RESOLVER({{ method.returnType }} ({{ class_name }}::*)({{ method.parameter_types | join(', ') }}), false, {{ addr }}, &{{ class_name }}::{{ method.name }}) {{ method.name }};
