@@ -22,5 +22,6 @@ COMMON = {
     "undefined1": "unsigned char",
     "undefined": "unsigned char",
     "pointer": "void *",
+    "BOOL": "int",
     #"GUID": "_GUID",
 }

@@ -893,6 +893,11 @@ class Exporter(object):
         part_array = full_type_name[full_type_name.index("["):]
         full_type_name = f"{part_name} {part_array}"
 
+      m = re.match("^([a-zA-Z0-9_]+)(.*)$", full_type_name)
+      if m:
+        if m[1] in TYPEDEFS_COMMON:
+          full_type_name = f"{TYPEDEFS_COMMON[m[1]]}{m[2]}"
+
       contents = template.render({
         "use_pch": False,
         "include_paths": sorted(includes),
@@ -901,7 +906,7 @@ class Exporter(object):
         "name": name,
         "type_name": type_name,
         "full_type_name": full_type_name,
-        "create_global_annotation_helper": len(includes) > 0,
+        # "create_global_annotation_helper": len(includes) > 0,
         "address": address,
         "context": self.binary_context,
       })
