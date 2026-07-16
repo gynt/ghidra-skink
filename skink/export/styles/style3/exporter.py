@@ -877,6 +877,11 @@ class Exporter(object):
             if not type_loc.endswith(".hpp") and not type_loc.endswith(".h"):
               full_type_name = f"{type_loc.replace('/', "::")}::{type_name}"
 
+      if "[" in full_type_name:
+        part_name = full_type_name[:full_type_name.index("[")]
+        part_array = full_type_name[full_type_name.index("["):]
+        full_type_name = f"{part_name} {part_array}"
+
       contents = template.render({
         "use_pch": False,
         "include_paths": sorted(includes),

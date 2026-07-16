@@ -50,5 +50,6 @@ class Field(object):
 
 
         if self.f.type.kind == 'pointer' and "*" not in tname:
-            type_name += " *"
+            if tname != "pointer":
+                type_name += " *"
         return f"{type_name} {name}{eol}"
