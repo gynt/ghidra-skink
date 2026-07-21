@@ -1,6 +1,6 @@
 import logging
 from dataclasses import dataclass, field
-from typing import Dict, List, Iterable
+from typing import Dict, List, Iterable, Set
 
 from dataclasses_json import dataclass_json
 from skink.architecture.functions.function import Function
@@ -26,6 +26,7 @@ class PreClass:
   structure: DataTypeResult = None
   singleton: DefinedDataResult = None
   singleton_symbol: SymbolResult = None
+  function_names: Set[str] = field(default_factory=set)
 
 
 def collect_classes(results: Iterable[BasicResult]):
@@ -49,11 +50,14 @@ def collect_classes(results: Iterable[BasicResult]):
           continue
         ddr_db[addr] = ddr
     elif isinstance(result, FunctionResult):
-      ap: AdditionalFunctionProperties = result.properties.additionalProperties
-      if ap.namespaceIsClass:
-        ns = ap.namespace
+      afp: AdditionalFunctionProperties = result.properties.additionalProperties
+      if afp.namespaceIsClass:
+        ns = afp.namespace
         if not ns in classes:
           classes[ns] = PreClass(ns)
+        if afp.name in classes[ns].function_names:
+          raise Exception(f"class contains multiple methods of the same name: {afp}")
+        classes[ns].function_names.add(afp.name)
         classes[ns].functions.append(result)
     elif isinstance(result, DataTypeResult):
       ap: AdditionalDataTypeProperties = result.properties.additionalProperties
@@ -95,6 +99,7 @@ def collect_classes_from_export(se: SarifExport):
 class PreNamespace:
   namespace: str
   functions: List[FunctionResult] = field(default_factory=list)
+  function_names: Set[str] = field(default_factory=set)
 
 def collect_namespaced_functions(results):
   namespaces: Dict[str, PreNamespace] = {}
@@ -105,7 +110,11 @@ def collect_namespaced_functions(results):
         ns = ap.namespace
         if not ns in namespaces:
           namespaces[ns] = PreNamespace(ns)
+        if ap.name in namespaces[ns].function_names:
+          raise Exception(f"following function already present in namespace: {ap}")
+        namespaces[ns].function_names.add(ap.name)
         namespaces[ns].functions.append(result)
+        
   for ns, prenamespace in namespaces.items():
     if not prenamespace.functions:
       continue
