@@ -864,7 +864,7 @@ class Exporter(object):
         ExportContents(path=f"{dst_folder}/common.hpp", contents=env.get_template("Helpers_Common.j2").render()),
       ]
   
-  def export_symbol(self, address: int, name: str, defined_data: DefinedDataResult, destination: str, namespace: str):
+  def export_symbol(self, address: int, name: str, defined_data: DefinedDataResult, enum_type_name_override: str, destination: str, namespace: str):
     if self.template_path != DEFAULT_TEMPLATE_PATH:
       raise Exception()
     anchor, *names = self.template_path.split(".")
@@ -875,6 +875,7 @@ class Exporter(object):
       dst = f"{destination}/{sanitize_name(name)}.hpp"
 
       type_name, type_loc = remap_type(type_name = defined_data.properties.additionalProperties.typeName, type_loc = defined_data.properties.additionalProperties.typeLocation, ctx=self.esci)
+      
       includes = OrderedSet(includes_for_type_name_location(type_name,
                                                       type_loc,
                                                       ctx=self.esci))
@@ -905,7 +906,7 @@ class Exporter(object):
         "namespace_path": namespace,
         "name": name,
         "type_name": type_name,
-        "full_type_name": full_type_name,
+        "full_type_name": full_type_name if not enum_type_name_override else enum_type_name_override,
         # "create_global_annotation_helper": len(includes) > 0,
         "address": address,
         "context": self.binary_context,
@@ -913,8 +914,8 @@ class Exporter(object):
     
       return ExportContents(path=dst, contents=contents)
 
-  def export_symbols(self, i: Iterable[Tuple[int, str, DefinedDataResult]], destination: str, namespace:str):
-    return [self.export_symbol(address, name, defined_data, destination, namespace) for address, name, defined_data in i]
+  def export_symbols(self, i: Iterable[Tuple[int, str, DefinedDataResult, str]], destination: str, namespace:str):
+    return [self.export_symbol(address, name, defined_data, enum_type_name_override, destination, namespace) for address, name, defined_data, enum_type_name_override in i]
 
   def export_symbols_as_assembly(self, 
                                  i: Iterable[Tuple[int, str, DefinedDataResult, BasicDataTypeResult | None, bool]], 
