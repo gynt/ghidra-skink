@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Dict, List, Tuple
+from typing import Dict, Iterable, List, Tuple
 from warnings import deprecated
 
 from dataclasses_json import dataclass_json, DataClassJsonMixin
@@ -47,6 +47,7 @@ class ClassRules(AbstractContext):
 class FunctionRules(AbstractContext):
     include_convention: bool = True
     include_this: bool = True
+    zap_parameter_indices: Dict[int, Iterable[int]] = field(default_factory=dict)
 
     def copy(self) -> "FunctionRules":
         return self.from_json(self.to_json())

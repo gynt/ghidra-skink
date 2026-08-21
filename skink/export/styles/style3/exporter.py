@@ -71,7 +71,8 @@ class Exporter(object):
                type_mapping: Dict[Tuple[str, str], Tuple[str, str]] = {},
                inject_forwards_in_files: Dict[str, List[Tuple[str, str]]] = {},
                exclude_files_regex: List[str] = [],
-               inject_includes_in_files: Dict[str, List[str]] = {}):
+               inject_includes_in_files: Dict[str, List[str]] = {},
+               zap_parameter_indices: Dict[int, Iterable[int]] = {}):
     self.template_path = template_path
     self.binary_context = binary_context
     # self.transformation_rules = transformation_rules
@@ -80,6 +81,7 @@ class Exporter(object):
     self.esci.include.remap += includes_remapping
     self.esci.include.exclude += includes_exclude_regex
     self.esci.include.exclude_use_regex = True
+    self.esci.function_rules.zap_parameter_indices.update(zap_parameter_indices)
     # self.esci.class_rules.export_constructor = True # we handle this ourselves...
     for old, new in type_mapping.items():
       self.esci.type_rules.type_mapping[old] = new
@@ -89,6 +91,7 @@ class Exporter(object):
     self.inject_forwards_in_files = inject_forwards_in_files
     self.exclude_files_regex: List[re.Pattern] = [re.compile(excl) for excl in exclude_files_regex]
     self.inject_includes_in_files = inject_includes_in_files
+    self.zap_parameter_indices = zap_parameter_indices
 
   def export_addresses(self, objects: Iterable[BasicResult], ignore_switch_data = True, filter_labelled = False, include_address = lambda addr: True):
     if self.template_path != DEFAULT_TEMPLATE_PATH:

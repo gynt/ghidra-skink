@@ -13,7 +13,11 @@ class Function(object):
         self.name = self.f.properties.additionalProperties.name
 
     def this_parameter_type(self, ctx = DEFAULT) -> Tuple[str, str] | None:
-        for param in self.f.properties.additionalProperties.params:
+        addr = self.f.locations[0].physicalLocation.address.absoluteAddress
+        for i, param in enumerate(self.f.properties.additionalProperties.params):
+            if addr in ctx.function_rules.zap_parameter_indices:
+                if i in ctx.function_rules.zap_parameter_indices[addr]:
+                    continue
             is_class_parameter = param.name == "this"
             if is_class_parameter:
                 return remap_type(param.formalTypeName, param.formalTypeLocation, ctx=ctx)
@@ -26,7 +30,11 @@ class Function(object):
         return self.f.properties.additionalProperties.hasVarArgs
 
     def parameter_types(self, ctx = DEFAULT) -> Generator[Tuple[str, str]]:
-        for param in self.f.properties.additionalProperties.params:
+        addr = self.f.locations[0].physicalLocation.address.absoluteAddress
+        for i, param in enumerate(self.f.properties.additionalProperties.params):
+            if addr in ctx.function_rules.zap_parameter_indices:
+                if i in ctx.function_rules.zap_parameter_indices[addr]:
+                    continue
             is_class_parameter = param.name == "this"
             if is_class_parameter:
                 continue
@@ -34,7 +42,11 @@ class Function(object):
                 yield remap_type(param.formalTypeName, param.formalTypeLocation, ctx=ctx)
 
     def parameters(self, ctx = DEFAULT) -> Generator[Tuple[str, str]]:
-        for param in self.f.properties.additionalProperties.params:
+        addr = self.f.locations[0].physicalLocation.address.absoluteAddress
+        for i, param in enumerate(self.f.properties.additionalProperties.params):
+            if addr in ctx.function_rules.zap_parameter_indices:
+                if i in ctx.function_rules.zap_parameter_indices[addr]:
+                    continue
             is_class_parameter = param.name == "this"
             if is_class_parameter:
                 continue
