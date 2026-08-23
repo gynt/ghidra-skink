@@ -210,7 +210,7 @@ class Exporter(object):
       methods = [{
         "returnType": f.return_type(ctx=self.esci)[0], 
         "name": sanitize_name(f.name.split("::")[-1]), # split if necessary (mistake in export)
-        "parameters": [f"{type_name} {sanitize_name(name)}" for type_name, name in f.parameters(ctx=self.esci)] + (["va_list args"] * f.has_varargs()),
+        "parameters": [f"{type_name} {sanitize_name(name)}" for type_name, name in f.parameters(ctx=self.esci)] + (["..."] * f.has_varargs()),
         "address": f.f.locations[0].physicalLocation.address.absoluteAddress,
       } for f in c.functions(self.esci)]
 
@@ -262,8 +262,8 @@ class Exporter(object):
       methods = [{
         "returnType": f.return_type(ctx=self.esci)[0], 
         "name": sanitize_name(f.name.split("::")[-1]), # split if necessary (mistake in export)
-        "parameters": [f"{type_name} {sanitize_name(name)}" for type_name, name in f.parameters(ctx=self.esci)] + (["va_list args"] * f.has_varargs()),
-        "parameter_names": [f"{sanitize_name(name)}" for type_name, name in f.parameters(ctx=self.esci)] + (["args"] * f.has_varargs()),
+        "parameters": [f"{type_name} {sanitize_name(name)}" for type_name, name in f.parameters(ctx=self.esci)] + (["..."] * f.has_varargs()),
+        "parameter_names": [f"{sanitize_name(name)}" for type_name, name in f.parameters(ctx=self.esci)] + (["..."] * f.has_varargs()),
         "address": f.f.locations[0].physicalLocation.address.absoluteAddress,
       } for f in c.functions(self.esci)]
 
@@ -344,9 +344,9 @@ class Exporter(object):
       methods = [{
         "returnType": f.return_type(ctx=self.esci)[0], 
         "name": sanitize_name(f.name.split("::")[-1]), # split if necessary (mistake in export)
-        "parameters": [f"{type_name} {sanitize_name(name)}" for type_name, name in f.parameters(ctx=self.esci)] + (["va_list args"] * f.has_varargs()),
-        "parameter_names": [f"{sanitize_name(name)}" for type_name, name in f.parameters(ctx=self.esci)] + (["args"] * f.has_varargs()),
-        "parameter_types": [f"{type_name}" for type_name, name in f.parameters(ctx=self.esci)] + (["va_list"] * f.has_varargs()),
+        "parameters": [f"{type_name} {sanitize_name(name)}" for type_name, name in f.parameters(ctx=self.esci)] + (["..."] * f.has_varargs()),
+        "parameter_names": [f"{sanitize_name(name)}" for type_name, name in f.parameters(ctx=self.esci)],
+        "parameter_types": [f"{type_name}" for type_name, name in f.parameters(ctx=self.esci)] + (["..."] * f.has_varargs()),
         "address": f.f.locations[0].physicalLocation.address.absoluteAddress,
       } for f in funcs]
 
@@ -363,7 +363,7 @@ class Exporter(object):
           "name": sanitize_name(c.constructor.name.split("::")[-1]), # split if necessary (mistake in export)
           "parameters": [f"{param.typeName} {sanitize_name(param.name)}" for param in c.constructor.f.properties.additionalProperties.params if param.name != "this"],
           "parameter_names": [f"{sanitize_name(name)}" for type_name, name in c.constructor.parameters(ctx=self.esci)],
-          "parameter_types": [f"{type_name}" for type_name, name in c.constructor.parameters(ctx=self.esci)] + (["va_list"] * c.constructor.has_varargs()),
+          "parameter_types": [f"{type_name}" for type_name, name in c.constructor.parameters(ctx=self.esci)] + (["..."] * c.constructor.has_varargs()),
           "address": c.constructor.f.locations[0].physicalLocation.address.absoluteAddress,
         } if c.constructor else None,
       })
@@ -702,7 +702,7 @@ class Exporter(object):
       functions = [{
         "returnType": f.return_type(ctx=self.esci)[0], 
         "name": sanitize_name(f.name.split("::")[-1]), # split if necessary (mistake in export)
-        "parameters": [f"{type_name} {sanitize_name(name)}" for type_name, name in f.parameters(ctx=self.esci)] + (["va_list args"] * f.has_varargs()),
+        "parameters": [f"{type_name} {sanitize_name(name)}" for type_name, name in f.parameters(ctx=self.esci)] + (["..."] * f.has_varargs()),
         "callingConvention": sanitize_calling_convention(f.f.properties.additionalProperties.callingConvention),
         "address": f.f.locations[0].physicalLocation.address.absoluteAddress,
       } for f in ns.functions]
@@ -738,7 +738,7 @@ class Exporter(object):
       functions = [{
         "returnType": f.return_type(ctx=self.esci)[0], 
         "name": sanitize_name(f.name.split("::")[-1]), # split if necessary (mistake in export)
-        "parameters": [f"{type_name} {sanitize_name(name)}" for type_name, name in f.parameters(ctx=self.esci)] + (["va_list args"] * f.has_varargs()),
+        "parameters": [f"{type_name} {sanitize_name(name)}" for type_name, name in f.parameters(ctx=self.esci)] + (["..."] * f.has_varargs()),
         "callingConvention": sanitize_calling_convention(f.f.properties.additionalProperties.callingConvention),
         "address": f.f.locations[0].physicalLocation.address.absoluteAddress,
         "reimplemented": reimplementation_unifier if reimplementation_unifier else "false",
