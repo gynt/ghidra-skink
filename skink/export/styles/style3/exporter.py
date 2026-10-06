@@ -550,7 +550,7 @@ class Exporter(object):
         type = "short"
         type_size = 2
       elif size == 1:
-        type = "byte"
+        type = "char"
         type_size = 1
       contents = template1.render({
         "include_paths": includes,

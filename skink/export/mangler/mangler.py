@@ -43,6 +43,7 @@ PRIMITIVES = {
     "unsigned short": "G",
     "int":            "H",
     "BOOL":           "H",
+    "BOOLEnum":           "H",
     "unsigned int":   "I",
     "long":           "J",
     "unsigned long":  "K",
