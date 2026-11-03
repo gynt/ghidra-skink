@@ -269,6 +269,11 @@ def _parse_type(s: str) -> tuple:
         tag = {'struct': 'U', 'class': 'V', 'union': 'T'}[kind]
         return ('user', tag, _split_scoped(name))
 
+    # --- lenient mode for primitives
+    sP = find_lenient_primitive(s)
+    if sP:
+        return ('prim', sP)
+
     # ---- bare class/struct name without keyword (shouldn't appear in these decls, but handle it)
     raise ValueError(f"cannot parse type: {s!r}")
 
