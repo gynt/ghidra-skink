@@ -54,6 +54,12 @@ PRIMITIVES = {
     "WCHAR":         "_W",
 }
 
+def find_lenient_primitive(s: str):
+    for k, v in PRIMITIVES.items():
+        if s.endswith(k.capitalize()):
+            return k
+    return None
+
 # ---------------------------------------------------------------------------
 # Core number encoding
 # ---------------------------------------------------------------------------
@@ -250,6 +256,11 @@ def _parse_type(s: str) -> tuple:
     # ---- primitives
     if s in PRIMITIVES:
         return ('prim', s)
+    
+    # --- lenient mode
+    sP = find_lenient_primitive(s)
+    if sP:
+        return ('prim', sP)
 
     # ---- user-defined type:  "struct Foo", "class Bar", "union Baz"
     m2 = re.match(r'^(struct|class|union)\s+(.+)$', s)
