@@ -961,11 +961,16 @@ class Exporter(object):
           type_loc = "/"
           prefix = ""
 
-        if type_name == "GUID":
+        if type_name == "GUID" or type_name == "_GUID":
           primitive = True
           type_name = "_GUID"
           type_loc = "/"
-          prefix = "struct "          
+          prefix = "struct "
+        if type_name == "LARGE_INTEGER" or type_name == "_LARGE_INTEGER":
+          primitive = True
+          type_name = "_LARGE_INTEGER"
+          type_loc = "/"
+          prefix = "struct "
 
         if prefix:
           primitive = False
