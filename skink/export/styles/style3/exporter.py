@@ -970,7 +970,7 @@ class Exporter(object):
           primitive = True
           type_name = "_LARGE_INTEGER"
           type_loc = "/"
-          prefix = "struct "
+          prefix = "union "
 
         if prefix:
           primitive = False
