@@ -77,6 +77,18 @@ class Project(object):
     self.counts = {'total': 0, 'member': 0, 'class': 0, 'namespace': 0, 'unknown': 0}
     self.cache_raw_objects = cache_objects
 
+  @staticmethod
+  def from_gzf(path: str | pathlib.Path) -> "Project":
+    """A project read from a Ghidra .gzf file with pyghidra (pip install "skink[ghidra]"), no SARIF export needed."""
+    from skink.ghidra import read_gzf
+    return Project(records=read_gzf(path))
+
+  @staticmethod
+  def from_program(program) -> "Project":
+    """A project read from a Ghidra Program, e.g. currentProgram in a pyghidra script."""
+    from skink.ghidra import read_program
+    return Project(records=read_program(program))
+
   def save_project(self, path: str | pathlib.Path):
     items = list(obj for obj in self.yield_raw_objects())
     pathlib.Path(path).write_text(json.dumps({
