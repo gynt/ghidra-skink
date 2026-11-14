@@ -6,6 +6,7 @@ from .args import parser
 from skink.cli.create import main_create
 from skink.cli.export import main_export
 from skink.cli.sarif import main_sarif
+from skink.cli.ghidra import main_ghidra
 from skink.cli.settings import main_settings
 from skink.cli.preprocess import main_preprocess
 
@@ -34,4 +35,6 @@ def main_cli():
     return main_settings(args)
   if args.subcommand == "sarif":
     return main_sarif(args)
+  if args.subcommand == "ghidra":
+    return main_ghidra(args)
   raise Exception(f"unimplemented subcommand {args.subcommand}")

@@ -25,6 +25,8 @@ def main_sarif(args):
   input_path = pathlib.Path(args.input)
   if args.input_format == "sarif":
     project = Project(path=input_path)
+  elif args.input_format == "gzf":
+    project = Project.from_gzf(input_path)
   else:
     raw_objs = json.loads(input_path.read_text())
     project = Project(objects = raw_objs)

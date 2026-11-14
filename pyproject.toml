@@ -14,6 +14,9 @@ requires-python = ">= 3.12"
 description = "Skink: a Python script to export Ghidra functions and structures to C and C++ header files"
 license = "AGPL-3.0-or-later"
 
+[project.optional-dependencies]
+ghidra = ["pyghidra"]
+
 [project.scripts]
 skink = "skink.cli.main:main_cli"
 
