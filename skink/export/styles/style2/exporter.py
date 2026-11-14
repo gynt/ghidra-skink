@@ -1,4 +1,4 @@
-from jinja2 import Environment, FileSystemLoader
+from skink.export.styles.templates import template_environment
 from importlib.resources import path
 
 from skink.architecture.functionsignatures import FunctionSignature
@@ -69,7 +69,7 @@ class Exporter(object):
       raise Exception()
     anchor, *names = self.template_path.split(".")
     with path(anchor, *names) as p:
-      env = Environment(loader=FileSystemLoader(str(p)))
+      env = template_environment(p)
       template = env.get_template("AddressesH.j2")
 
       addresses: OrderedSet[int] = OrderedSet()
@@ -99,7 +99,7 @@ class Exporter(object):
       raise Exception()
     anchor, *names = self.template_path.split(".")
     with path(anchor, *names) as p:
-      env = Environment(loader=FileSystemLoader(str(p)))
+      env = template_environment(p)
       template = env.get_template("ClassH.j2")
 
       if not c.structure:
@@ -149,7 +149,7 @@ class Exporter(object):
       raise Exception()
     anchor, *names = self.template_path.split(".")
     with path(anchor, *names) as p:
-      env = Environment(loader=FileSystemLoader(str(p)))
+      env = template_environment(p)
       template = env.get_template("ClassCPP.j2")
 
 
@@ -185,7 +185,7 @@ class Exporter(object):
       raise Exception()
     anchor, *names = self.template_path.split(".")
     with path(anchor, *names) as p:
-      env = Environment(loader=FileSystemLoader(str(p)))
+      env = template_environment(p)
       template = env.get_template("ClassCPP.j2")
 
 
@@ -234,7 +234,7 @@ class Exporter(object):
       raise Exception()
     anchor, *names = self.template_path.split(".")
     with path(anchor, *names) as p:
-      env = Environment(loader=FileSystemLoader(str(p)))
+      env = template_environment(p)
       template = env.get_template("StructH.j2")
 
       includes = OrderedSet(s.includes(self.esci))
@@ -258,7 +258,7 @@ class Exporter(object):
       raise Exception()
     anchor, *names = self.template_path.split(".")
     with path(anchor, *names) as p:
-      env = Environment(loader=FileSystemLoader(str(p)))
+      env = template_environment(p)
       template = env.get_template("StructH.j2")
 
       includes = OrderedSet(s.includes(self.esci))
@@ -288,7 +288,7 @@ class Exporter(object):
       raise Exception()
     anchor, *names = self.template_path.split(".")
     with path(anchor, *names) as p:
-      env = Environment(loader=FileSystemLoader(str(p)))
+      env = template_environment(p)
       template = env.get_template("UnionH.j2")
 
       includes = OrderedSet(u.includes(self.esci))
@@ -312,7 +312,7 @@ class Exporter(object):
       raise Exception()
     anchor, *names = self.template_path.split(".")
     with path(anchor, *names) as p:
-      env = Environment(loader=FileSystemLoader(str(p)))
+      env = template_environment(p)
       template1 = env.get_template("EnumH.j2")
 
       namespace_path = e.namespace(ctx=self.esci)
@@ -335,7 +335,7 @@ class Exporter(object):
       raise Exception()
     anchor, *names = self.template_path.split(".")
     with path(anchor, *names) as p:
-      env = Environment(loader=FileSystemLoader(str(p)))
+      env = template_environment(p)
       template1 = env.get_template("SizedEnum_CPP03_H.j2")
 
       namespace_path = e.namespace(ctx=self.esci)
@@ -365,7 +365,7 @@ class Exporter(object):
       raise Exception()
     anchor, *names = self.template_path.split(".")
     with path(anchor, *names) as p:
-      env = Environment(loader=FileSystemLoader(str(p)))
+      env = template_environment(p)
       template1 = env.get_template("FunctionSignatureH.j2")
 
       namespace_path = fs.namespace(ctx=self.esci)
@@ -398,7 +398,7 @@ class Exporter(object):
       raise Exception()
     anchor, *names = self.template_path.split(".")
     with path(anchor, *names) as p:
-      env = Environment(loader=FileSystemLoader(str(p)))
+      env = template_environment(p)
       template1 = env.get_template("TypedefH.j2")
 
       namespace_path = td.namespace(ctx=self.esci)
@@ -428,7 +428,7 @@ class Exporter(object):
       raise Exception()
     anchor, *names = self.template_path.split(".")
     with path(anchor, *names) as p:
-      env = Environment(loader=FileSystemLoader(str(p)))
+      env = template_environment(p)
       template = env.get_template("NamespaceH.j2")
 
       includes = OrderedSet[str]()
@@ -462,7 +462,7 @@ class Exporter(object):
       raise Exception()
     anchor, *names = self.template_path.split(".")
     with path(anchor, *names) as p:
-      env = Environment(loader=FileSystemLoader(str(p)))
+      env = template_environment(p)
       template = env.get_template("NamespaceCPP.j2")
 
       includes = OrderedSet[str]()
@@ -497,7 +497,7 @@ class Exporter(object):
       raise Exception()
     anchor, *names = self.template_path.split(".")
     with path(anchor, *names) as p:
-      env = Environment(loader=FileSystemLoader(str(p)))
+      env = template_environment(p)
       template = env.get_template("NamespaceCPP.j2")
 
       includes = OrderedSet[str]()
@@ -543,7 +543,7 @@ class Exporter(object):
       raise Exception()
     anchor, *names = self.template_path.split(".")
     with path(anchor, *names) as p:
-      env = Environment(loader=FileSystemLoader(str(p)))
+      env = template_environment(p)
       return [
         ExportContents(path=f"{dst_folder}/assertion.h", contents=env.get_template("Helpers_Assertion.j2").render()),
         ExportContents(path=f"{dst_folder}/interfacing/DataReference.h", contents=env.get_template("Helpers_DataReference.j2").render()),
