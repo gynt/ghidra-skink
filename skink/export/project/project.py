@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Dict, Generator, Iterable, List, Set
+from typing import Any, Dict, Generator, Iterable, List, Set, Tuple
 import ijson, json
 
 from skink.sarif.BasicResult import BasicResult
@@ -33,6 +33,9 @@ def promote_pathstring(path: str | pathlib.Path):
     return path
   return pathlib.Path(path).absolute()
 
+# (ruleId, message text, decoded result), e.g. ("DATATYPE", "DT.Struct", DataTypeResult(...))
+Record = Tuple[str, str, BasicResult]
+
 @dataclass
 class SingletonSearchResult:
   dtr: DataTypeResult
@@ -46,11 +49,13 @@ class Project(object):
                paths: Iterable[str] | Iterable[pathlib.Path] | None = None, 
                raw_objects: Iterable[Any] | None = None,
                objects: Iterable[Any] | None = None,
+               records: Iterable[Record] | None = None,
                cache_objects: bool = False,
                cache_path: str | None = None):
     self.paths: List[pathlib.Path] = list()
     self.raw_objects = None
     self.objects = None
+    self.records: List[Record] | None = None
     if path:
       self.paths = [promote_pathstring(path)]
     elif paths:
@@ -59,6 +64,8 @@ class Project(object):
       self.raw_objects = raw_objects
     elif objects:
       self.objects = objects
+    elif records is not None:
+      self.records = list(records)
     else:
       raise Exception()
     self.db_sym = SymbolDatabase()
@@ -66,9 +73,21 @@ class Project(object):
     self.db_defineddata: Dict[int, DefinedDataResult] = {}
     self.db_datatype: Dict[str, BasicDataTypeResult] = {}
     self.db_function: Dict[str | int, FunctionResult] = {}
-    self.cache_path: pathlib.Path = pathlib.Path(cache_path)
+    self.cache_path: pathlib.Path | None = pathlib.Path(cache_path) if cache_path else None
     self.counts = {'total': 0, 'member': 0, 'class': 0, 'namespace': 0, 'unknown': 0}
     self.cache_raw_objects = cache_objects
+
+  @staticmethod
+  def from_gzf(path: str | pathlib.Path) -> "Project":
+    """A project read from a Ghidra .gzf file with pyghidra (pip install "skink[ghidra]"), no SARIF export needed."""
+    from skink.ghidra import read_gzf
+    return Project(records=read_gzf(path))
+
+  @staticmethod
+  def from_program(program) -> "Project":
+    """A project read from a Ghidra Program, e.g. currentProgram in a pyghidra script."""
+    from skink.ghidra import read_program
+    return Project(records=read_program(program))
 
   def save_project(self, path: str | pathlib.Path):
     items = list(obj for obj in self.yield_raw_objects())
@@ -97,6 +116,8 @@ class Project(object):
   def yield_raw_objects(self) -> Generator[Any]:
     if self.raw_objects:
       yield from self.raw_objects
+    elif self.records is not None:
+      raise Exception("a project made from records has no raw objects")
     elif self.objects:
       raise Exception("rawify-ing parsed objects to raw objects, probably not what you want")
       for obj in self.yield_objects():
@@ -119,6 +140,9 @@ class Project(object):
   def yield_objects(self, debug=False) -> Generator[BasicResult]:
     if self.objects:
       yield from self.objects
+    elif self.records is not None:
+      for _, _, obj in self.records:
+        yield obj
     else:
       with DECODE_RESULT_STATE as s:
         if self.cache_raw_objects:
@@ -136,8 +160,37 @@ class Project(object):
               log(logging.DEBUG, obj)
             yield decode_result(obj)
 
-  def _build_database_symbols_meta(self, obj, plan: DatabasePlan):
-    sr: SymbolResult = SymbolResult.from_dict(obj) # type: ignore
+  def _record_class(self, ruleId: str, subtype: str):
+    if ruleId == "SYMBOLS":
+      return SymbolResult
+    if ruleId == "DATATYPE":
+      return self.DATATYPE_MAPPING.get(subtype)
+    if ruleId == "DEFINED_DATA":
+      return DefinedDataResult
+    if ruleId == "FUNCTIONS":
+      return FunctionResult
+    return None
+
+  def yield_records(self, ruleIds: Iterable[str] | None = None) -> Generator[Record]:
+    """
+    Yields (ruleId, subtype, result) for the results the database is built from, in file order.
+    Only results with one of the ruleIds (default: all) are decoded.
+    """
+    if self.records is not None:
+      for record in self.records:
+        if (ruleIds is None or record[0] in ruleIds) and self._record_class(record[0], record[1]):
+          yield record
+      return
+    for obj in self.yield_raw_objects():
+      ruleId = obj['ruleId']
+      if ruleIds is not None and ruleId not in ruleIds:
+        continue
+      subtype = obj.get('message', {}).get('text', '')
+      cls = self._record_class(ruleId, subtype)
+      if cls:
+        yield ruleId, subtype, cls.from_dict(obj) # type: ignore
+
+  def _build_database_symbols_meta(self, sr: SymbolResult, plan: DatabasePlan):
     if not plan.filter(sr):
       return
     n = sr.properties.additionalProperties.name
@@ -149,14 +202,13 @@ class Project(object):
       else:
         self.db_meta[f"{l}{n}"] = sr
 
-  def _build_database_symbols(self, obj, plan: SymbolsDatabasePlan):
+  def _build_database_symbols(self, sr: SymbolResult, plan: SymbolsDatabasePlan):
     prefix = plan.prefix
     drop_submembers = plan.drop_submembers
     permit_overwrite = plan.permit_overwrite
     store_symbol_result = plan.store_symbol_result
     include_zero_address = plan.include_zero_address
 
-    sr: SymbolResult = SymbolResult.from_dict(obj) # type: ignore
     if not plan.filter(sr):
       return
 #         log(logging.DEBUG, sr)
@@ -198,24 +250,19 @@ class Project(object):
       else:
         self.counts['unknown'] += 1
 
-  def _build_database_datatype(self, obj, plan: DatatypeDatabasePlan):
-    subtype = obj['message']['text']
-    if subtype in self.DATATYPE_MAPPING:
-      x: BasicDataTypeResult = self.DATATYPE_MAPPING[subtype].from_dict(obj)
+  def _build_database_datatype(self, x: BasicDataTypeResult, plan: DatatypeDatabasePlan):
+    if not plan.filter(x):
+      return
+    loc = x.properties.additionalProperties.location
+    name = x.properties.additionalProperties.name
+    full_loc = loc_name_to_location(loc, name)
+    assert full_loc[0] == "/"
+    self.db_datatype[full_loc] = x
+    rewritten_loc = plan.location_rewriter(full_loc)
+    if rewritten_loc != full_loc:
+      self.db_datatype[rewritten_loc] = x
 
-      if not plan.filter(x):
-        return
-      loc = x.properties.additionalProperties.location
-      name = x.properties.additionalProperties.name
-      full_loc = loc_name_to_location(loc, name)
-      assert full_loc[0] == "/"
-      self.db_datatype[full_loc] = x
-      rewritten_loc = plan.location_rewriter(full_loc)
-      if rewritten_loc != full_loc:
-        self.db_datatype[rewritten_loc] = x
-
-  def _build_database_defineddata(self, obj, plan: DefineddataDatabasePlan):
-    ddr: DefinedDataResult = DefinedDataResult.from_dict(obj) # type: ignore
+  def _build_database_defineddata(self, ddr: DefinedDataResult, plan: DefineddataDatabasePlan):
     if not plan.filter(ddr):
       return
     for l in ddr.locations:
@@ -223,8 +270,7 @@ class Project(object):
       if absolute_address:
         self.db_defineddata[absolute_address] = ddr
 
-  def _build_database_function(self, obj, plan: DatabasePlan):
-    fr : FunctionResult = FunctionResult.from_dict(obj)
+  def _build_database_function(self, fr: FunctionResult, plan: DatabasePlan):
     if not plan.filter(fr):
       return
     ns_parts = [n for n in [fr.properties.additionalProperties.namespace, fr.properties.additionalProperties.name] if n]
@@ -271,16 +317,12 @@ class Project(object):
                                                                                  plan_datatype,
                                                                                  plan_function] if plan}
     ruleIds = plan_ruleId_index.keys()
-    for obj in self.yield_raw_objects():
+    for ruleId, subtype, obj in self.yield_records(ruleIds):
       progress_i += 1
       if log_progress:
         if progress_i % log_progress == 0:
           logging.log(logging.DEBUG, f"progress:\t{progress_i}")
 
-      ruleId = obj['ruleId']
-      if ruleId not in ruleIds:
-        continue
-      
       if ruleId == "SYMBOLS":
         self._build_database_symbols(obj, plan_symbols)
         if plan_symbols.meta:
